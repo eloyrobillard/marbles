@@ -387,6 +387,8 @@ int main(int argc, char **argv) {
       tPhysics += game->physicsDeltaTime;
     }
 
+    const double alpha = physicsTimeAccumulator / game->physicsDeltaTime;
+
     game->Tick(elapsedTime);
 
     // event loop

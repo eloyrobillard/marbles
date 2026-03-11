@@ -14,13 +14,13 @@ include_directories(lib/SDL2-2.0.3/include)
 include_directories(tmpl8)
 
 add_library(freeimg SHARED IMPORTED)
-set_property(TARGET freeimg PROPERTY IMPORTED_IMPLIB C:/Users/eloyr/Projects/C++\ Fast\ Track\ for\ Games\ Programming/marbles/lib/FreeImage/lib64/freeimage.lib)
+set_property(TARGET freeimg PROPERTY IMPORTED_IMPLIB C:/Users/eloyr/Projects/marbles/lib/FreeImage/lib64/freeimage.lib)
 
 add_library(SDL2 SHARED IMPORTED)
 add_library(SDL2main SHARED IMPORTED)
-set_property(TARGET SDL2 PROPERTY IMPORTED_LOCATION C:/Users/eloyr/Projects/C++\ Fast\ Track\ for\ Games\ Programming/marbles/lib/SDL2-2.0.3/lib/x64/SDL2.dll)
-set_property(TARGET SDL2 PROPERTY IMPORTED_IMPLIB C:/Users/eloyr/Projects/C++\ Fast\ Track\ for\ Games\ Programming/marbles/lib/SDL2-2.0.3/lib/x64/SDL2.lib)
-set_property(TARGET SDL2main PROPERTY IMPORTED_IMPLIB C:/Users/eloyr/Projects/C++\ Fast\ Track\ for\ Games\ Programming/marbles/lib/SDL2-2.0.3/lib/x64/SDL2main.lib)
+set_property(TARGET SDL2 PROPERTY IMPORTED_LOCATION C:/Users/eloyr/Projects/marbles/lib/SDL2-2.0.3/lib/x64/SDL2.dll)
+set_property(TARGET SDL2 PROPERTY IMPORTED_IMPLIB C:/Users/eloyr/Projects/marbles/lib/SDL2-2.0.3/lib/x64/SDL2.lib)
+set_property(TARGET SDL2main PROPERTY IMPORTED_IMPLIB C:/Users/eloyr/Projects/marbles/lib/SDL2-2.0.3/lib/x64/SDL2main.lib)
 
 # Create your game executable target as usual
 add_executable(marbles
@@ -95,16 +95,10 @@ add_executable(marbles
         lib/SDL2-2.0.3/include/SDL_video.h
         tmpl8/surface.cpp
         tmpl8/surface.h
-        tmpl8/tank.cpp
-        tmpl8/tank.h
         tmpl8/template.cpp
         tmpl8/template.h
-        tmpl8/tilemap.h
-        tmpl8/tilemap.cpp
         game.cpp
         game.h
-        game.cpp
-        game.cpp
 )
 
 target_link_libraries(marbles freeimg)

@@ -1,255 +1,243 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\tmpl8\surface.cpp">
+    <ClCompile Include="C:\Users\eloyr\Projects\marbles\tmpl8\surface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\tmpl8\tank.cpp">
+    <ClCompile Include="C:\Users\eloyr\Projects\marbles\tmpl8\template.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\tmpl8\template.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\tmpl8\tilemap.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\game.cpp">
+    <ClCompile Include="C:\Users\eloyr\Projects\marbles\game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\FreeImage\inc\FreeImage.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\FreeImage\inc\FreeImage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\OpenGL\gl.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\OpenGL\gl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\OpenGL\glew.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\OpenGL\glew.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\OpenGL\wglew.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\OpenGL\wglew.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\OpenGL\wglext.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\OpenGL\wglext.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\begin_code.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\begin_code.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\close_code.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\close_code.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_assert.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_assert.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_atomic.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_atomic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_audio.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_audio.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_bits.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_bits.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_blendmode.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_blendmode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_clipboard.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_clipboard.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_config.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_cpuinfo.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_cpuinfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_endian.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_endian.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_error.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_error.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_events.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_events.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_filesystem.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_filesystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_gamecontroller.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_gamecontroller.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_gesture.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_gesture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_haptic.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_haptic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_hints.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_hints.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_joystick.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_joystick.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_keyboard.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_keyboard.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_keycode.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_keycode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_loadso.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_loadso.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_log.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_main.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_main.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_messagebox.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_messagebox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_mouse.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_mouse.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_mutex.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_mutex.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_name.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_name.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_opengl.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_opengl.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_opengles.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_opengles.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_opengles2.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_opengles2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_pixels.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_pixels.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_platform.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_platform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_power.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_power.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_quit.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_quit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_rect.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_rect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_render.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_render.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_revision.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_revision.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_rwops.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_rwops.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_scancode.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_scancode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_shape.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_shape.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_stdinc.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_stdinc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_surface.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_surface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_system.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_syswm.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_syswm.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_test.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_test.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_test_assert.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_test_assert.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_test_common.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_test_common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_test_compare.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_test_compare.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_test_crc32.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_test_crc32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_test_font.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_test_font.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_test_fuzzer.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_test_fuzzer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_test_harness.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_test_harness.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_test_images.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_test_images.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_test_log.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_test_log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_test_md5.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_test_md5.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_test_random.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_test_random.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_thread.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_thread.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_timer.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_timer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_touch.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_touch.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_types.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_version.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_version.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\lib\SDL2-2.0.3\include\SDL_video.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_video.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\tmpl8\surface.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\tmpl8\surface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\tmpl8\tank.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\tmpl8\template.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\tmpl8\template.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\tmpl8\tilemap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\game.h">
+    <ClInclude Include="C:\Users\eloyr\Projects\marbles\game.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\CMakeLists.txt" />
+    <CustomBuild Include="C:\Users\eloyr\Projects\marbles\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
-      <UniqueIdentifier>{4FF922B3-4F95-3912-A022-49758B9BA8FD}</UniqueIdentifier>
+      <UniqueIdentifier>{9AAC425C-B94F-3798-9587-DA61D3C572D9}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files">
-      <UniqueIdentifier>{5645A314-844E-3EA2-B23B-51FFD0E118E7}</UniqueIdentifier>
+      <UniqueIdentifier>{D7243B0C-9434-3655-9EF4-94B4F0A1089B}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
