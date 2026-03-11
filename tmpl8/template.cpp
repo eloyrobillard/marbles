@@ -387,6 +387,8 @@ int main(int argc, char **argv) {
       tPhysics += game->physicsDeltaTime;
     }
 
+    // NOTE: use to lerp between previous and next physics state
+    // See: https://www.gafferongames.com/post/fix_your_timestep/
     const double alpha = physicsTimeAccumulator / game->physicsDeltaTime;
 
     game->Tick(elapsedTime);
