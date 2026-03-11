@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="18.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\eloyr\Projects\C++ Fast Track for Games Programming\loops\CMakeFiles\bd221ad77428426ccb597a1447777758\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{FB9FBA65-7FB6-3C94-BC24-247431EE116B}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

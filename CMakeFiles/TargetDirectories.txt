@@ -1,0 +1,3 @@
+C:/Users/eloyr/Projects/C++ Fast Track for Games Programming/loops/CMakeFiles/loops.dir
+C:/Users/eloyr/Projects/C++ Fast Track for Games Programming/loops/CMakeFiles/ALL_BUILD.dir
+C:/Users/eloyr/Projects/C++ Fast Track for Games Programming/loops/CMakeFiles/ZERO_CHECK.dir
