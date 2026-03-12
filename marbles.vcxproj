@@ -90,7 +90,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\eloyr\Projects\marbles\.;C:\Users\eloyr\Projects\marbles\lib;C:\Users\eloyr\Projects\marbles\lib\FreeImage;C:\Users\eloyr\Projects\marbles\lib\FreeImage\inc;C:\Users\eloyr\Projects\marbles\lib\OpenGL;C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3;C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include;C:\Users\eloyr\Projects\marbles\tmpl8;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\eloyr\Projects\marbles\lib\rapidjson;C:\Users\eloyr\Projects\marbles\.;C:\Users\eloyr\Projects\marbles\lib;C:\Users\eloyr\Projects\marbles\lib\FreeImage;C:\Users\eloyr\Projects\marbles\lib\FreeImage\inc;C:\Users\eloyr\Projects\marbles\lib\OpenGL;C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3;C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include;C:\Users\eloyr\Projects\marbles\tmpl8;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <BufferSecurityCheck>
