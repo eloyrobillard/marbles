@@ -1,6 +1,6 @@
 /*
 ** The OpenGL Extension Wrangler Library
-** Copyright (C) 2008-2025, Nigel Stewart <nigels[]nigels com>
+** Copyright (C) 2008-2017, Nigel Stewart <nigels[]users sourceforge net>
 ** Copyright (C) 2002-2008, Milan Ikits <milan ikits[]ieee org>
 ** Copyright (C) 2002-2008, Marcelo E. Magallon <mmagallo[]debian org>
 ** Copyright (C) 2002, Lev Povalahev
@@ -81,7 +81,7 @@
 #define __glew_h__
 #define __GLEW_H__
 
-#if defined(__gl_h_) || defined(__GL_H__) || defined(_GL_H) || defined(__gl_gl_h_) || defined(__X_GL_H)
+#if defined(__gl_h_) || defined(__GL_H__) || defined(_GL_H) || defined(__X_GL_H)
 #error gl.h included before glew.h
 #endif
 #if defined(__gl2_h_)
@@ -93,7 +93,7 @@
 #if defined(__REGAL_H__)
 #error Regal.h included before glew.h
 #endif
-#if defined(__glext_h_) || defined(__GLEXT_H_) || defined(__gl_glext_h_)
+#if defined(__glext_h_) || defined(__GLEXT_H_)
 #error glext.h included before glew.h
 #endif
 #if defined(__gl_ATI_h_)
@@ -104,13 +104,11 @@
 #define __gl2_h_
 #define __GL_H__
 #define _GL_H
-#define __gl_gl_h_
 #define __gltypes_h_
 #define __REGAL_H__
 #define __X_GL_H
 #define __glext_h_
 #define __GLEXT_H_
-#define __gl_glext_h_
 #define __gl_ATI_h_
 
 #if defined(_WIN32)
@@ -140,6 +138,11 @@
 #    endif
 #  else
 #    define APIENTRY
+#  endif
+#endif
+#ifndef GLAPI
+#  if defined(__MINGW32__) || defined(__CYGWIN__)
+#    define GLAPI extern
 #  endif
 #endif
 /* <winnt.h> */
@@ -215,27 +218,15 @@ typedef _W64 int ptrdiff_t;
  * (mem, 2004-01-04)
  */
 
-#if defined(__APPLE__) || defined(__linux__)
-/* GCC12 errors out when including <cstdint> with __cplusplus < 201103L */
-#  if defined(__cplusplus) && __cplusplus >= 201103L
-#    include <cstddef>
-#    include <cstdint>
-#  else
-#    include <stddef.h>
-#    include <stdint.h>
-#  endif
-#else
-
-# include <stddef.h>
+#include <stddef.h>
 
 /* SGI MIPSPro doesn't like stdint.h in C++ mode          */
 /* ID: 3376260 Solaris 9 has inttypes.h, but not stdint.h */
 
-#  if (defined(__sgi) || defined(__sun)) && !defined(__GNUC__)
-#    include <inttypes.h>
-#  else
-#    include <stdint.h>
-#  endif
+#if (defined(__sgi) || defined(__sun)) && !defined(__GNUC__)
+#include <inttypes.h>
+#else
+#include <stdint.h>
 #endif
 
 #define GLEW_APIENTRY_DEFINED
@@ -318,8 +309,6 @@ typedef GLuint64EXT GLuint64;
 typedef struct __GLsync *GLsync;
 
 typedef char GLchar;
-
-typedef void *GLeglImageOES; /* GL_EXT_EGL_image_storage */
 
 #define GL_ZERO 0
 #define GL_FALSE 0
@@ -1856,7 +1845,7 @@ typedef GLboolean (GLAPIENTRY * PFNGLISPROGRAMPROC) (GLuint program);
 typedef GLboolean (GLAPIENTRY * PFNGLISSHADERPROC) (GLuint shader);
 typedef void (GLAPIENTRY * PFNGLLINKPROGRAMPROC) (GLuint program);
 typedef void (GLAPIENTRY * PFNGLSHADERSOURCEPROC) (GLuint shader, GLsizei count, const GLchar *const* string, const GLint* length);
-typedef void (GLAPIENTRY * PFNGLSTENCILFUNCSEPARATEPROC) (GLenum face, GLenum func, GLint ref, GLuint mask);
+typedef void (GLAPIENTRY * PFNGLSTENCILFUNCSEPARATEPROC) (GLenum frontfunc, GLenum backfunc, GLint ref, GLuint mask);
 typedef void (GLAPIENTRY * PFNGLSTENCILMASKSEPARATEPROC) (GLenum face, GLuint mask);
 typedef void (GLAPIENTRY * PFNGLSTENCILOPSEPARATEPROC) (GLenum face, GLenum sfail, GLenum dpfail, GLenum dppass);
 typedef void (GLAPIENTRY * PFNGLUNIFORM1FPROC) (GLint location, GLfloat v0);
@@ -2657,7 +2646,7 @@ typedef void (GLAPIENTRY *GLDEBUGPROCAMD)(GLuint id, GLenum category, GLenum sev
 typedef void (GLAPIENTRY * PFNGLDEBUGMESSAGECALLBACKAMDPROC) (GLDEBUGPROCAMD callback, void *userParam);
 typedef void (GLAPIENTRY * PFNGLDEBUGMESSAGEENABLEAMDPROC) (GLenum category, GLenum severity, GLsizei count, const GLuint* ids, GLboolean enabled);
 typedef void (GLAPIENTRY * PFNGLDEBUGMESSAGEINSERTAMDPROC) (GLenum category, GLenum severity, GLuint id, GLsizei length, const GLchar* buf);
-typedef GLuint (GLAPIENTRY * PFNGLGETDEBUGMESSAGELOGAMDPROC) (GLuint count, GLsizei bufsize, GLenum* categories, GLenum* severities, GLuint* ids, GLsizei* lengths, GLchar* message);
+typedef GLuint (GLAPIENTRY * PFNGLGETDEBUGMESSAGELOGAMDPROC) (GLuint count, GLsizei bufsize, GLenum* categories, GLuint* severities, GLuint* ids, GLsizei* lengths, GLchar* message);
 
 #define glDebugMessageCallbackAMD GLEW_GET_FUN(__glewDebugMessageCallbackAMD)
 #define glDebugMessageEnableAMD GLEW_GET_FUN(__glewDebugMessageEnableAMD)
@@ -2698,28 +2687,6 @@ typedef void (GLAPIENTRY * PFNGLBLENDFUNCSEPARATEINDEXEDAMDPROC) (GLuint buf, GL
 #define GLEW_AMD_draw_buffers_blend GLEW_GET_VAR(__GLEW_AMD_draw_buffers_blend)
 
 #endif /* GL_AMD_draw_buffers_blend */
-
-/* ---------------- GL_AMD_framebuffer_multisample_advanced ---------------- */
-
-#ifndef GL_AMD_framebuffer_multisample_advanced
-#define GL_AMD_framebuffer_multisample_advanced 1
-
-#define GL_RENDERBUFFER_STORAGE_SAMPLES_AMD 0x91B2
-#define GL_MAX_COLOR_FRAMEBUFFER_SAMPLES_AMD 0x91B3
-#define GL_MAX_COLOR_FRAMEBUFFER_STORAGE_SAMPLES_AMD 0x91B4
-#define GL_MAX_DEPTH_STENCIL_FRAMEBUFFER_SAMPLES_AMD 0x91B5
-#define GL_NUM_SUPPORTED_MULTISAMPLE_MODES_AMD 0x91B6
-#define GL_SUPPORTED_MULTISAMPLE_MODES_AMD 0x91B7
-
-typedef void (GLAPIENTRY * PFNGLNAMEDRENDERBUFFERSTORAGEMULTISAMPLEADVANCEDAMDPROC) (GLuint renderbuffer, GLsizei samples, GLsizei storageSamples, GLenum internalformat, GLsizei width, GLsizei height);
-typedef void (GLAPIENTRY * PFNGLRENDERBUFFERSTORAGEMULTISAMPLEADVANCEDAMDPROC) (GLenum target, GLsizei samples, GLsizei storageSamples, GLenum internalformat, GLsizei width, GLsizei height);
-
-#define glNamedRenderbufferStorageMultisampleAdvancedAMD GLEW_GET_FUN(__glewNamedRenderbufferStorageMultisampleAdvancedAMD)
-#define glRenderbufferStorageMultisampleAdvancedAMD GLEW_GET_FUN(__glewRenderbufferStorageMultisampleAdvancedAMD)
-
-#define GLEW_AMD_framebuffer_multisample_advanced GLEW_GET_VAR(__GLEW_AMD_framebuffer_multisample_advanced)
-
-#endif /* GL_AMD_framebuffer_multisample_advanced */
 
 /* ------------------ GL_AMD_framebuffer_sample_positions ------------------ */
 
@@ -2776,45 +2743,6 @@ typedef void (GLAPIENTRY * PFNGLNAMEDFRAMEBUFFERSAMPLEPOSITIONSFVAMDPROC) (GLuin
 #define GLEW_AMD_gpu_shader_half_float GLEW_GET_VAR(__GLEW_AMD_gpu_shader_half_float)
 
 #endif /* GL_AMD_gpu_shader_half_float */
-
-/* ------------------- GL_AMD_gpu_shader_half_float_fetch ------------------ */
-
-#ifndef GL_AMD_gpu_shader_half_float_fetch
-#define GL_AMD_gpu_shader_half_float_fetch 1
-
-#define GL_FLOAT16_SAMPLER_1D_AMD 0x91CE
-#define GL_FLOAT16_SAMPLER_2D_AMD 0x91CF
-#define GL_FLOAT16_SAMPLER_3D_AMD 0x91D0
-#define GL_FLOAT16_SAMPLER_CUBE_AMD 0x91D1
-#define GL_FLOAT16_SAMPLER_2D_RECT_AMD 0x91D2
-#define GL_FLOAT16_SAMPLER_1D_ARRAY_AMD 0x91D3
-#define GL_FLOAT16_SAMPLER_2D_ARRAY_AMD 0x91D4
-#define GL_FLOAT16_SAMPLER_CUBE_MAP_ARRAY_AMD 0x91D5
-#define GL_FLOAT16_SAMPLER_BUFFER_AMD 0x91D6
-#define GL_FLOAT16_SAMPLER_2D_MULTISAMPLE_AMD 0x91D7
-#define GL_FLOAT16_SAMPLER_2D_MULTISAMPLE_ARRAY_AMD 0x91D8
-#define GL_FLOAT16_SAMPLER_1D_SHADOW_AMD 0x91D9
-#define GL_FLOAT16_SAMPLER_2D_SHADOW_AMD 0x91DA
-#define GL_FLOAT16_SAMPLER_2D_RECT_SHADOW_AMD 0x91DB
-#define GL_FLOAT16_SAMPLER_1D_ARRAY_SHADOW_AMD 0x91DC
-#define GL_FLOAT16_SAMPLER_2D_ARRAY_SHADOW_AMD 0x91DD
-#define GL_FLOAT16_SAMPLER_CUBE_SHADOW_AMD 0x91DE
-#define GL_FLOAT16_SAMPLER_CUBE_MAP_ARRAY_SHADOW_AMD 0x91DF
-#define GL_FLOAT16_IMAGE_1D_AMD 0x91E0
-#define GL_FLOAT16_IMAGE_2D_AMD 0x91E1
-#define GL_FLOAT16_IMAGE_3D_AMD 0x91E2
-#define GL_FLOAT16_IMAGE_2D_RECT_AMD 0x91E3
-#define GL_FLOAT16_IMAGE_CUBE_AMD 0x91E4
-#define GL_FLOAT16_IMAGE_1D_ARRAY_AMD 0x91E5
-#define GL_FLOAT16_IMAGE_2D_ARRAY_AMD 0x91E6
-#define GL_FLOAT16_IMAGE_CUBE_MAP_ARRAY_AMD 0x91E7
-#define GL_FLOAT16_IMAGE_BUFFER_AMD 0x91E8
-#define GL_FLOAT16_IMAGE_2D_MULTISAMPLE_AMD 0x91E9
-#define GL_FLOAT16_IMAGE_2D_MULTISAMPLE_ARRAY_AMD 0x91EA
-
-#define GLEW_AMD_gpu_shader_half_float_fetch GLEW_GET_VAR(__GLEW_AMD_gpu_shader_half_float_fetch)
-
-#endif /* GL_AMD_gpu_shader_half_float_fetch */
 
 /* ------------------------ GL_AMD_gpu_shader_int16 ------------------------ */
 
@@ -3043,15 +2971,6 @@ typedef void (GLAPIENTRY * PFNGLSETMULTISAMPLEFVAMDPROC) (GLenum pname, GLuint i
 #define GLEW_AMD_shader_explicit_vertex_parameter GLEW_GET_VAR(__GLEW_AMD_shader_explicit_vertex_parameter)
 
 #endif /* GL_AMD_shader_explicit_vertex_parameter */
-
-/* ------------------- GL_AMD_shader_image_load_store_lod ------------------ */
-
-#ifndef GL_AMD_shader_image_load_store_lod
-#define GL_AMD_shader_image_load_store_lod 1
-
-#define GLEW_AMD_shader_image_load_store_lod GLEW_GET_VAR(__GLEW_AMD_shader_image_load_store_lod)
-
-#endif /* GL_AMD_shader_image_load_store_lod */
 
 /* ---------------------- GL_AMD_shader_stencil_export --------------------- */
 
@@ -4426,7 +4345,7 @@ typedef GLenum (GLAPIENTRY * PFNGLCHECKNAMEDFRAMEBUFFERSTATUSPROC) (GLuint frame
 typedef void (GLAPIENTRY * PFNGLCLEARNAMEDBUFFERDATAPROC) (GLuint buffer, GLenum internalformat, GLenum format, GLenum type, const void *data);
 typedef void (GLAPIENTRY * PFNGLCLEARNAMEDBUFFERSUBDATAPROC) (GLuint buffer, GLenum internalformat, GLintptr offset, GLsizeiptr size, GLenum format, GLenum type, const void *data);
 typedef void (GLAPIENTRY * PFNGLCLEARNAMEDFRAMEBUFFERFIPROC) (GLuint framebuffer, GLenum buffer, GLint drawbuffer, GLfloat depth, GLint stencil);
-typedef void (GLAPIENTRY * PFNGLCLEARNAMEDFRAMEBUFFERFVPROC) (GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLfloat* value);
+typedef void (GLAPIENTRY * PFNGLCLEARNAMEDFRAMEBUFFERFVPROC) (GLuint framebuffer, GLenum buffer, GLint drawbuffer, GLfloat* value);
 typedef void (GLAPIENTRY * PFNGLCLEARNAMEDFRAMEBUFFERIVPROC) (GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLint* value);
 typedef void (GLAPIENTRY * PFNGLCLEARNAMEDFRAMEBUFFERUIVPROC) (GLuint framebuffer, GLenum buffer, GLint drawbuffer, const GLuint* value);
 typedef void (GLAPIENTRY * PFNGLCOMPRESSEDTEXTURESUBIMAGE1DPROC) (GLuint texture, GLint level, GLint xoffset, GLsizei width, GLenum format, GLsizei imageSize, const void *data);
@@ -4675,10 +4594,10 @@ typedef void (GLAPIENTRY * PFNGLBLENDFUNCIARBPROC) (GLuint buf, GLenum src, GLen
 #ifndef GL_ARB_draw_elements_base_vertex
 #define GL_ARB_draw_elements_base_vertex 1
 
-typedef void (GLAPIENTRY * PFNGLDRAWELEMENTSBASEVERTEXPROC) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLint basevertex);
-typedef void (GLAPIENTRY * PFNGLDRAWELEMENTSINSTANCEDBASEVERTEXPROC) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei instancecount, GLint basevertex);
-typedef void (GLAPIENTRY * PFNGLDRAWRANGEELEMENTSBASEVERTEXPROC) (GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, const void *indices, GLint basevertex);
-typedef void (GLAPIENTRY * PFNGLMULTIDRAWELEMENTSBASEVERTEXPROC) (GLenum mode, const GLsizei* count, GLenum type, const void*const *indices, GLsizei drawcount, const GLint *basevertex);
+typedef void (GLAPIENTRY * PFNGLDRAWELEMENTSBASEVERTEXPROC) (GLenum mode, GLsizei count, GLenum type, void *indices, GLint basevertex);
+typedef void (GLAPIENTRY * PFNGLDRAWELEMENTSINSTANCEDBASEVERTEXPROC) (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei primcount, GLint basevertex);
+typedef void (GLAPIENTRY * PFNGLDRAWRANGEELEMENTSBASEVERTEXPROC) (GLenum mode, GLuint start, GLuint end, GLsizei count, GLenum type, void *indices, GLint basevertex);
+typedef void (GLAPIENTRY * PFNGLMULTIDRAWELEMENTSBASEVERTEXPROC) (GLenum mode, GLsizei* count, GLenum type, void**indices, GLsizei primcount, GLint *basevertex);
 
 #define glDrawElementsBaseVertex GLEW_GET_FUN(__glewDrawElementsBaseVertex)
 #define glDrawElementsInstancedBaseVertex GLEW_GET_FUN(__glewDrawElementsInstancedBaseVertex)
@@ -6207,11 +6126,9 @@ typedef void (GLAPIENTRY * PFNGLREADNPIXELSARBPROC) (GLint x, GLint y, GLsizei w
 #define GL_FRAMEBUFFER_PROGRAMMABLE_SAMPLE_LOCATIONS_ARB 0x9342
 #define GL_FRAMEBUFFER_SAMPLE_LOCATION_PIXEL_GRID_ARB 0x9343
 
-typedef void (GLAPIENTRY * PFNGLEVALUATEDEPTHVALUESARBPROC) (void);
 typedef void (GLAPIENTRY * PFNGLFRAMEBUFFERSAMPLELOCATIONSFVARBPROC) (GLenum target, GLuint start, GLsizei count, const GLfloat* v);
 typedef void (GLAPIENTRY * PFNGLNAMEDFRAMEBUFFERSAMPLELOCATIONSFVARBPROC) (GLuint framebuffer, GLuint start, GLsizei count, const GLfloat* v);
 
-#define glEvaluateDepthValuesARB GLEW_GET_FUN(__glewEvaluateDepthValuesARB)
 #define glFramebufferSampleLocationsfvARB GLEW_GET_FUN(__glewFramebufferSampleLocationsfvARB)
 #define glNamedFramebufferSampleLocationsfvARB GLEW_GET_FUN(__glewNamedFramebufferSampleLocationsfvARB)
 
@@ -8553,27 +8470,6 @@ typedef void (GLAPIENTRY * PFNGLWINDOWPOS3SVARBPROC) (const GLshort* p);
 
 #endif /* GL_ARM_rgba8 */
 
-/* --------------------- GL_ARM_shader_core_properties --------------------- */
-
-#ifndef GL_ARM_shader_core_properties
-#define GL_ARM_shader_core_properties 1
-
-#define GL_SHADER_CORE_COUNT_ARM 0x96F0
-#define GL_SHADER_CORE_ACTIVE_COUNT_ARM 0x96F1
-#define GL_SHADER_CORE_PRESENT_MASK_ARM 0x96F2
-#define GL_SHADER_CORE_MAX_WARP_COUNT_ARM 0x96F3
-#define GL_SHADER_CORE_PIXEL_RATE_ARM 0x96F4
-#define GL_SHADER_CORE_TEXEL_RATE_ARM 0x96F5
-#define GL_SHADER_CORE_FMA_RATE_ARM 0x96F6
-
-typedef void (GLAPIENTRY * PFNGLMAXACTIVESHADERCORESARMPROC) (GLuint count);
-
-#define glMaxActiveShaderCoresARM GLEW_GET_FUN(__glewMaxActiveShaderCoresARM)
-
-#define GLEW_ARM_shader_core_properties GLEW_GET_VAR(__GLEW_ARM_shader_core_properties)
-
-#endif /* GL_ARM_shader_core_properties */
-
 /* -------------------- GL_ARM_shader_framebuffer_fetch -------------------- */
 
 #ifndef GL_ARM_shader_framebuffer_fetch
@@ -8594,17 +8490,6 @@ typedef void (GLAPIENTRY * PFNGLMAXACTIVESHADERCORESARMPROC) (GLuint count);
 #define GLEW_ARM_shader_framebuffer_fetch_depth_stencil GLEW_GET_VAR(__GLEW_ARM_shader_framebuffer_fetch_depth_stencil)
 
 #endif /* GL_ARM_shader_framebuffer_fetch_depth_stencil */
-
-/* ---------------- GL_ARM_texture_unnormalized_coordinates ---------------- */
-
-#ifndef GL_ARM_texture_unnormalized_coordinates
-#define GL_ARM_texture_unnormalized_coordinates 1
-
-#define GL_TEXTURE_UNNORMALIZED_COORDINATES_ARM 0x8F6A
-
-#define GLEW_ARM_texture_unnormalized_coordinates GLEW_GET_VAR(__GLEW_ARM_texture_unnormalized_coordinates)
-
-#endif /* GL_ARM_texture_unnormalized_coordinates */
 
 /* ------------------------- GL_ATIX_point_sprites ------------------------- */
 
@@ -9157,29 +9042,26 @@ typedef void (GLAPIENTRY * PFNGLVERTEXSTREAM4SVATIPROC) (GLenum stream, const GL
 
 #endif /* GL_ATI_vertex_streams */
 
-/* ------------------------- GL_DMP_program_binary ------------------------- */
+/* -------------------- GL_EGL_KHR_context_flush_control ------------------- */
 
-#ifndef GL_DMP_program_binary
-#define GL_DMP_program_binary 1
+#ifndef GL_EGL_KHR_context_flush_control
+#define GL_EGL_KHR_context_flush_control 1
 
-#define GL_SMAPHS30_PROGRAM_BINARY_DMP 0x9251
-#define GL_SMAPHS_PROGRAM_BINARY_DMP 0x9252
-#define GL_DMP_PROGRAM_BINARY_DMP 0x9253
+#define GLEW_EGL_KHR_context_flush_control GLEW_GET_VAR(__GLEW_EGL_KHR_context_flush_control)
 
-#define GLEW_DMP_program_binary GLEW_GET_VAR(__GLEW_DMP_program_binary)
+#endif /* GL_EGL_KHR_context_flush_control */
 
-#endif /* GL_DMP_program_binary */
+/* ---------------- GL_EGL_NV_robustness_video_memory_purge ---------------- */
 
-/* -------------------------- GL_DMP_shader_binary ------------------------- */
+#ifndef GL_EGL_NV_robustness_video_memory_purge
+#define GL_EGL_NV_robustness_video_memory_purge 1
 
-#ifndef GL_DMP_shader_binary
-#define GL_DMP_shader_binary 1
+#define GL_EGL_GENERATE_RESET_ON_VIDEO_MEMORY_PURGE_NV 0x334C
+#define GL_PURGED_CONTEXT_RESET_NV 0x92BB
 
-#define GL_SHADER_BINARY_DMP 0x9250
+#define GLEW_EGL_NV_robustness_video_memory_purge GLEW_GET_VAR(__GLEW_EGL_NV_robustness_video_memory_purge)
 
-#define GLEW_DMP_shader_binary GLEW_GET_VAR(__GLEW_DMP_shader_binary)
-
-#endif /* GL_DMP_shader_binary */
+#endif /* GL_EGL_NV_robustness_video_memory_purge */
 
 /* --------------------------- GL_EXT_422_pixels --------------------------- */
 
@@ -9215,52 +9097,6 @@ typedef void (GLAPIENTRY * PFNGLVERTEXSTREAM4SVATIPROC) (GLenum stream, const GL
 #define GLEW_EXT_EGL_image_array GLEW_GET_VAR(__GLEW_EXT_EGL_image_array)
 
 #endif /* GL_EXT_EGL_image_array */
-
-/* ------------------ GL_EXT_EGL_image_external_wrap_modes ----------------- */
-
-#ifndef GL_EXT_EGL_image_external_wrap_modes
-#define GL_EXT_EGL_image_external_wrap_modes 1
-
-#define GLEW_EXT_EGL_image_external_wrap_modes GLEW_GET_VAR(__GLEW_EXT_EGL_image_external_wrap_modes)
-
-#endif /* GL_EXT_EGL_image_external_wrap_modes */
-
-/* ------------------------ GL_EXT_EGL_image_storage ----------------------- */
-
-#ifndef GL_EXT_EGL_image_storage
-#define GL_EXT_EGL_image_storage 1
-
-typedef void (GLAPIENTRY * PFNGLEGLIMAGETARGETTEXSTORAGEEXTPROC) (GLenum target, GLeglImageOES image, const GLint* attrib_list);
-typedef void (GLAPIENTRY * PFNGLEGLIMAGETARGETTEXTURESTORAGEEXTPROC) (GLuint texture, GLeglImageOES image, const GLint* attrib_list);
-
-#define glEGLImageTargetTexStorageEXT GLEW_GET_FUN(__glewEGLImageTargetTexStorageEXT)
-#define glEGLImageTargetTextureStorageEXT GLEW_GET_FUN(__glewEGLImageTargetTextureStorageEXT)
-
-#define GLEW_EXT_EGL_image_storage GLEW_GET_VAR(__GLEW_EXT_EGL_image_storage)
-
-#endif /* GL_EXT_EGL_image_storage */
-
-/* ------------------ GL_EXT_EGL_image_storage_compression ----------------- */
-
-#ifndef GL_EXT_EGL_image_storage_compression
-#define GL_EXT_EGL_image_storage_compression 1
-
-#define GL_SURFACE_COMPRESSION_EXT 0x96C0
-#define GL_SURFACE_COMPRESSION_FIXED_RATE_NONE_EXT 0x96C1
-#define GL_SURFACE_COMPRESSION_FIXED_RATE_DEFAULT_EXT 0x96C2
-
-#define GLEW_EXT_EGL_image_storage_compression GLEW_GET_VAR(__GLEW_EXT_EGL_image_storage_compression)
-
-#endif /* GL_EXT_EGL_image_storage_compression */
-
-/* ---------------------------- GL_EXT_EGL_sync ---------------------------- */
-
-#ifndef GL_EXT_EGL_sync
-#define GL_EXT_EGL_sync 1
-
-#define GLEW_EXT_EGL_sync GLEW_GET_VAR(__GLEW_EXT_EGL_sync)
-
-#endif /* GL_EXT_EGL_sync */
 
 /* --------------------------- GL_EXT_YUV_target --------------------------- */
 
@@ -9470,8 +9306,10 @@ typedef void (GLAPIENTRY * PFNGLBLENDEQUATIONEXTPROC) (GLenum mode);
 #define GL_BUFFER_STORAGE_FLAGS_EXT 0x8220
 
 typedef void (GLAPIENTRY * PFNGLBUFFERSTORAGEEXTPROC) (GLenum target, GLsizeiptr size, const void *data, GLbitfield flags);
+typedef void (GLAPIENTRY * PFNGLNAMEDBUFFERSTORAGEEXTPROC) (GLuint buffer, GLsizeiptr size, const void *data, GLbitfield flags);
 
 #define glBufferStorageEXT GLEW_GET_FUN(__glewBufferStorageEXT)
+#define glNamedBufferStorageEXT GLEW_GET_FUN(__glewNamedBufferStorageEXT)
 
 #define GLEW_EXT_buffer_storage GLEW_GET_VAR(__GLEW_EXT_buffer_storage)
 
