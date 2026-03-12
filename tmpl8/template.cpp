@@ -11,7 +11,7 @@
 #endif
 
 // #define FULLSCREEN
-//  #define ADVANCEDGL
+#define ADVANCEDGL
 
 #include "../game.h"
 
@@ -65,16 +65,16 @@ vec3 normalize(const vec3 &v) { return v.normalized(); }
 vec3 cross(const vec3 &a, const vec3 &b) { return a.cross(b); }
 float dot(const vec3 &a, const vec3 &b) { return a.dot(b); }
 vec3 operator*(const float &s, const vec3 &v) {
-  return vec3(v.x * s, v.y * s, v.z * s);
+  return {v.x * s, v.y * s, v.z * s};
 }
 vec3 operator*(const vec3 &v, const float &s) {
-  return vec3(v.x * s, v.y * s, v.z * s);
+  return {v.x * s, v.y * s, v.z * s};
 }
 vec4 operator*(const float &s, const vec4 &v) {
-  return vec4(v.x * s, v.y * s, v.z * s, v.w * s);
+  return {v.x * s, v.y * s, v.z * s, v.w * s};
 }
 vec4 operator*(const vec4 &v, const float &s) {
-  return vec4(v.x * s, v.y * s, v.z * s, v.w * s);
+  return {v.x * s, v.y * s, v.z * s, v.w * s};
 }
 vec4 operator*(const vec4 &v, const mat4 &M) {
   vec4 mx(M.cell[0], M.cell[4], M.cell[8], M.cell[12]);
@@ -146,25 +146,25 @@ using namespace std;
 
 #ifdef ADVANCEDGL
 
-PFNGLGENBUFFERSPROC glGenBuffers = 0;
-PFNGLBINDBUFFERPROC glBindBuffer = 0;
-PFNGLBUFFERDATAPROC glBufferData = 0;
-PFNGLMAPBUFFERPROC glMapBuffer = 0;
-PFNGLUNMAPBUFFERPROC glUnmapBuffer = 0;
+PFNGLGENBUFFERSPROC glGenBuffers = nullptr;
+PFNGLBINDBUFFERPROC glBindBuffer = nullptr;
+PFNGLBUFFERDATAPROC glBufferData = nullptr;
+PFNGLMAPBUFFERPROC glMapBuffer = nullptr;
+PFNGLUNMAPBUFFERPROC glUnmapBuffer = nullptr;
 typedef BOOL(APIENTRY *PFNWGLSWAPINTERVALFARPROC)(int);
-PFNWGLSWAPINTERVALFARPROC wglSwapIntervalEXT = 0;
+PFNWGLSWAPINTERVALFARPROC wglSwapIntervalEXT = nullptr;
 unsigned int framebufferTexID[2];
 GLuint fbPBO[2];
-unsigned const char *framedata = 0;
+unsigned const char *framedata = nullptr;
 
 #endif
 
 int ACTWIDTH, ACTHEIGHT;
 static bool firstframe = true;
 
-Surface *surface = 0;
-Game *game = 0;
-SDL_Window *window = 0;
+Surface *surface = nullptr;
+Game *game = nullptr;
+SDL_Window *window = nullptr;
 
 #ifdef _MSC_VER
 bool redirectIO() {
@@ -202,14 +202,14 @@ bool createFBtexture() {
   glGenTextures(2, framebufferTexID);
   if (glGetError())
     return false;
-  for (int i = 0; i < 2; i++) {
-    glBindTexture(GL_TEXTURE_2D, framebufferTexID[i]);
+  for (unsigned int texID : framebufferTexID) {
+    glBindTexture(GL_TEXTURE_2D, texID);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ScreenWidth, ScreenHeight, 0,
-                 GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+                 GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
     glBindTexture(GL_TEXTURE_2D, 0);
     if (glGetError())
       return false;

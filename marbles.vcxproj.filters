@@ -230,9 +230,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="C:\Users\eloyr\Projects\marbles\CMakeLists.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <Filter Include="Header Files">
       <UniqueIdentifier>{9AAC425C-B94F-3798-9587-DA61D3C572D9}</UniqueIdentifier>
     </Filter>

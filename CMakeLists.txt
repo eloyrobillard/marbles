@@ -16,6 +16,12 @@ include_directories(tmpl8)
 add_library(freeimg SHARED IMPORTED)
 set_property(TARGET freeimg PROPERTY IMPORTED_IMPLIB C:/Users/eloyr/Projects/marbles/lib/FreeImage/lib64/freeimage.lib)
 
+find_package(OpenGL32 REQUIRED CONFIG REQUIRED COMPONENTS OpenGL32)
+
+add_library(glew SHARED IMPORTED)
+set_property(TARGET glew PROPERTY IMPORTED_LOCATION C:/Users/eloyr/Projects/marbles/dlls_x64/glew32.dll)
+set_property(TARGET glew PROPERTY IMPORTED_IMPLIB C:/Users/eloyr/Projects/marbles/lib/glew-2.3.1/lib/Release/x64/glew32s.lib)
+
 add_library(SDL2 SHARED IMPORTED)
 add_library(SDL2main SHARED IMPORTED)
 set_property(TARGET SDL2 PROPERTY IMPORTED_LOCATION C:/Users/eloyr/Projects/marbles/lib/SDL2-2.0.3/lib/x64/SDL2.dll)
@@ -102,6 +108,8 @@ add_executable(marbles
 )
 
 target_link_libraries(marbles freeimg)
+target_link_libraries(marbles OpenGL32)
+target_link_libraries(marbles glew)
 
 # SDL2::SDL2main may or may not be available. It is e.g. required by Windows GUI applications
 if(TARGET SDL2main)
