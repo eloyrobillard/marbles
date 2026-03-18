@@ -426,6 +426,7 @@
     <ClInclude Include="C:\Users\eloyr\Projects\marbles\tmpl8\template.h" />
     <ClCompile Include="C:\Users\eloyr\Projects\marbles\game.cpp" />
     <ClInclude Include="C:\Users\eloyr\Projects\marbles\game.h" />
+    <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
