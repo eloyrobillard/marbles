@@ -25,7 +25,7 @@ void Game::Init() {
     fprintf(stderr, "Error: %s\n", glewGetErrorString(status));
   }
 
-  fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+  printf("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
   SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
   glEnable(GL_DEPTH_TEST);

@@ -72,9 +72,9 @@ Mesh load(const std::string &filename) {
     indices.push_back(index[2].GetUint());
   }
 
-  GLuint vertexArray =
-      createVertexArray(static_cast<float *>(verts.data()), verts.size(),
-                        static_cast<uint *>(indices.data()), indices.size());
+  GLuint vertexArray = createVertexArray(
+      static_cast<float *>(verts.data()), vertsJSON.Size(),
+      static_cast<uint *>(indices.data()), indicesJSON.Size());
 
   mesh.verts = verts;
   mesh.indices = indices;
@@ -104,7 +104,7 @@ GLuint createVertexArray(const float *verts, uint numVerts, uint *indices,
   GLuint vertexBuffer = 0;
   glGenBuffers(1, &vertexBuffer);
   glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-  glBufferData(GL_ARRAY_BUFFER, numVerts * sizeof(float), verts,
+  glBufferData(GL_ARRAY_BUFFER, numVerts * 6 * sizeof(float), verts,
                GL_STATIC_DRAW);
 
   // Create index buffer
