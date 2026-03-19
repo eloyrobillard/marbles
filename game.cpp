@@ -31,7 +31,18 @@ void Game::Init() {
   glEnable(GL_DEPTH_TEST);
 
   ramp = Mesh::load("assets/basic_ramp.gpmesh");
+
+  if (!ramp.isValid) {
+    cerr << "Error: failed to load mesh";
+  }
+
   basicShader = Shader::load("shaders/basic.vert", "shaders/basic.frag");
+
+  if (!basicShader.isValid) {
+    cerr << "Error: failed to load shader";
+  }
+
+  Shader::setActive(basicShader);
 }
 
 void Game::Shutdown() {}

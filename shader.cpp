@@ -9,9 +9,8 @@ namespace Shader {
 
 // NOTE: From "Game Programming in C++" by Sanjay Madhav
 bool isCompiled(GLuint shader) {
-  GLint status;
-
   // Query the compile status
+  GLint status;
   glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
 
   if (status != GL_TRUE) {
@@ -27,11 +26,10 @@ bool isCompiled(GLuint shader) {
 }
 
 // NOTE: From "Game Programming in C++" by Sanjay Madhav
-bool shaderProgramIsValid(GLuint shaderProgram) {
-  GLint status;
-
+bool programIsValid(GLuint shaderProgram) {
   // Query the program status
-  glGetProgramiv(shaderProgram, GL_COMPILE_STATUS, &status);
+  GLint status;
+  glGetProgramiv(shaderProgram, GL_LINK_STATUS, &status);
 
   if (status != GL_TRUE) {
     char buffer[512];
@@ -97,9 +95,7 @@ Shader load(const std::string &vertName, const std::string &fragName) {
   glLinkProgram(shader.program);
 
   // Verify that the program linked successfully
-  if (!shaderProgramIsValid(shader.program)) {
-    shader.isValid = false;
-  }
+  shader.isValid = programIsValid(shader.program);
 
   return shader;
 }

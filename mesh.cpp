@@ -72,7 +72,6 @@ Mesh load(const std::string &filename) {
     indices.push_back(index[2].GetUint());
   }
 
-  std::cout << indices;
   GLuint vertexArray =
       createVertexArray(static_cast<float *>(verts.data()), verts.size(),
                         static_cast<uint *>(indices.data()), indices.size());
