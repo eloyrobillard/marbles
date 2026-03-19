@@ -7,7 +7,6 @@
 
 namespace Shader {
 
-// NOTE: From "Game Programming in C++" by Sanjay Madhav
 bool isCompiled(GLuint shader) {
   // Query the compile status
   GLint status;
@@ -25,7 +24,6 @@ bool isCompiled(GLuint shader) {
   return true;
 }
 
-// NOTE: From "Game Programming in C++" by Sanjay Madhav
 bool programIsValid(GLuint shaderProgram) {
   // Query the program status
   GLint status;
@@ -43,7 +41,6 @@ bool programIsValid(GLuint shaderProgram) {
   return true;
 }
 
-// NOTE: From "Game Programming in C++" by Sanjay Madhav
 bool compile(const std::string &filename, GLenum shaderType,
              GLuint &outShader) {
   std::ifstream shaderFile(filename);
@@ -76,7 +73,6 @@ void set_shader_program_active(GLuint shaderProgram) {
   glUseProgram(shaderProgram);
 }
 
-// NOTE: From "Game Programming in C++" by Sanjay Madhav
 Shader load(const std::string &vertName, const std::string &fragName) {
   Shader shader;
 
