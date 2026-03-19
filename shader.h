@@ -1,17 +1,22 @@
 #pragma once
 #include "glew.h"
+#include "template.h"
 #include <string>
 
+namespace Shader {
 typedef struct {
   GLuint program;
   GLuint vertexShader;
   GLuint fragmentShader;
   bool isValid;
-} GLProgram;
+} Shader;
 
-GLProgram load_shader(const std::string &vertName, const std::string &fragName);
-bool compile_shader(const std::string &filename, GLenum shaderType,
-                    GLuint &outShader);
-bool shader_is_compiled(GLuint shader);
-bool is_valid_shader_program();
-void unload_shader(GLProgram &glProgram);
+Shader load(const std::string &vertName, const std::string &fragName);
+bool compile(const std::string &filename, GLenum shaderType, GLuint &outShader);
+bool isCompiled(GLuint shader);
+bool shaderProgramIsValid(GLuint shaderProgram);
+void unload(Shader &shader);
+void setActive(Shader &shader);
+void setMatrixUniform(Shader &shader, const char *name,
+                      const Tmpl8::mat4 &matrix);
+} // namespace Shader

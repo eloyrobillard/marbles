@@ -1,0 +1,29 @@
+#ifndef MESH_H
+#define MESH_H
+
+#include <vector>
+
+#include "shader.h"
+#include "template.h"
+
+using std::vector;
+using Tmpl8::vec3;
+
+namespace Mesh {
+typedef struct {
+  vector<float> verts;
+  vector<unsigned int> indices;
+  GLuint vertexArray;
+  bool isValid;
+} Mesh;
+
+Mesh load(const std::string &filename);
+void draw(Shader::Shader &shader, Mesh &mesh);
+GLuint createVertexArray(const float *verts, uint numVerts, uint *indices,
+                         uint numIndices);
+void deleteVertexArray(GLuint vertexBuffer, GLuint indexBuffer,
+                       GLuint vertexArray);
+void setVerticesActive(GLuint vertexArray);
+} // namespace Mesh
+
+#endif // MESH_H

@@ -3,18 +3,21 @@
 #include <sstream>
 
 #include "shader.h"
+#include "template.h"
+
+namespace Shader {
 
 // NOTE: From "Game Programming in C++" by Sanjay Madhav
-bool shader_is_compiled(GLuint shader) {
+bool isCompiled(GLuint shader) {
   GLint status;
 
   // Query the compile status
-  __glewGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+  glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
 
   if (status != GL_TRUE) {
     char buffer[512];
     memset(buffer, 0, 512);
-    __glewGetShaderInfoLog(shader, 511, nullptr, buffer);
+    glGetShaderInfoLog(shader, 511, nullptr, buffer);
 
     SDL_Log("GLSL compile failed:\n%s", buffer);
     return false;
@@ -24,16 +27,16 @@ bool shader_is_compiled(GLuint shader) {
 }
 
 // NOTE: From "Game Programming in C++" by Sanjay Madhav
-bool is_valid_shader_program(GLuint shaderProgram) {
+bool shaderProgramIsValid(GLuint shaderProgram) {
   GLint status;
 
   // Query the program status
-  __glewGetProgramiv(shaderProgram, GL_COMPILE_STATUS, &status);
+  glGetProgramiv(shaderProgram, GL_COMPILE_STATUS, &status);
 
   if (status != GL_TRUE) {
     char buffer[512];
     memset(buffer, 0, 512);
-    __glewGetProgramInfoLog(shaderProgram, 511, nullptr, buffer);
+    glGetProgramInfoLog(shaderProgram, 511, nullptr, buffer);
 
     SDL_Log("GLSL program failed:\n%s", buffer);
     return false;
@@ -43,8 +46,8 @@ bool is_valid_shader_program(GLuint shaderProgram) {
 }
 
 // NOTE: From "Game Programming in C++" by Sanjay Madhav
-bool compile_shader(const std::string &filename, GLenum shaderType,
-                    GLuint &outShader) {
+bool compile(const std::string &filename, GLenum shaderType,
+             GLuint &outShader) {
   std::ifstream shaderFile(filename);
   if (shaderFile.is_open()) {
     // Read all the text into a string
@@ -54,12 +57,12 @@ bool compile_shader(const std::string &filename, GLenum shaderType,
     const char *contentsChar = contents.c_str();
 
     // Create a shader of the specified type
-    outShader = __glewCreateShader(shaderType);
+    outShader = glCreateShader(shaderType);
     // Set the source characters and try to compile
-    __glewShaderSource(outShader, 1, &(contentsChar), nullptr);
-    __glewCompileShader(outShader);
+    glShaderSource(outShader, 1, &(contentsChar), nullptr);
+    glCompileShader(outShader);
 
-    if (!shader_is_compiled(outShader)) {
+    if (!isCompiled(outShader)) {
       SDL_Log("Failed to compile shader %s", filename.c_str());
       return false;
     }
@@ -72,38 +75,48 @@ bool compile_shader(const std::string &filename, GLenum shaderType,
 }
 
 void set_shader_program_active(GLuint shaderProgram) {
-  __glewUseProgram(shaderProgram);
+  glUseProgram(shaderProgram);
 }
 
 // NOTE: From "Game Programming in C++" by Sanjay Madhav
-GLProgram load_shader(const std::string &vertName,
-                      const std::string &fragName) {
-  GLProgram glProgram;
+Shader load(const std::string &vertName, const std::string &fragName) {
+  Shader shader;
 
   // Compile vertex and fragment shaders
-  if (!compile_shader(vertName, GL_VERTEX_SHADER, glProgram.vertexShader) ||
-      !compile_shader(fragName, GL_FRAGMENT_SHADER, glProgram.fragmentShader)) {
-    glProgram.isValid = false;
-    return glProgram;
+  if (!compile(vertName, GL_VERTEX_SHADER, shader.vertexShader) ||
+      !compile(fragName, GL_FRAGMENT_SHADER, shader.fragmentShader)) {
+    shader.isValid = false;
+    return shader;
   }
 
   // Now create a shader program that
   // links together the vertex and frag shaders
-  glProgram.program = __glewCreateProgram();
-  glAttachShader(glProgram.program, glProgram.vertexShader);
-  glAttachShader(glProgram.program, glProgram.fragmentShader);
-  __glewLinkProgram(glProgram.program);
+  shader.program = glCreateProgram();
+  glAttachShader(shader.program, shader.vertexShader);
+  glAttachShader(shader.program, shader.fragmentShader);
+  glLinkProgram(shader.program);
 
   // Verify that the program linked successfully
-  if (!is_valid_shader_program(glProgram.program)) {
-    glProgram.isValid = false;
+  if (!shaderProgramIsValid(shader.program)) {
+    shader.isValid = false;
   }
 
-  return glProgram;
+  return shader;
 }
 
-void unload_shader(GLProgram &glProgram) {
-  __glewDeleteProgram(glProgram.program);
-  __glewDeleteShader(glProgram.vertexShader);
-  __glewDeleteShader(glProgram.fragmentShader);
+void unload(Shader &shader) {
+  glDeleteProgram(shader.program);
+  glDeleteShader(shader.vertexShader);
+  glDeleteShader(shader.fragmentShader);
 }
+
+void setActive(Shader &shader) { glUseProgram(shader.program); }
+
+void setMatrixUniform(Shader &shader, const char *name,
+                      const Tmpl8::mat4 &matrix) {
+  // Find the uniform by this name
+  GLuint loc = glGetUniformLocation(shader.program, name);
+  // Send the matrix data to the uniform
+  glUniformMatrix4fv(loc, 1, GL_TRUE, &matrix.cell[0]);
+}
+} // namespace Shader

@@ -263,7 +263,7 @@ bool init() {
   glBlendFunc(GL_SRC_ALPHA, GL_ONE);
   if (wglSwapIntervalEXT)
     wglSwapIntervalEXT(0);
-  surface = new Surface(ScreenWidth, ScreenHeight, 0, ScreenWidth);
+  surface = new Surface(ScreenWidth, ScreenHeight, nullptr, ScreenWidth);
   return true;
 }
 
@@ -317,6 +317,15 @@ int main(int argc, char **argv) {
   SDL_GLContext glContext = SDL_GL_CreateContext(window);
 
   init();
+
+  GLenum status = glewInit();
+
+  if (status != GLEW_OK) {
+    /* Problem: glewInit failed, something is seriously wrong. */
+    fprintf(stderr, "Error: %s\n", glewGetErrorString(status));
+  }
+
+  fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
   ShowCursor(false);
 #else
 #ifdef FULLSCREEN

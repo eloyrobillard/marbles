@@ -10,6 +10,8 @@
     <ClCompile Include="C:\Users\eloyr\Projects\marbles\game.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="shader.cpp" />
+    <ClCompile Include="mesh.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\FreeImage\inc\FreeImage.h">
@@ -231,6 +233,8 @@
     <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="shader.h" />
+    <ClInclude Include="mesh.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
@@ -239,5 +243,8 @@
     <Filter Include="Source Files">
       <UniqueIdentifier>{D7243B0C-9434-3655-9EF4-94B4F0A1089B}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
   </ItemGroup>
 </Project>

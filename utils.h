@@ -7,8 +7,6 @@
 
 #include "template.h"
 
-namespace Tmpl8 {
-
 using std::copy;
 using std::ostream;
 using std::ostream_iterator;
@@ -23,5 +21,3 @@ template <typename T> ostream &operator<<(ostream &os, const vector<T> &v) {
   copy(v.begin(), v.end(), ostream_iterator<T>(os, ", "));
   return os;
 }
-
-} // namespace Tmpl8
