@@ -17,21 +17,14 @@ using std::cout;
 using std::endl;
 
 namespace Tmpl8 {
+
 Shader::Shader basicShader;
 Mesh::Mesh ramp;
 
+mat4 viewMat;
+mat4 projMat;
+
 void Game::Init() {
-  GLenum status = glewInit();
-
-  if (status != GLEW_OK) {
-    fprintf(stderr, "Error: %s\n", glewGetErrorString(status));
-  }
-
-  printf("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
-
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-  glEnable(GL_DEPTH_TEST);
-
   ramp = Mesh::load("assets/basic_ramp.gpmesh");
 
   if (!ramp.isValid) {
@@ -46,18 +39,34 @@ void Game::Init() {
 
   Shader::setActive(basicShader);
 
-  mat4 view = mat4::CreateLookAt(vec3::zero, vec3::right, vec3::forward);
+  viewMat = mat4::CreateLookAt(vec3::zero, vec3::forward, vec3::up);
 
   float fovy = 70.0f / 180.0f * PI;
-  mat4 projection = mat4::CreatePerspectiveFOV(
-      fovy, screen->GetWidth(), screen->GetHeight(), 25.0f, 10000.0f);
+  projMat = mat4::CreatePerspectiveFOV(fovy, screen->GetWidth(),
+                                       screen->GetHeight(), 25.0f, 10000.0f);
 
-  Shader::setMatrixUniform(basicShader, "uViewProj", view * projection);
+  Shader::setMatrixUniform(basicShader, "uViewProj", viewMat * projMat);
 }
 
-void Game::Shutdown() {}
+void Game::Tick(float deltaTime) {
+  // Set the clear color to light grey
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  // Clear the color buffer
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-void Game::Tick(float deltaTime) { Mesh::draw(basicShader, ramp); }
+  // Draw meshes
+  glEnable(GL_DEPTH_TEST);
+  glDisable(GL_BLEND);
+
+  Shader::setActive(basicShader);
+
+  // Update view-projection matrix
+  Shader::setMatrixUniform(basicShader, "uViewProj", viewMat * projMat);
+
+  Mesh::draw(basicShader, ramp);
+}
 
 void Game::PhysicsTick(double t, double dt) {}
+
+void Game::Shutdown() { Shader::unload(basicShader); }
 } // namespace Tmpl8

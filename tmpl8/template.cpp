@@ -90,7 +90,7 @@ vec4 operator*(const vec4 &v, const mat4 &M) {
 
 mat4::mat4() {
   memset(cell, 0, 64);
-  cell[0] = cell[5] = cell[10] = cell[15] = 1;
+  cell[0] = cell[5] = cell[10] = cell[15] = 1.0f;
 }
 
 mat4::mat4(float inMat[4][4]) { memcpy(mat, inMat, 16 * sizeof(float)); }
@@ -240,67 +240,20 @@ bool createFBtexture() {
 }
 
 bool init() {
-  fbPBO[0] = fbPBO[1] = -1;
-  glGenBuffers = (PFNGLGENBUFFERSPROC)wglGetProcAddress("glGenBuffersARB");
-  glBindBuffer = (PFNGLBINDBUFFERPROC)wglGetProcAddress("glBindBufferARB");
-  glBufferData = (PFNGLBUFFERDATAPROC)wglGetProcAddress("glBufferDataARB");
-  glMapBuffer = (PFNGLMAPBUFFERPROC)wglGetProcAddress("glMapBufferARB");
-  glUnmapBuffer = (PFNGLUNMAPBUFFERPROC)wglGetProcAddress("glUnmapBufferARB");
-  wglSwapIntervalEXT =
-      (PFNWGLSWAPINTERVALFARPROC)wglGetProcAddress("wglSwapIntervalEXT");
-  if ((!glGenBuffers) || (!glBindBuffer) || (!glBufferData) || (!glMapBuffer) ||
-      (!glUnmapBuffer))
-    return false;
-  if (glGetError())
-    return false;
-  glViewport(0, 0, ScreenWidth, ScreenHeight);
-  glMatrixMode(GL_PROJECTION);
-  glLoadIdentity();
-  glOrtho(0, 1, 0, 1, -1, 1);
-  glMatrixMode(GL_MODELVIEW);
-  glLoadIdentity();
-  glEnable(GL_TEXTURE_2D);
-  glShadeModel(GL_SMOOTH);
-  if (!createFBtexture())
-    return false;
-  glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
-  glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-  if (wglSwapIntervalEXT)
-    wglSwapIntervalEXT(0);
+  GLenum status = glewInit();
+
+  if (status != GLEW_OK) {
+    fprintf(stderr, "Error: %s\n", glewGetErrorString(status));
+  }
+
+  printf("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+
   surface = new Surface(ScreenWidth, ScreenHeight, nullptr, ScreenWidth);
+
   return true;
 }
 
-void swap() {
-  static int index = 0;
-  int nextindex;
-  glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER_ARB);
-  glBindTexture(GL_TEXTURE_2D, framebufferTexID[index]);
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, fbPBO[index]);
-  glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, ScreenWidth, ScreenHeight, GL_BGRA,
-                  GL_UNSIGNED_BYTE, 0);
-  nextindex = (index + 1) % 2;
-  index = (index + 1) % 2;
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, fbPBO[nextindex]);
-  framedata = (unsigned const char *)glMapBuffer(GL_PIXEL_UNPACK_BUFFER_ARB,
-                                                 GL_WRITE_ONLY_ARB);
-  glColor3f(1.0f, 1.0f, 1.0f);
-  glBegin(GL_QUADS);
-  glNormal3f(0, 0, 1);
-  glTexCoord2f(0.0f, 0.0f);
-  glVertex2f(0.0f, 1.0f);
-  glTexCoord2f(1.0f, 0.0f);
-  glVertex2f(1.0f, 1.0f);
-  glTexCoord2f(1.0f, 1.0f);
-  glVertex2f(1.0f, 0.0f);
-  glTexCoord2f(0.0f, 1.0f);
-  glVertex2f(0.0f, 0.0f);
-  glEnd();
-  glBindTexture(GL_TEXTURE_2D, 0);
-  SDL_GL_SwapWindow(window);
-}
+void swap() { SDL_GL_SwapWindow(window); }
 
 #endif
 
@@ -312,6 +265,24 @@ int main(int argc, char **argv) {
   printf("application started.\n");
   SDL_Init(SDL_INIT_VIDEO);
 #ifdef ADVANCEDGL
+
+  // Set OpenGL attributes
+  // Use the core OpenGL profile
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+  // Specify version 3.3
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+  // Request a color buffer with 8-bits per RGBA channel
+  SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+  // Enable double buffering
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  // Force OpenGL to use hardware acceleration
+  SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+
 #ifdef FULLSCREEN
   window =
       SDL_CreateWindow(TemplateVersion, 100, 100, ScreenWidth, ScreenHeight,
@@ -320,6 +291,9 @@ int main(int argc, char **argv) {
   window = SDL_CreateWindow(TemplateVersion, 100, 100, ScreenWidth,
                             ScreenHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
 #endif
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+  glEnable(GL_DEPTH_TEST);
+
   SDL_GLContext glContext = SDL_GL_CreateContext(window);
 
   init();
