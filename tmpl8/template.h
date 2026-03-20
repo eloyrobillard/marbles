@@ -12,6 +12,7 @@
     "/manifestdependency:\"name='dlls_x64' version='1.0.0.0' type='x64'\"")
 #endif
 
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
 
@@ -199,6 +200,11 @@ public:
   float dot(const vec3 &operand) const {
     return x * operand.x + y * operand.y + z * operand.z;
   }
+
+  static const vec3 zero;
+  static const vec3 right;
+  static const vec3 up;
+  static const vec3 forward;
 };
 
 class vec4 {
@@ -387,13 +393,100 @@ public:
 class mat4 {
 public:
   mat4();
-  float cell[16];
+  mat4(float[4][4]);
+  union {
+    float cell[16];
+    float mat[4][4];
+  };
   float &operator[](const int idx) { return cell[idx]; }
   static mat4 identity();
   static mat4 rotate(vec3 v, float a);
   static mat4 rotatex(const float a);
   static mat4 rotatey(const float a);
   static mat4 rotatez(const float a);
+
+  static mat4 CreatePerspectiveFOV(float fovY, float width, float height,
+                                   float near, float far) {
+    float yScale = 1.0f / tan(fovY / 2.0f);
+    float xScale = yScale * height / width;
+    float temp[4][4] = {{xScale, 0.0f, 0.0f, 0.0f},
+                        {0.0f, yScale, 0.0f, 0.0f},
+                        {0.0f, 0.0f, far / (far - near), 1.0f},
+                        {0.0f, 0.0f, -near * far / (far - near), 0.0f}};
+    return mat4(temp);
+  }
+  static mat4 CreateLookAt(const vec3 &eye, const vec3 &target,
+                           const vec3 &up) {
+    vec3 zaxis = vec3::normalize(target - eye);
+    vec3 xaxis = vec3::normalize(up.cross(zaxis));
+    vec3 yaxis = vec3::normalize(zaxis.cross(xaxis));
+    vec3 trans;
+    trans.x = -xaxis.dot(eye);
+    trans.y = -yaxis.dot(eye);
+    trans.z = -zaxis.dot(eye);
+
+    float temp[4][4] = {{xaxis.x, yaxis.x, zaxis.x, 0.0f},
+                        {xaxis.y, yaxis.y, zaxis.y, 0.0f},
+                        {xaxis.z, yaxis.z, zaxis.z, 0.0f},
+                        {trans.x, trans.y, trans.z, 1.0f}};
+    return mat4(temp);
+  }
+  friend mat4 operator*(const mat4 &a, const mat4 &b) {
+    mat4 retVal;
+    // row 0
+    retVal.mat[0][0] = a.mat[0][0] * b.mat[0][0] + a.mat[0][1] * b.mat[1][0] +
+                       a.mat[0][2] * b.mat[2][0] + a.mat[0][3] * b.mat[3][0];
+
+    retVal.mat[0][1] = a.mat[0][0] * b.mat[0][1] + a.mat[0][1] * b.mat[1][1] +
+                       a.mat[0][2] * b.mat[2][1] + a.mat[0][3] * b.mat[3][1];
+
+    retVal.mat[0][2] = a.mat[0][0] * b.mat[0][2] + a.mat[0][1] * b.mat[1][2] +
+                       a.mat[0][2] * b.mat[2][2] + a.mat[0][3] * b.mat[3][2];
+
+    retVal.mat[0][3] = a.mat[0][0] * b.mat[0][3] + a.mat[0][1] * b.mat[1][3] +
+                       a.mat[0][2] * b.mat[2][3] + a.mat[0][3] * b.mat[3][3];
+
+    // row 1
+    retVal.mat[1][0] = a.mat[1][0] * b.mat[0][0] + a.mat[1][1] * b.mat[1][0] +
+                       a.mat[1][2] * b.mat[2][0] + a.mat[1][3] * b.mat[3][0];
+
+    retVal.mat[1][1] = a.mat[1][0] * b.mat[0][1] + a.mat[1][1] * b.mat[1][1] +
+                       a.mat[1][2] * b.mat[2][1] + a.mat[1][3] * b.mat[3][1];
+
+    retVal.mat[1][2] = a.mat[1][0] * b.mat[0][2] + a.mat[1][1] * b.mat[1][2] +
+                       a.mat[1][2] * b.mat[2][2] + a.mat[1][3] * b.mat[3][2];
+
+    retVal.mat[1][3] = a.mat[1][0] * b.mat[0][3] + a.mat[1][1] * b.mat[1][3] +
+                       a.mat[1][2] * b.mat[2][3] + a.mat[1][3] * b.mat[3][3];
+
+    // row 2
+    retVal.mat[2][0] = a.mat[2][0] * b.mat[0][0] + a.mat[2][1] * b.mat[1][0] +
+                       a.mat[2][2] * b.mat[2][0] + a.mat[2][3] * b.mat[3][0];
+
+    retVal.mat[2][1] = a.mat[2][0] * b.mat[0][1] + a.mat[2][1] * b.mat[1][1] +
+                       a.mat[2][2] * b.mat[2][1] + a.mat[2][3] * b.mat[3][1];
+
+    retVal.mat[2][2] = a.mat[2][0] * b.mat[0][2] + a.mat[2][1] * b.mat[1][2] +
+                       a.mat[2][2] * b.mat[2][2] + a.mat[2][3] * b.mat[3][2];
+
+    retVal.mat[2][3] = a.mat[2][0] * b.mat[0][3] + a.mat[2][1] * b.mat[1][3] +
+                       a.mat[2][2] * b.mat[2][3] + a.mat[2][3] * b.mat[3][3];
+
+    // row 3
+    retVal.mat[3][0] = a.mat[3][0] * b.mat[0][0] + a.mat[3][1] * b.mat[1][0] +
+                       a.mat[3][2] * b.mat[2][0] + a.mat[3][3] * b.mat[3][0];
+
+    retVal.mat[3][1] = a.mat[3][0] * b.mat[0][1] + a.mat[3][1] * b.mat[1][1] +
+                       a.mat[3][2] * b.mat[2][1] + a.mat[3][3] * b.mat[3][1];
+
+    retVal.mat[3][2] = a.mat[3][0] * b.mat[0][2] + a.mat[3][1] * b.mat[1][2] +
+                       a.mat[3][2] * b.mat[2][2] + a.mat[3][3] * b.mat[3][2];
+
+    retVal.mat[3][3] = a.mat[3][0] * b.mat[0][3] + a.mat[3][1] * b.mat[1][3] +
+                       a.mat[3][2] * b.mat[2][3] + a.mat[3][3] * b.mat[3][3];
+
+    return retVal;
+  }
   void invert() {
     // from MESA, via
     // http://stackoverflow.com/questions/1148309/inverting-a-4x4-matrix

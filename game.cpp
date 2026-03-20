@@ -2,6 +2,8 @@
 #include "SDL_video.h"
 #include "mesh.h"
 #include "shader.h"
+#include "surface.h"
+#include "template.h"
 #include <cassert>
 #define WIN32_LEAN_AND_MEAN
 #include <iostream>
@@ -43,6 +45,14 @@ void Game::Init() {
   }
 
   Shader::setActive(basicShader);
+
+  mat4 view = mat4::CreateLookAt(vec3::zero, vec3::right, vec3::forward);
+
+  float fovy = 70.0f / 180.0f * PI;
+  mat4 projection = mat4::CreatePerspectiveFOV(
+      fovy, screen->GetWidth(), screen->GetHeight(), 25.0f, 10000.0f);
+
+  Shader::setMatrixUniform(basicShader, "uViewProj", view * projection);
 }
 
 void Game::Shutdown() {}

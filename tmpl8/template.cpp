@@ -61,6 +61,10 @@ void timer::init() {
 
 // Math Stuff
 // ----------------------------------------------------------------------------
+const vec3 vec3::zero = vec3(0.0f);
+const vec3 vec3::right = vec3(1.0f, 0.0f, 0.0f);
+const vec3 vec3::up = vec3(0.0f, 1.0f, 0.0f);
+const vec3 vec3::forward = vec3(0.0f, 0.0f, 1.0f);
 vec3 normalize(const vec3 &v) { return v.normalized(); }
 vec3 cross(const vec3 &a, const vec3 &b) { return a.cross(b); }
 float dot(const vec3 &a, const vec3 &b) { return a.dot(b); }
@@ -88,6 +92,8 @@ mat4::mat4() {
   memset(cell, 0, 64);
   cell[0] = cell[5] = cell[10] = cell[15] = 1;
 }
+
+mat4::mat4(float inMat[4][4]) { memcpy(mat, inMat, 16 * sizeof(float)); }
 
 mat4 mat4::identity() {
   mat4 r;
@@ -317,15 +323,6 @@ int main(int argc, char **argv) {
   SDL_GLContext glContext = SDL_GL_CreateContext(window);
 
   init();
-
-  GLenum status = glewInit();
-
-  if (status != GLEW_OK) {
-    /* Problem: glewInit failed, something is seriously wrong. */
-    fprintf(stderr, "Error: %s\n", glewGetErrorString(status));
-  }
-
-  fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
   ShowCursor(false);
 #else
 #ifdef FULLSCREEN
