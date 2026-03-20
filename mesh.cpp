@@ -87,9 +87,7 @@ Mesh load(const std::string &filename) {
 void draw(Shader::Shader &shader, Mesh &mesh) {
   // Set world transform
   Tmpl8::mat4 worldTransform = Tmpl8::mat4();
-  // worldTransform.mat[3][0] = 100.0f;
-  // worldTransform.mat[3][1] = 100.0f;
-  worldTransform.mat[3][2] = 10.0f;
+  worldTransform.mat[3][2] = 5.0f;
   Shader::setMatrixUniform(shader, "uWorldTransform", worldTransform);
 
   setVerticesActive(mesh.vertexArray);

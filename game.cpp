@@ -43,7 +43,7 @@ void Game::Init() {
 
   float fovy = 70.0f / 180.0f * PI;
   projMat = mat4::CreatePerspectiveFOV(fovy, screen->GetWidth(),
-                                       screen->GetHeight(), 25.0f, 10000.0f);
+                                       screen->GetHeight(), 5.0f, 10000.0f);
 
   Shader::setMatrixUniform(basicShader, "uViewProj", viewMat * projMat);
 }
