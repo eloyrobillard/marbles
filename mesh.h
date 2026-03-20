@@ -19,8 +19,8 @@ typedef struct {
 
 Mesh load(const std::string &filename);
 void draw(Shader::Shader &shader, Mesh &mesh);
-GLuint createVertexArray(const float *verts, uint numVerts, uint *indices,
-                         uint numIndices);
+GLuint createVertexArray(const float *verts, uint numVerts, const uint *indices,
+                         uint numIndices, size_t sizeVert);
 void deleteVertexArray(GLuint vertexBuffer, GLuint indexBuffer,
                        GLuint vertexArray);
 void setVerticesActive(GLuint vertexArray);

@@ -31,10 +31,6 @@ import json
 def generate_gpmesh_json():
     mesh = bpy.context.active_object.data
 
-    if not mesh.uv_layers:
-        print(f"{mesh.name}にUVマップがありません。生成し展開します。")
-        mesh.uv_layers.new(name="UVMap")
-
     uv_layer = mesh.uv_layers.active.data
 
     gpmesh = {

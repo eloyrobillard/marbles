@@ -44,8 +44,10 @@ Mesh load(const std::string &filename) {
   Value &vertsJSON = document["vertices"];
   assert(vertsJSON.IsArray() && vertsJSON.Size() > 0);
 
+  size_t sizeVert = 6;
+
   std::vector<float> verts;
-  verts.reserve(vertsJSON.Size() * 6);
+  verts.reserve(vertsJSON.Size() * sizeVert);
 
   for (int i = 0; i < vertsJSON.Size(); i++) {
     auto &vert = vertsJSON[i];
@@ -67,14 +69,13 @@ Mesh load(const std::string &filename) {
 
   for (int i = 0; i < indicesJSON.Size(); i++) {
     auto &index = indicesJSON[i];
-    indices.push_back(index[0].GetUint());
-    indices.push_back(index[1].GetUint());
-    indices.push_back(index[2].GetUint());
+    indices.emplace_back(index[0].GetUint());
+    indices.emplace_back(index[1].GetUint());
+    indices.emplace_back(index[2].GetUint());
   }
 
   GLuint vertexArray = createVertexArray(
-      static_cast<float *>(verts.data()), vertsJSON.Size(),
-      static_cast<uint *>(indices.data()), indicesJSON.Size());
+      verts.data(), vertsJSON.Size(), indices.data(), indices.size(), sizeVert);
 
   mesh.verts = verts;
   mesh.indices = indices;
@@ -96,8 +97,9 @@ void draw(Shader::Shader &shader, Mesh &mesh) {
   glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
 }
 
-GLuint createVertexArray(const float *verts, uint numVerts, uint *indices,
-                         uint numIndices) {
+GLuint createVertexArray(const float *verts, uint numVerts, const uint *indices,
+                         uint numIndices, size_t sizeVert) {
+
   GLuint vertexArray;
   glGenVertexArrays(1, &vertexArray);
   glBindVertexArray(vertexArray);
@@ -106,7 +108,7 @@ GLuint createVertexArray(const float *verts, uint numVerts, uint *indices,
   GLuint vertexBuffer = 0;
   glGenBuffers(1, &vertexBuffer);
   glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-  glBufferData(GL_ARRAY_BUFFER, numVerts * 6 * sizeof(float), verts,
+  glBufferData(GL_ARRAY_BUFFER, numVerts * sizeVert * sizeof(float), verts,
                GL_STATIC_DRAW);
 
   // Create index buffer
@@ -120,10 +122,11 @@ GLuint createVertexArray(const float *verts, uint numVerts, uint *indices,
   // (For now, assume one vertex format)
   // Position is 3 floats
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), nullptr);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeVert * sizeof(float),
+                        nullptr);
   // Normal is 3 floats
   glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float),
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeVert * sizeof(float),
                         reinterpret_cast<void *>(sizeof(float) * 3));
 
   return vertexArray;
