@@ -48,6 +48,13 @@ Mesh load(const std::string &filename) {
     mesh.rot.z = static_cast<float>(rotJSON[2].GetDouble());
   }
 
+  Value &scaleJSON = document["scale"];
+  if (scaleJSON.IsArray() && scaleJSON.Size() == 3) {
+    mesh.scale.x = static_cast<float>(scaleJSON[0].GetDouble());
+    mesh.scale.y = static_cast<float>(scaleJSON[1].GetDouble());
+    mesh.scale.z = static_cast<float>(scaleJSON[2].GetDouble());
+  }
+
   Value &vertsJSON = document["vertices"];
   assert(vertsJSON.IsArray() && vertsJSON.Size() > 0);
 
@@ -99,6 +106,11 @@ void draw(Shader::Shader &shader, Mesh &mesh) {
   Tmpl8::mat4 worldTransform = Tmpl8::mat4::rotatex(mesh.rot.x);
   worldTransform *= Tmpl8::mat4::rotatey(mesh.rot.y);
   worldTransform *= Tmpl8::mat4::rotatez(mesh.rot.z);
+  Tmpl8::mat4 scale = Tmpl8::mat4();
+  scale.mat[0][0] = mesh.scale.x;
+  scale.mat[1][1] = mesh.scale.y;
+  scale.mat[2][2] = mesh.scale.z;
+  worldTransform *= scale;
   Tmpl8::mat4 translation = Tmpl8::mat4();
   translation.mat[3][2] = 5.0f;
   worldTransform *= translation;

@@ -12,6 +12,7 @@ using Tmpl8::vec3;
 namespace Mesh {
 typedef struct {
   vec3 rot;
+  vec3 scale;
   vector<float> verts;
   vector<unsigned int> indices;
   GLuint vertexArray;

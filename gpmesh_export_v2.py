@@ -41,13 +41,19 @@ def generate_gpmesh_json():
         "textures": [],
         "specularPower": 100.0,
         "rotationEuler": [],
+        "scale": [],
         "vertices": [],
         "indices": []
     }
 
 
     if len(obj.rotation_euler) == 3:
-        gpmesh["rotationEuler"] = [obj.rotation_euler.x, obj.rotation_euler.y, obj.rotation_euler.z]
+        rot = obj.rotation_euler
+        gpmesh["rotationEuler"] = [rot.x, rot.y, rot.z]
+
+    if len(obj.scale) == 3:
+        scale = obj.scale
+        gpmesh["scale"] = [scale.x, scale.y, scale.z]
 
     for vert in mesh.vertices:
         pos = vert.co
