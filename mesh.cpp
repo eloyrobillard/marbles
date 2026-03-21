@@ -51,7 +51,7 @@ Mesh load(const std::string &filename) {
   Value &vertsJSON = document["vertices"];
   assert(vertsJSON.IsArray() && vertsJSON.Size() > 0);
 
-  size_t sizeVert = 6;
+  size_t sizeVert = 8;
 
   std::vector<float> verts;
   verts.reserve(vertsJSON.Size() * sizeVert);
@@ -66,6 +66,8 @@ Mesh load(const std::string &filename) {
     verts.push_back(static_cast<float>(vert[3].GetDouble()));
     verts.push_back(static_cast<float>(vert[4].GetDouble()));
     verts.push_back(static_cast<float>(vert[5].GetDouble()));
+    verts.push_back(static_cast<float>(vert[14].GetDouble()));
+    verts.push_back(static_cast<float>(vert[15].GetDouble()));
   }
 
   Value &indicesJSON = document["indices"];
@@ -139,6 +141,11 @@ GLuint createVertexArray(const float *verts, uint numVerts, const uint *indices,
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeVert * sizeof(float),
                         reinterpret_cast<void *>(sizeof(float) * 3));
+  // Texture coordinates is 2 floats
+  glEnableVertexAttribArray(2);
+  glVertexAttribPointer(
+      2, 2, GL_FLOAT, GL_FALSE, sizeVert * sizeof(float),
+      reinterpret_cast<void *>(sizeof(float) * (sizeVert - 2)));
 
   return vertexArray;
 }
