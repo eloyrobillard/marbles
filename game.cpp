@@ -4,6 +4,7 @@
 #include "surface.h"
 #include "template.h"
 #include <cassert>
+#include <vector>
 #define WIN32_LEAN_AND_MEAN
 #include <iostream>
 #include <windows.h>
@@ -14,20 +15,21 @@
 using std::cerr;
 using std::cout;
 using std::endl;
+using std::string;
+using std::vector;
 
 namespace Tmpl8 {
 
 Shader::Shader basicShader;
-Mesh::Mesh ramp;
+vector<Mesh::Mesh> meshes;
 
 mat4 viewMat;
 mat4 projMat;
 
 void Game::Init() {
-  ramp = Mesh::load("assets/basic_ramp.gpmesh");
-
-  if (!ramp.isValid) {
-    cerr << "Error: failed to load mesh";
+  vector<string> meshNames{"assets/basic_ramp.gpmesh", "assets/sphere.gpmesh"};
+  for (const auto &meshName : meshNames) {
+    meshes.emplace_back(Mesh::load(meshName));
   }
 
   basicShader = Shader::load("shaders/basic.vert", "shaders/basic.frag");
@@ -62,7 +64,9 @@ void Game::Tick(float deltaTime) {
   // Update view-projection matrix
   Shader::setMatrixUniform(basicShader, "uViewProj", viewMat * projMat);
 
-  Mesh::draw(basicShader, ramp);
+  for (auto &mesh : meshes) {
+    Mesh::draw(basicShader, mesh);
+  }
 }
 
 void Game::PhysicsTick(double t, double dt) {}
