@@ -29,7 +29,8 @@ import bpy
 import json
 
 def generate_gpmesh_json():
-    mesh = bpy.context.active_object.data
+    obj = bpy.context.active_object
+    mesh = obj.data
 
     uv_layer = mesh.uv_layers.active.data
 
@@ -39,9 +40,14 @@ def generate_gpmesh_json():
         "shader": "Skinned",
         "textures": [],
         "specularPower": 100.0,
+        "rotationEuler": [],
         "vertices": [],
         "indices": []
     }
+
+
+    if len(obj.rotation_euler) == 3:
+        gpmesh["rotationEuler"] = [obj.rotation_euler.x, obj.rotation_euler.y, obj.rotation_euler.z]
 
     for vert in mesh.vertices:
         pos = vert.co

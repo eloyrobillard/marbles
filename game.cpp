@@ -1,5 +1,4 @@
 
-#include "SDL_video.h"
 #include "mesh.h"
 #include "shader.h"
 #include "surface.h"

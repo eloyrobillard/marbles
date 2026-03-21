@@ -117,23 +117,23 @@ mat4 mat4::rotate(const vec3 l, const float a) {
   M.cell[15] = 1;
   return M;
 }
-mat4 mat4::rotatex(const float a) {
+mat4 mat4::rotatex(const float rad) {
   mat4 M;
-  const float ca = cosf(a), sa = sinf(a);
+  const float ca = cosf(rad), sa = sinf(rad);
   M.cell[5] = ca, M.cell[6] = -sa;
   M.cell[9] = sa, M.cell[10] = ca;
   return M;
 }
-mat4 mat4::rotatey(const float a) {
+mat4 mat4::rotatey(const float rad) {
   mat4 M;
-  const float ca = cosf(a), sa = sinf(a);
+  const float ca = cosf(rad), sa = sinf(rad);
   M.cell[0] = ca, M.cell[2] = sa;
   M.cell[8] = -sa, M.cell[10] = ca;
   return M;
 }
-mat4 mat4::rotatez(const float a) {
+mat4 mat4::rotatez(const float rad) {
   mat4 M;
-  const float ca = cosf(a), sa = sinf(a);
+  const float ca = cosf(rad), sa = sinf(rad);
   M.cell[0] = ca, M.cell[1] = -sa;
   M.cell[4] = sa, M.cell[5] = ca;
   return M;

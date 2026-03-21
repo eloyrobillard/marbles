@@ -41,6 +41,13 @@ Mesh load(const std::string &filename) {
 
   std::string shader = document["shader"].GetString();
 
+  Value &rotJSON = document["rotationEuler"];
+  if (rotJSON.IsArray() && rotJSON.Size() == 3) {
+    mesh.rot.x = static_cast<float>(rotJSON[0].GetDouble());
+    mesh.rot.y = static_cast<float>(rotJSON[1].GetDouble());
+    mesh.rot.z = static_cast<float>(rotJSON[2].GetDouble());
+  }
+
   Value &vertsJSON = document["vertices"];
   assert(vertsJSON.IsArray() && vertsJSON.Size() > 0);
 
@@ -87,8 +94,12 @@ Mesh load(const std::string &filename) {
 
 void draw(Shader::Shader &shader, Mesh &mesh) {
   // Set world transform
-  Tmpl8::mat4 worldTransform = Tmpl8::mat4();
-  worldTransform.mat[3][2] = 5.0f;
+  Tmpl8::mat4 worldTransform = Tmpl8::mat4::rotatex(mesh.rot.x);
+  worldTransform *= Tmpl8::mat4::rotatey(mesh.rot.y);
+  worldTransform *= Tmpl8::mat4::rotatez(mesh.rot.z);
+  Tmpl8::mat4 translation = Tmpl8::mat4();
+  translation.mat[3][2] = 5.0f;
+  worldTransform *= translation;
   Shader::setMatrixUniform(shader, "uWorldTransform", worldTransform);
 
   setVerticesActive(mesh.vertexArray);
