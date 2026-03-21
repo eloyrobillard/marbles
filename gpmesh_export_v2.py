@@ -42,6 +42,7 @@ def generate_gpmesh_json():
         "specularPower": 100.0,
         "rotationEuler": [],
         "scale": [],
+        "translation": [],
         "vertices": [],
         "indices": []
     }
@@ -54,6 +55,11 @@ def generate_gpmesh_json():
     if len(obj.scale) == 3:
         scale = obj.scale
         gpmesh["scale"] = [scale.x, scale.y, scale.z]
+
+    if len(obj.location) == 3:
+        pos = obj.location
+        gpmesh["translation"] = [pos.x, pos.y, pos.z]
+
 
     for vert in mesh.vertices:
         pos = vert.co

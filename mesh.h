@@ -13,6 +13,7 @@ namespace Mesh {
 typedef struct {
   vec3 rot;
   vec3 scale;
+  vec3 translation;
   vector<float> verts;
   vector<unsigned int> indices;
   GLuint vertexArray;
