@@ -15,6 +15,47 @@ using std::vector;
 using Tmpl8::vec3;
 
 namespace Mesh {
+
+GLuint createVertexArray(const float *verts, uint numVerts, const uint *indices,
+                         uint numIndices, size_t sizeVert) {
+
+  GLuint vertexArray;
+  glGenVertexArrays(1, &vertexArray);
+  glBindVertexArray(vertexArray);
+
+  // Create vertex buffer
+  GLuint vertexBuffer = 0;
+  glGenBuffers(1, &vertexBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+  glBufferData(GL_ARRAY_BUFFER, numVerts * sizeVert * sizeof(float), verts,
+               GL_STATIC_DRAW);
+
+  // Create index buffer
+  GLuint indexBuffer = 0;
+  glGenBuffers(1, &indexBuffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint), indices,
+               GL_STATIC_DRAW);
+
+  // Specify the vertex attributes
+  // (For now, assume one vertex format)
+  // Position is 3 floats
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeVert * sizeof(float),
+                        nullptr);
+  // Normal is 3 floats
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeVert * sizeof(float),
+                        reinterpret_cast<void *>(sizeof(float) * 3));
+  // Texture coordinates is 2 floats
+  glEnableVertexAttribArray(2);
+  glVertexAttribPointer(
+      2, 2, GL_FLOAT, GL_FALSE, sizeVert * sizeof(float),
+      reinterpret_cast<void *>(sizeof(float) * (sizeVert - 2)));
+
+  return vertexArray;
+}
+
 Mesh load(const std::string &filename) {
   Mesh mesh;
 
@@ -108,6 +149,8 @@ Mesh load(const std::string &filename) {
   return mesh;
 }
 
+void setVerticesActive(GLuint vertexArray) { glBindVertexArray(vertexArray); }
+
 void draw(Shader::Shader &shader, Mesh &mesh) {
   // Set world transform
   Tmpl8::mat4 scale = Tmpl8::mat4();
@@ -136,46 +179,6 @@ void draw(Shader::Shader &shader, Mesh &mesh) {
   glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
 }
 
-GLuint createVertexArray(const float *verts, uint numVerts, const uint *indices,
-                         uint numIndices, size_t sizeVert) {
-
-  GLuint vertexArray;
-  glGenVertexArrays(1, &vertexArray);
-  glBindVertexArray(vertexArray);
-
-  // Create vertex buffer
-  GLuint vertexBuffer = 0;
-  glGenBuffers(1, &vertexBuffer);
-  glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-  glBufferData(GL_ARRAY_BUFFER, numVerts * sizeVert * sizeof(float), verts,
-               GL_STATIC_DRAW);
-
-  // Create index buffer
-  GLuint indexBuffer = 0;
-  glGenBuffers(1, &indexBuffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint), indices,
-               GL_STATIC_DRAW);
-
-  // Specify the vertex attributes
-  // (For now, assume one vertex format)
-  // Position is 3 floats
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeVert * sizeof(float),
-                        nullptr);
-  // Normal is 3 floats
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeVert * sizeof(float),
-                        reinterpret_cast<void *>(sizeof(float) * 3));
-  // Texture coordinates is 2 floats
-  glEnableVertexAttribArray(2);
-  glVertexAttribPointer(
-      2, 2, GL_FLOAT, GL_FALSE, sizeVert * sizeof(float),
-      reinterpret_cast<void *>(sizeof(float) * (sizeVert - 2)));
-
-  return vertexArray;
-}
-
 void deleteVertexArray(GLuint vertexBuffer, GLuint indexBuffer,
                        GLuint vertexArray) {
   glDeleteBuffers(1, &vertexBuffer);
@@ -183,5 +186,4 @@ void deleteVertexArray(GLuint vertexBuffer, GLuint indexBuffer,
   glDeleteBuffers(1, &vertexArray);
 }
 
-void setVerticesActive(GLuint vertexArray) { glBindVertexArray(vertexArray); }
 } // namespace Mesh
