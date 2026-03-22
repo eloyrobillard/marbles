@@ -110,19 +110,24 @@ Mesh load(const std::string &filename) {
 
 void draw(Shader::Shader &shader, Mesh &mesh) {
   // Set world transform
-  Tmpl8::mat4 worldTransform = Tmpl8::mat4::rotatex(mesh.rot.x);
-  worldTransform *= Tmpl8::mat4::rotatey(mesh.rot.y);
-  worldTransform *= Tmpl8::mat4::rotatez(mesh.rot.z);
   Tmpl8::mat4 scale = Tmpl8::mat4();
   scale.mat[0][0] = mesh.scale.x;
   scale.mat[1][1] = mesh.scale.y;
   scale.mat[2][2] = mesh.scale.z;
-  worldTransform *= scale;
+
+  Tmpl8::mat4 rotation = Tmpl8::mat4::rotatex(mesh.rot.x);
+  rotation *= Tmpl8::mat4::rotatey(mesh.rot.y);
+  rotation *= Tmpl8::mat4::rotatez(mesh.rot.z);
+
   Tmpl8::mat4 translation = Tmpl8::mat4();
   translation.mat[3][0] = mesh.translation.x;
   translation.mat[3][1] = mesh.translation.y;
   translation.mat[3][2] = mesh.translation.z;
+
+  Tmpl8::mat4 worldTransform = scale;
+  worldTransform *= rotation;
   worldTransform *= translation;
+
   Shader::setMatrixUniform(shader, "uWorldTransform", worldTransform);
 
   setVerticesActive(mesh.vertexArray);
