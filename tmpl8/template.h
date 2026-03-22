@@ -390,6 +390,143 @@ public:
   int &operator[](const int idx) { return cell[idx]; }
 };
 
+inline float lerp(float a, float b, float f) { return a + f * (b - a); }
+
+// NOTE: From "Game Programming in C++" by Sanjay Madhav
+class quat {
+public:
+  float x;
+  float y;
+  float z;
+  float w;
+
+  quat() { *this = quat::Identity; }
+
+  // This directly sets the quaternion components --
+  // don't use for axis/angle
+  explicit quat(float inX, float inY, float inZ, float inW) {
+    Set(inX, inY, inZ, inW);
+  }
+
+  // Construct the quaternion from an axis and angle
+  // It is assumed that axis is already normalized,
+  // and the angle is in radians
+  explicit quat(const vec3 &axis, float angle) {
+    float scalar = sin(angle / 2.0f);
+    x = axis.x * scalar;
+    y = axis.y * scalar;
+    z = axis.z * scalar;
+    w = cos(angle / 2.0f);
+  }
+
+  // Directly set the internal components
+  void Set(float inX, float inY, float inZ, float inW) {
+    x = inX;
+    y = inY;
+    z = inZ;
+    w = inW;
+  }
+
+  void Conjugate() {
+    x *= -1.0f;
+    y *= -1.0f;
+    z *= -1.0f;
+  }
+
+  float LengthSq() const { return (x * x + y * y + z * z + w * w); }
+
+  float Length() const { return sqrt(LengthSq()); }
+
+  void Normalize() {
+    float length = Length();
+    x /= length;
+    y /= length;
+    z /= length;
+    w /= length;
+  }
+
+  // Normalize the provided quaternion
+  static quat Normalize(const quat &q) {
+    quat retVal = q;
+    retVal.Normalize();
+    return retVal;
+  }
+
+  // Linear interpolation
+  static quat Lerp(const quat &a, const quat &b, float f) {
+    quat retVal;
+    retVal.x = lerp(a.x, b.x, f);
+    retVal.y = lerp(a.y, b.y, f);
+    retVal.z = lerp(a.z, b.z, f);
+    retVal.w = lerp(a.w, b.w, f);
+    retVal.Normalize();
+    return retVal;
+  }
+
+  static float Dot(const quat &a, const quat &b) {
+    return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+  }
+
+  // Spherical Linear Interpolation
+  static quat Slerp(const quat &a, const quat &b, float f) {
+    float rawCosm = quat::Dot(a, b);
+
+    float cosom = -rawCosm;
+    if (rawCosm >= 0.0f) {
+      cosom = rawCosm;
+    }
+
+    float scale0, scale1;
+
+    if (cosom < 0.9999f) {
+      const float omega = acos(cosom);
+      const float invSin = 1.f / sin(omega);
+      scale0 = sin((1.f - f) * omega) * invSin;
+      scale1 = sin(f * omega) * invSin;
+    } else {
+      // Use linear interpolation if the quaternions
+      // are collinear
+      scale0 = 1.0f - f;
+      scale1 = f;
+    }
+
+    if (rawCosm < 0.0f) {
+      scale1 = -scale1;
+    }
+
+    quat retVal;
+    retVal.x = scale0 * a.x + scale1 * b.x;
+    retVal.y = scale0 * a.y + scale1 * b.y;
+    retVal.z = scale0 * a.z + scale1 * b.z;
+    retVal.w = scale0 * a.w + scale1 * b.w;
+    retVal.Normalize();
+    return retVal;
+  }
+
+  // Concatenate
+  // Rotate by q FOLLOWED BY p
+  static quat Concatenate(const quat &q, const quat &p) {
+    quat retVal;
+
+    // Vector component is:
+    // ps * qv + qs * pv + pv x qv
+    vec3 qv(q.x, q.y, q.z);
+    vec3 pv(p.x, p.y, p.z);
+    vec3 newVec = p.w * qv + q.w * pv + pv.dot(qv);
+    retVal.x = newVec.x;
+    retVal.y = newVec.y;
+    retVal.z = newVec.z;
+
+    // Scalar component is:
+    // ps * qs - pv . qv
+    retVal.w = p.w * q.w - pv.dot(qv);
+
+    return retVal;
+  }
+
+  static const quat Identity;
+};
+
 class mat4 {
 public:
   mat4();
@@ -398,12 +535,15 @@ public:
     float cell[16];
     float mat[4][4];
   };
+
   float &operator[](const int idx) { return cell[idx]; }
   static mat4 identity();
   static mat4 rotate(vec3 v, float rad);
-  static mat4 rotatex(const float rad);
-  static mat4 rotatey(const float rad);
-  static mat4 rotatez(const float rad);
+  static mat4 rotatex(float rad);
+  static mat4 rotatey(float rad);
+  static mat4 rotatez(float rad);
+  // NOTE: From "Game Programming in C++" by Sanjay Madhav
+  static mat4 CreateFromQuaternion(const class quat &q);
 
   static mat4 CreatePerspectiveFOV(float fovY, float width, float height,
                                    float near, float far) {
@@ -415,6 +555,7 @@ public:
                         {0.0f, 0.0f, -near * far / (far - near), 0.0f}};
     return mat4(temp);
   }
+
   static mat4 CreateLookAt(const vec3 &eye, const vec3 &target,
                            const vec3 &up) {
     vec3 zaxis = vec3::normalize(target - eye);
@@ -431,6 +572,7 @@ public:
                         {trans.x, trans.y, trans.z, 1.0f}};
     return mat4(temp);
   }
+
   friend mat4 operator*=(mat4 &a, const mat4 &b) {
     // row 0
     a.mat[0][0] = a.mat[0][0] * b.mat[0][0] + a.mat[0][1] * b.mat[1][0] +
@@ -486,6 +628,7 @@ public:
 
     return a;
   }
+
   friend mat4 operator*(const mat4 &a, const mat4 &b) {
     mat4 retVal;
     // row 0
@@ -542,6 +685,7 @@ public:
 
     return retVal;
   }
+
   void invert() {
     // from MESA, via
     // http://stackoverflow.com/questions/1148309/inverting-a-4x4-matrix

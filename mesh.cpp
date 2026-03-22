@@ -82,11 +82,12 @@ Mesh load(const std::string &filename) {
 
   std::string shader = document["shader"].GetString();
 
-  Value &rotJSON = document["rotationEuler"];
-  if (rotJSON.IsArray() && rotJSON.Size() == 3) {
+  Value &rotJSON = document["rotationQuaternion"];
+  if (rotJSON.IsArray() && rotJSON.Size() == 4) {
     mesh.rot.x = static_cast<float>(rotJSON[0].GetDouble());
     mesh.rot.y = static_cast<float>(rotJSON[1].GetDouble());
     mesh.rot.z = static_cast<float>(rotJSON[2].GetDouble());
+    mesh.rot.w = static_cast<float>(rotJSON[3].GetDouble());
   }
 
   Value &scaleJSON = document["scale"];
@@ -158,9 +159,7 @@ void draw(Shader::Shader &shader, Mesh &mesh) {
   scale.mat[1][1] = mesh.scale.y;
   scale.mat[2][2] = mesh.scale.z;
 
-  Tmpl8::mat4 rotation = Tmpl8::mat4::rotatex(mesh.rot.x);
-  rotation *= Tmpl8::mat4::rotatey(mesh.rot.y);
-  rotation *= Tmpl8::mat4::rotatez(mesh.rot.z);
+  Tmpl8::mat4 rotation = Tmpl8::mat4::CreateFromQuaternion(mesh.rot);
 
   Tmpl8::mat4 translation = Tmpl8::mat4();
   translation.mat[3][0] = mesh.translation.x;
