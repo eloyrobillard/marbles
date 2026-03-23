@@ -58,6 +58,7 @@ GLuint createVertexArray(const float *verts, uint numVerts, const uint *indices,
 
 Mesh load(const std::string &filename) {
   Mesh mesh;
+  mesh.rot = quat();
 
   std::ifstream ifs;
   ifs.open(filename);
@@ -84,27 +85,16 @@ Mesh load(const std::string &filename) {
 
   Value &scaleJSON = document["scale"];
   if (scaleJSON.IsArray() && scaleJSON.Size() == 3) {
-    // NOTE: Blender 座標系からの変換：X, Y を反対に
-    mesh.scale.x = static_cast<float>(scaleJSON[1].GetDouble());
-    mesh.scale.y = static_cast<float>(scaleJSON[0].GetDouble());
+    mesh.scale.x = static_cast<float>(scaleJSON[0].GetDouble());
+    mesh.scale.y = static_cast<float>(scaleJSON[1].GetDouble());
     mesh.scale.z = static_cast<float>(scaleJSON[2].GetDouble());
-  }
-
-  Value &rotJSON = document["rotationQuaternion"];
-  if (rotJSON.IsArray() && rotJSON.Size() == 4) {
-    // NOTE: なぜかわからないが、X とW をマイナスにすると
-    // Blender 通りの回転になる
-    mesh.rot.x = -static_cast<float>(rotJSON[0].GetDouble());
-    mesh.rot.y = static_cast<float>(rotJSON[1].GetDouble());
-    mesh.rot.z = static_cast<float>(rotJSON[2].GetDouble());
-    mesh.rot.w = -static_cast<float>(rotJSON[3].GetDouble());
   }
 
   Value &translationJSON = document["translation"];
   if (translationJSON.IsArray() && translationJSON.Size() == 3) {
-    // NOTE: Blender 座標系からの変換：X, Y を反対に
-    mesh.translation.x = static_cast<float>(translationJSON[1].GetDouble());
-    mesh.translation.y = static_cast<float>(translationJSON[0].GetDouble());
+    // NOTE: Blender 座標系からの変換
+    mesh.translation.x = -static_cast<float>(translationJSON[0].GetDouble());
+    mesh.translation.y = static_cast<float>(translationJSON[1].GetDouble());
     mesh.translation.z = static_cast<float>(translationJSON[2].GetDouble());
   }
 
@@ -120,15 +110,12 @@ Mesh load(const std::string &filename) {
     auto &vert = vertsJSON[i];
     assert(vert.IsArray() && vert.Size() == 16);
 
-    // NOTE: Blender 座標系からの変換：X, Y を反対に
-    verts.push_back(-static_cast<float>(vert[1].GetDouble()));
     verts.push_back(static_cast<float>(vert[0].GetDouble()));
+    verts.push_back(static_cast<float>(vert[1].GetDouble()));
     verts.push_back(static_cast<float>(vert[2].GetDouble()));
-    // NOTE: Blender 座標系からの変換：X, Y を反対に
-    verts.push_back(static_cast<float>(vert[4].GetDouble()));
     verts.push_back(static_cast<float>(vert[3].GetDouble()));
+    verts.push_back(static_cast<float>(vert[4].GetDouble()));
     verts.push_back(static_cast<float>(vert[5].GetDouble()));
-    // TODO: Blender 座標系からの変換の一環として UV も逆にするべきか確認
     verts.push_back(static_cast<float>(vert[14].GetDouble()));
     verts.push_back(static_cast<float>(vert[15].GetDouble()));
   }
@@ -175,8 +162,8 @@ void draw(Shader::Shader &shader, Mesh &mesh) {
   translation.mat[3][1] = mesh.translation.y;
   translation.mat[3][2] = mesh.translation.z;
 
-  mat4 worldTransform = rotation;
-  worldTransform *= scale;
+  mat4 worldTransform = scale;
+  worldTransform *= rotation;
   worldTransform *= translation;
 
   Shader::setMatrixUniform(shader, "uWorldTransform", worldTransform);

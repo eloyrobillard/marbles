@@ -525,6 +525,20 @@ public:
     return retVal;
   }
 
+  friend quat operator*(const quat &q, const quat &p) {
+    return quat(q.w * p.x - q.z * p.y + q.y * p.z + q.x * p.w,
+                q.z * p.x + q.w * p.y - q.x * p.z + q.y * p.w,
+                -q.y * p.x + q.x * p.y + q.w * p.z + q.z * p.w,
+                -q.x * p.x - q.y * p.y - q.z * p.z + q.w * p.w);
+  }
+
+  void operator*=(const quat &q) {
+    x = w * q.x - z * q.y + y * q.z + x * q.w;
+    y = z * q.x + w * q.y - x * q.z + y * q.w;
+    z = -y * q.x + x * q.y + w * q.z + z * q.w;
+    w = -x * q.x - y * q.y - z * q.z + w * q.w;
+  }
+
   static const quat Identity;
 };
 

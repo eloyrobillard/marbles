@@ -109,6 +109,6 @@ void setMatrixUniform(Shader &shader, const char *name,
   // Find the uniform by this name
   GLuint loc = glGetUniformLocation(shader.program, name);
   // Send the matrix data to the uniform
-  glUniformMatrix4fv(loc, 1, GL_TRUE, &matrix.cell[0]);
+  glUniformMatrix4fv(loc, 1, GL_TRUE, matrix.cell);
 }
 } // namespace Shader
