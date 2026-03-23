@@ -2,6 +2,7 @@
 // IGAD/BUAS(NHTV)/UU - Jacco Bikker - 2006-2020
 
 #pragma once
+#include <ostream>
 #if defined _M_IX86
 #pragma comment(                                                               \
     linker,                                                                    \
@@ -535,6 +536,18 @@ public:
     float cell[16];
     float mat[4][4];
   };
+
+  friend std::ostream &operator<<(std::ostream &os, const mat4 &m) {
+    os << m.mat[0][0] << ' ' << m.mat[0][1] << ' ' << m.mat[0][2] << ' '
+       << m.mat[0][3] << std::endl;
+    os << m.mat[1][0] << ' ' << m.mat[1][1] << ' ' << m.mat[1][2] << ' '
+       << m.mat[1][3] << std::endl;
+    os << m.mat[2][0] << ' ' << m.mat[2][1] << ' ' << m.mat[2][2] << ' '
+       << m.mat[2][3] << std::endl;
+    os << m.mat[3][0] << ' ' << m.mat[3][1] << ' ' << m.mat[3][2] << ' '
+       << m.mat[3][3] << std::endl;
+    return os;
+  }
 
   float &operator[](const int idx) { return cell[idx]; }
   static mat4 identity();

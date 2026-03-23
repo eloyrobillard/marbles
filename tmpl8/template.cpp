@@ -65,7 +65,7 @@ const quat quat::Identity(0.0f, 0.0f, 0.0f, 1.0f);
 const vec3 vec3::zero = vec3(0.0f);
 const vec3 vec3::right = vec3(1.0f, 0.0f, 0.0f);
 const vec3 vec3::up = vec3(0.0f, 1.0f, 0.0f);
-const vec3 vec3::forward = vec3(0.0f, 0.0f, 1.0f);
+const vec3 vec3::forward = vec3(0.0f, 0.0f, -1.0f);
 vec3 normalize(const vec3 &v) { return v.normalized(); }
 vec3 cross(const vec3 &a, const vec3 &b) { return a.cross(b); }
 float dot(const vec3 &a, const vec3 &b) { return a.dot(b); }
@@ -118,6 +118,7 @@ mat4 mat4::rotate(const vec3 l, const float a) {
   M.cell[15] = 1;
   return M;
 }
+
 mat4 mat4::rotatex(const float rad) {
   mat4 M;
   const float ca = cosf(rad), sa = sinf(rad);
@@ -125,6 +126,7 @@ mat4 mat4::rotatex(const float rad) {
   M.cell[9] = sa, M.cell[10] = ca;
   return M;
 }
+
 mat4 mat4::rotatey(const float rad) {
   mat4 M;
   const float ca = cosf(rad), sa = sinf(rad);
@@ -132,6 +134,7 @@ mat4 mat4::rotatey(const float rad) {
   M.cell[8] = -sa, M.cell[10] = ca;
   return M;
 }
+
 mat4 mat4::rotatez(const float rad) {
   mat4 M;
   const float ca = cosf(rad), sa = sinf(rad);
