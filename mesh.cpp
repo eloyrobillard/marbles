@@ -58,7 +58,10 @@ GLuint createVertexArray(const float *verts, uint numVerts, const uint *indices,
 
 Mesh load(const std::string &filename) {
   Mesh mesh;
-  mesh.rot = quat();
+  mesh.rot = quat(vec3::forward, -Tmpl8::PI / 2.0f);
+  // HACK: rotating the rotation axis might help? (doesn't)
+  mesh.rot = quat::Concatenate(
+      mesh.rot, quat(vec3::transform(vec3::right, mesh.rot), Tmpl8::PI / 2.0f));
 
   std::ifstream ifs;
   ifs.open(filename);

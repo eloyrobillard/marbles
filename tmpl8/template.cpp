@@ -75,6 +75,14 @@ vec3 operator*(const float &s, const vec3 &v) {
 vec3 operator*(const vec3 &v, const float &s) {
   return {v.x * s, v.y * s, v.z * s};
 }
+vec3 vec3::transform(const vec3 &v, const quat &q) {
+  // v + 2.0*cross(q.xyz, cross(q.xyz,v) + q.w*v);
+  vec3 qv(q.x, q.y, q.z);
+  vec3 retVal = v;
+  retVal += 2.0f * qv.cross(qv.cross(v) + q.w * v);
+  return retVal;
+}
+
 vec4 operator*(const float &s, const vec4 &v) {
   return {v.x * s, v.y * s, v.z * s, v.w * s};
 }

@@ -70,6 +70,8 @@ constexpr float PI =
 #define unlikely(expr) __builtin_expect((expr), false)
 #endif
 
+class quat;
+
 struct timer {
   typedef long long value_type;
   static double inv_freq;
@@ -201,6 +203,8 @@ public:
   float dot(const vec3 &operand) const {
     return x * operand.x + y * operand.y + z * operand.z;
   }
+
+  static vec3 transform(const vec3 &vec, const quat &q);
 
   static const vec3 zero;
   static const vec3 right;
