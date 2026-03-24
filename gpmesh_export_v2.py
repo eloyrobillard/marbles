@@ -51,25 +51,25 @@ def generate_gpmesh_json():
 
     if len(obj.rotation_euler) == 3:
         rot = obj.rotation_euler
-        gpmesh["rotationEuler"] = [rot.x, rot.y, rot.z]
+        gpmesh["rotationEuler"] = [rot.y, rot.x, rot.z]
     else:
         gpmesh["rotationEuler"] = [0, 0, 0]
 
     if len(obj.rotation_quaternion) == 4:
         rot = obj.rotation_quaternion
-        gpmesh["rotationQuaternion"] = [rot.x, rot.y, rot.z, rot.w]
+        gpmesh["rotationQuaternion"] = [rot.y, rot.x, rot.z, rot.w]
     else:
         gpmesh["rotationQuaternion"] = [1, 0, 0, 0]
 
     if len(obj.scale) == 3:
         scale = obj.scale
-        gpmesh["scale"] = [scale.x, scale.y, scale.z]
+        gpmesh["scale"] = [scale.y, scale.x, scale.z]
     else:
         gpmesh["scale"] = [0, 0, 0]
 
     if len(obj.location) == 3:
         pos = obj.location
-        gpmesh["translation"] = [pos.x, pos.y, pos.z]
+        gpmesh["translation"] = [pos.y, pos.x, pos.z]
     else:
         gpmesh["translation"] = [0, 0, 0]
 
