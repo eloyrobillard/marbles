@@ -20,7 +20,7 @@ using std::vector;
 
 namespace Tmpl8 {
 
-Shader::Shader basicShader;
+Shader::Shader shader;
 vector<Mesh::Mesh> meshes;
 
 mat4 viewMat;
@@ -32,21 +32,21 @@ void Game::Init() {
     meshes.emplace_back(Mesh::load(meshName));
   }
 
-  basicShader = Shader::load("shaders/basic.vert", "shaders/basic.frag");
+  shader = Shader::load("shaders/basic.vert", "shaders/basic.frag");
 
-  if (!basicShader.isValid) {
+  if (!shader.isValid) {
     cerr << "Error: failed to load shader";
   }
 
-  Shader::setActive(basicShader);
+  Shader::setActive(shader);
 
   viewMat = mat4::CreateLookAt(vec3::zero, vec3::forward, vec3::up);
 
-  float fovy = 70.0f / 180.0f * PI;
+  float fovy = 45.0f / 180.0f * PI;
   projMat = mat4::CreatePerspectiveFOV(fovy, screen->GetWidth(),
                                        screen->GetHeight(), 5.0f, 10000.0f);
 
-  Shader::setMatrixUniform(basicShader, "uViewProj", viewMat * projMat);
+  Shader::setMatrixUniform(shader, "uViewProj", viewMat * projMat);
 }
 
 void Game::Tick(float deltaTime) {
@@ -59,17 +59,17 @@ void Game::Tick(float deltaTime) {
   glEnable(GL_DEPTH_TEST);
   glDisable(GL_BLEND);
 
-  Shader::setActive(basicShader);
+  Shader::setActive(shader);
 
   // Update view-projection matrix
-  Shader::setMatrixUniform(basicShader, "uViewProj", viewMat * projMat);
+  Shader::setMatrixUniform(shader, "uViewProj", viewMat * projMat);
 
   for (auto &mesh : meshes) {
-    Mesh::draw(basicShader, mesh);
+    Mesh::draw(shader, mesh);
   }
 }
 
 void Game::PhysicsTick(double t, double dt) {}
 
-void Game::Shutdown() { Shader::unload(basicShader); }
+void Game::Shutdown() { Shader::unload(shader); }
 } // namespace Tmpl8

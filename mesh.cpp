@@ -10,6 +10,7 @@
 
 using rapidjson::Value;
 using std::cerr;
+using std::cout;
 using std::endl;
 using std::vector;
 using Tmpl8::mat4;
@@ -164,8 +165,8 @@ void draw(Shader::Shader &shader, Mesh &mesh) {
 
   mat4 translation = mat4::CreateTranslation(mesh.translation);
 
-  mat4 worldTransform = rotation;
-  worldTransform *= scale;
+  mat4 worldTransform = scale;
+  worldTransform *= rotation;
   worldTransform *= translation;
 
   Shader::setMatrixUniform(shader, "uWorldTransform", worldTransform);
