@@ -65,7 +65,7 @@ def generate_gpmesh_json():
         scale = obj.scale
         gpmesh["scale"] = [scale.y, scale.x, scale.z]
     else:
-        gpmesh["scale"] = [0, 0, 0]
+        gpmesh["scale"] = [1, 1, 1]
 
     if len(obj.location) == 3:
         pos = obj.location
