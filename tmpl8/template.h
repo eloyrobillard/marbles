@@ -71,6 +71,7 @@ constexpr float PI =
 #endif
 
 class quat;
+class vec4;
 
 struct timer {
   typedef long long value_type;
@@ -150,6 +151,7 @@ public:
   };
   vec3() {}
   vec3(float v) : x(v), y(v), z(v) {}
+  vec3(vec4 v);
   vec3(float x, float y, float z) : x(x), y(y), z(z) {}
   vec3 operator-() const { return vec3(-x, -y, -z); }
   vec3 operator+(const vec3 &addOperand) const {
@@ -226,6 +228,7 @@ public:
   };
   vec4() {}
   vec4(float v) : x(v), y(v), z(v), w(v) {}
+  vec4(vec3 v) : x(v.x), y(v.y), z(v.z), w(1.0f) {}
   vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
   vec4(vec3 a, float b) : x(a.x), y(a.y), z(a.z), w(b) {}
   vec4 operator-() const { return vec4(-x, -y, -z, -w); }
@@ -508,6 +511,7 @@ public:
     return retVal;
   }
 
+  // NOTE: From "Game Programming in C++" by Sanjay Madhav
   // Concatenate
   // Rotate by q FOLLOWED BY p
   static quat Concatenate(const quat &q, const quat &p) {
@@ -534,6 +538,11 @@ public:
                 q.z * p.x + q.w * p.y - q.x * p.z + q.y * p.w,
                 -q.y * p.x + q.x * p.y + q.w * p.z + q.z * p.w,
                 -q.x * p.x - q.y * p.y - q.z * p.z + q.w * p.w);
+  }
+
+  friend std::ostream &operator<<(std::ostream &os, const quat &q) {
+    os << "w: " << q.w << " x: " << q.x << " y: " << q.y << " z: " << q.z;
+    return os;
   }
 
   void operator*=(const quat &q) {
@@ -569,12 +578,33 @@ public:
 
   float &operator[](const int idx) { return cell[idx]; }
   static mat4 identity();
+
   static mat4 rotate(vec3 v, float rad);
   static mat4 rotatex(float rad);
   static mat4 rotatey(float rad);
   static mat4 rotatez(float rad);
+
   // NOTE: From "Game Programming in C++" by Sanjay Madhav
   static mat4 CreateFromQuaternion(const class quat &q);
+  static mat4 CreateTranslation(const vec3 &trans) {
+    float temp[4][4] = {{1.0f, 0.0f, 0.0f, 0.0f},
+                        {0.0f, 1.0f, 0.0f, 0.0f},
+                        {0.0f, 0.0f, 1.0f, 0.0f},
+                        {trans.x, trans.y, trans.z, 1.0f}};
+    return {temp};
+  }
+
+  static mat4 CreateScale(float xScale, float yScale, float zScale) {
+    float temp[4][4] = {{xScale, 0.0f, 0.0f, 0.0f},
+                        {0.0f, yScale, 0.0f, 0.0f},
+                        {0.0f, 0.0f, zScale, 0.0f},
+                        {0.0f, 0.0f, 0.0f, 1.0f}};
+    return {temp};
+  }
+  static mat4 CreateScale(vec3 &v) { return CreateScale(v.x, v.y, v.z); }
+  static mat4 CreateScale(float scale) {
+    return CreateScale(scale, scale, scale);
+  }
 
   static mat4 CreatePerspectiveFOV(float fovY, float width, float height,
                                    float near, float far) {
@@ -769,8 +799,10 @@ public:
         cell[0] * cell[5] * cell[10] - cell[0] * cell[6] * cell[9] -
             cell[4] * cell[1] * cell[10] + cell[4] * cell[2] * cell[9] +
             cell[8] * cell[1] * cell[6] - cell[8] * cell[2] * cell[5]};
+
     const float det = cell[0] * inv[0] + cell[1] * inv[4] + cell[2] * inv[8] +
                       cell[3] * inv[12];
+
     if (det != 0) {
       const float invdet = 1.0f / det;
       for (int i = 0; i < 16; i++)

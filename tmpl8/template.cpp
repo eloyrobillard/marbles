@@ -63,9 +63,10 @@ void timer::init() {
 // ----------------------------------------------------------------------------
 const quat quat::Identity(0.0f, 0.0f, 0.0f, 1.0f);
 const vec3 vec3::zero = vec3(0.0f);
-const vec3 vec3::right = vec3(1.0f, 0.0f, 0.0f);
-const vec3 vec3::up = vec3(0.0f, 1.0f, 0.0f);
-const vec3 vec3::forward = vec3(0.0f, 0.0f, -1.0f);
+const vec3 vec3::right = vec3(0.0f, 1.0f, 0.0f);
+const vec3 vec3::up = vec3(0.0f, 0.0f, 1.0f);
+const vec3 vec3::forward = vec3(1.0f, 0.0f, 0.0f);
+vec3::vec3(vec4 v) : x(v.x), y(v.y), z(v.z) {}
 vec3 normalize(const vec3 &v) { return v.normalized(); }
 vec3 cross(const vec3 &a, const vec3 &b) { return a.cross(b); }
 float dot(const vec3 &a, const vec3 &b) { return a.dot(b); }
@@ -130,24 +131,24 @@ mat4 mat4::rotate(const vec3 l, const float a) {
 mat4 mat4::rotatex(const float rad) {
   mat4 M;
   const float ca = cosf(rad), sa = sinf(rad);
-  M.cell[5] = ca, M.cell[6] = -sa;
-  M.cell[9] = sa, M.cell[10] = ca;
+  M.cell[5] = ca, M.cell[6] = sa;
+  M.cell[9] = -sa, M.cell[10] = ca;
   return M;
 }
 
 mat4 mat4::rotatey(const float rad) {
   mat4 M;
   const float ca = cosf(rad), sa = sinf(rad);
-  M.cell[0] = ca, M.cell[2] = sa;
-  M.cell[8] = -sa, M.cell[10] = ca;
+  M.cell[0] = ca, M.cell[2] = -sa;
+  M.cell[8] = sa, M.cell[10] = ca;
   return M;
 }
 
 mat4 mat4::rotatez(const float rad) {
   mat4 M;
   const float ca = cosf(rad), sa = sinf(rad);
-  M.cell[0] = ca, M.cell[1] = -sa;
-  M.cell[4] = sa, M.cell[5] = ca;
+  M.cell[0] = ca, M.cell[1] = sa;
+  M.cell[4] = -sa, M.cell[5] = ca;
   return M;
 }
 
