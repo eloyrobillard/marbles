@@ -57,9 +57,9 @@ def generate_gpmesh_json():
 
     if len(obj.rotation_quaternion) == 4:
         rot = obj.rotation_quaternion
-        gpmesh["rotationQuaternion"] = [rot.y, rot.x, rot.z, rot.w]
+        gpmesh["rotationQuaternion"] = [rot.y, rot.x, rot.z, -rot.w]
     else:
-        gpmesh["rotationQuaternion"] = [1, 0, 0, 0]
+        gpmesh["rotationQuaternion"] = [0, 0, 0, 1]
 
     if len(obj.scale) == 3:
         scale = obj.scale

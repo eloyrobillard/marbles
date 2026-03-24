@@ -12,7 +12,9 @@ using rapidjson::Value;
 using std::cerr;
 using std::endl;
 using std::vector;
+using Tmpl8::mat4;
 using Tmpl8::vec3;
+using Tmpl8::vec4;
 
 namespace Mesh {
 
@@ -58,10 +60,6 @@ GLuint createVertexArray(const float *verts, uint numVerts, const uint *indices,
 
 Mesh load(const std::string &filename) {
   Mesh mesh;
-  mesh.rot = quat(vec3::forward, -Tmpl8::PI / 2.0f);
-  // HACK: rotating the rotation axis might help? (doesn't)
-  mesh.rot = quat::Concatenate(
-      mesh.rot, quat(vec3::transform(vec3::right, mesh.rot), Tmpl8::PI / 2.0f));
 
   std::ifstream ifs;
   ifs.open(filename);
@@ -93,10 +91,17 @@ Mesh load(const std::string &filename) {
     mesh.scale.z = static_cast<float>(scaleJSON[2].GetDouble());
   }
 
+  Value &rotJSON = document["rotationQuaternion"];
+  if (rotJSON.IsArray() && rotJSON.Size() == 4) {
+    mesh.rotation.x = static_cast<float>(rotJSON[0].GetDouble());
+    mesh.rotation.y = static_cast<float>(rotJSON[1].GetDouble());
+    mesh.rotation.z = static_cast<float>(rotJSON[2].GetDouble());
+    mesh.rotation.w = static_cast<float>(rotJSON[3].GetDouble());
+  }
+
   Value &translationJSON = document["translation"];
   if (translationJSON.IsArray() && translationJSON.Size() == 3) {
-    // NOTE: Blender 座標系からの変換
-    mesh.translation.x = -static_cast<float>(translationJSON[0].GetDouble());
+    mesh.translation.x = static_cast<float>(translationJSON[0].GetDouble());
     mesh.translation.y = static_cast<float>(translationJSON[1].GetDouble());
     mesh.translation.z = static_cast<float>(translationJSON[2].GetDouble());
   }
@@ -153,20 +158,14 @@ void draw(Shader::Shader &shader, Mesh &mesh) {
   using Tmpl8::mat4;
 
   // Set world transform
-  mat4 scale = mat4();
-  scale.mat[0][0] = mesh.scale.x;
-  scale.mat[1][1] = mesh.scale.y;
-  scale.mat[2][2] = mesh.scale.z;
+  mat4 scale = mat4::CreateScale(mesh.scale);
 
-  mat4 rotation = mat4::CreateFromQuaternion(mesh.rot);
+  mat4 rotation = mat4::CreateFromQuaternion(mesh.rotation);
 
-  mat4 translation = mat4();
-  translation.mat[3][0] = mesh.translation.x;
-  translation.mat[3][1] = mesh.translation.y;
-  translation.mat[3][2] = mesh.translation.z;
+  mat4 translation = mat4::CreateTranslation(mesh.translation);
 
-  mat4 worldTransform = scale;
-  worldTransform *= rotation;
+  mat4 worldTransform = rotation;
+  worldTransform *= scale;
   worldTransform *= translation;
 
   Shader::setMatrixUniform(shader, "uWorldTransform", worldTransform);

@@ -12,7 +12,7 @@ using Tmpl8::vec3;
 
 namespace Mesh {
 typedef struct {
-  quat rot;
+  quat rotation;
   vec3 scale;
   vec3 translation;
   vector<float> verts;
