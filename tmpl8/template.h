@@ -517,7 +517,7 @@ public:
     // ps * qv + qs * pv + pv x qv
     vec3 qv(q.x, q.y, q.z);
     vec3 pv(p.x, p.y, p.z);
-    vec3 newVec = p.w * qv + q.w * pv + pv.dot(qv);
+    vec3 newVec = p.w * qv + q.w * pv + pv.cross(qv);
     retVal.x = newVec.x;
     retVal.y = newVec.y;
     retVal.z = newVec.z;
