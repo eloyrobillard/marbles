@@ -634,62 +634,6 @@ public:
     return mat4(temp);
   }
 
-  friend mat4 operator*=(mat4 &a, const mat4 &b) {
-    // row 0
-    a.mat[0][0] = a.mat[0][0] * b.mat[0][0] + a.mat[0][1] * b.mat[1][0] +
-                  a.mat[0][2] * b.mat[2][0] + a.mat[0][3] * b.mat[3][0];
-
-    a.mat[0][1] = a.mat[0][0] * b.mat[0][1] + a.mat[0][1] * b.mat[1][1] +
-                  a.mat[0][2] * b.mat[2][1] + a.mat[0][3] * b.mat[3][1];
-
-    a.mat[0][2] = a.mat[0][0] * b.mat[0][2] + a.mat[0][1] * b.mat[1][2] +
-                  a.mat[0][2] * b.mat[2][2] + a.mat[0][3] * b.mat[3][2];
-
-    a.mat[0][3] = a.mat[0][0] * b.mat[0][3] + a.mat[0][1] * b.mat[1][3] +
-                  a.mat[0][2] * b.mat[2][3] + a.mat[0][3] * b.mat[3][3];
-
-    // row 1
-    a.mat[1][0] = a.mat[1][0] * b.mat[0][0] + a.mat[1][1] * b.mat[1][0] +
-                  a.mat[1][2] * b.mat[2][0] + a.mat[1][3] * b.mat[3][0];
-
-    a.mat[1][1] = a.mat[1][0] * b.mat[0][1] + a.mat[1][1] * b.mat[1][1] +
-                  a.mat[1][2] * b.mat[2][1] + a.mat[1][3] * b.mat[3][1];
-
-    a.mat[1][2] = a.mat[1][0] * b.mat[0][2] + a.mat[1][1] * b.mat[1][2] +
-                  a.mat[1][2] * b.mat[2][2] + a.mat[1][3] * b.mat[3][2];
-
-    a.mat[1][3] = a.mat[1][0] * b.mat[0][3] + a.mat[1][1] * b.mat[1][3] +
-                  a.mat[1][2] * b.mat[2][3] + a.mat[1][3] * b.mat[3][3];
-
-    // row 2
-    a.mat[2][0] = a.mat[2][0] * b.mat[0][0] + a.mat[2][1] * b.mat[1][0] +
-                  a.mat[2][2] * b.mat[2][0] + a.mat[2][3] * b.mat[3][0];
-
-    a.mat[2][1] = a.mat[2][0] * b.mat[0][1] + a.mat[2][1] * b.mat[1][1] +
-                  a.mat[2][2] * b.mat[2][1] + a.mat[2][3] * b.mat[3][1];
-
-    a.mat[2][2] = a.mat[2][0] * b.mat[0][2] + a.mat[2][1] * b.mat[1][2] +
-                  a.mat[2][2] * b.mat[2][2] + a.mat[2][3] * b.mat[3][2];
-
-    a.mat[2][3] = a.mat[2][0] * b.mat[0][3] + a.mat[2][1] * b.mat[1][3] +
-                  a.mat[2][2] * b.mat[2][3] + a.mat[2][3] * b.mat[3][3];
-
-    // row 3
-    a.mat[3][0] = a.mat[3][0] * b.mat[0][0] + a.mat[3][1] * b.mat[1][0] +
-                  a.mat[3][2] * b.mat[2][0] + a.mat[3][3] * b.mat[3][0];
-
-    a.mat[3][1] = a.mat[3][0] * b.mat[0][1] + a.mat[3][1] * b.mat[1][1] +
-                  a.mat[3][2] * b.mat[2][1] + a.mat[3][3] * b.mat[3][1];
-
-    a.mat[3][2] = a.mat[3][0] * b.mat[0][2] + a.mat[3][1] * b.mat[1][2] +
-                  a.mat[3][2] * b.mat[2][2] + a.mat[3][3] * b.mat[3][2];
-
-    a.mat[3][3] = a.mat[3][0] * b.mat[0][3] + a.mat[3][1] * b.mat[1][3] +
-                  a.mat[3][2] * b.mat[2][3] + a.mat[3][3] * b.mat[3][3];
-
-    return a;
-  }
-
   friend mat4 operator*(const mat4 &a, const mat4 &b) {
     mat4 retVal;
     // row 0

@@ -165,9 +165,7 @@ void draw(Shader::Shader &shader, Mesh &mesh) {
 
   mat4 translation = mat4::CreateTranslation(mesh.translation);
 
-  mat4 worldTransform = scale;
-  worldTransform *= rotation;
-  worldTransform *= translation;
+  mat4 worldTransform = scale * rotation * translation;
 
   Shader::setMatrixUniform(shader, "uWorldTransform", worldTransform);
 
