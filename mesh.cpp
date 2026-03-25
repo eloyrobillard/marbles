@@ -227,8 +227,12 @@ Mesh load(const std::string &filename) {
 
 void setVerticesActive(GLuint vertexArray) { glBindVertexArray(vertexArray); }
 
-void draw(Shader::Shader &shader, Mesh &mesh) {
-  using Tmpl8::mat4;
+Texture::Texture *lookTextureUp(Mesh &mesh, size_t index) {
+  if (index < mesh.textures.size())
+    return mesh.textures[index];
+  else
+    return nullptr;
+}
 
 mat4 getWorldTransform(const Mesh &mesh) {
   mat4 scale = mat4::CreateScale(mesh.scale);
@@ -246,6 +250,10 @@ void draw(Shader::Shader &shader, Mesh &mesh) {
 
   Shader::setMatrixUniform(shader, "uWorldTransform", worldTransform);
 
+  Texture::Texture *tex = lookTextureUp(mesh, 0);
+  if (tex)
+    Texture::SetActive(tex->textureID);
+
   setVerticesActive(mesh.vertexArray);
 
   // Draw triangles
@@ -259,10 +267,4 @@ void deleteVertexArray(GLuint vertexBuffer, GLuint indexBuffer,
   glDeleteBuffers(1, &vertexArray);
 }
 
-Texture::Texture *getTexture(Mesh &mesh, size_t index) {
-  if (index < mesh.textures.size())
-    return mesh.textures[index];
-  else
-    return nullptr;
-}
 } // namespace Mesh
