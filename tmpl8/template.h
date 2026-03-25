@@ -601,7 +601,7 @@ public:
                         {0.0f, 0.0f, 0.0f, 1.0f}};
     return {temp};
   }
-  static mat4 CreateScale(vec3 &v) { return CreateScale(v.x, v.y, v.z); }
+  static mat4 CreateScale(const vec3 &v) { return CreateScale(v.x, v.y, v.z); }
   static mat4 CreateScale(float scale) {
     return CreateScale(scale, scale, scale);
   }

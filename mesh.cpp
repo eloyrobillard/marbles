@@ -230,14 +230,19 @@ void setVerticesActive(GLuint vertexArray) { glBindVertexArray(vertexArray); }
 void draw(Shader::Shader &shader, Mesh &mesh) {
   using Tmpl8::mat4;
 
-  // Set world transform
+mat4 getWorldTransform(const Mesh &mesh) {
   mat4 scale = mat4::CreateScale(mesh.scale);
 
   mat4 rotation = mat4::CreateFromQuaternion(mesh.rotation);
 
   mat4 translation = mat4::CreateTranslation(mesh.translation);
 
-  mat4 worldTransform = scale * rotation * translation;
+  return scale * rotation * translation;
+}
+
+void draw(Shader::Shader &shader, Mesh &mesh) {
+  // Set world transform
+  mat4 worldTransform = getWorldTransform(mesh);
 
   Shader::setMatrixUniform(shader, "uWorldTransform", worldTransform);
 
