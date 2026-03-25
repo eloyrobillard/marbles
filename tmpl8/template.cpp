@@ -5,6 +5,7 @@
 // this version of the template uses SDL2 for all frame buffer interaction
 // see: https://www.libsdl.org
 
+#include "SDL_video.h"
 #ifdef _MSC_VER
 #pragma warning(disable : 4530) // complaint about exception handler
 #pragma warning(disable : 4311) // pointer truncation from HANDLE to long
@@ -446,6 +447,7 @@ int main(int argc, char **argv) {
   }
 
   game->Shutdown();
+  SDL_DestroyWindow(window);
   SDL_Quit();
   return 0;
 }

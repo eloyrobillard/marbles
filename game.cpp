@@ -3,6 +3,7 @@
 #include "shader.h"
 #include "surface.h"
 #include "template.h"
+#include "texture.h"
 #include <cassert>
 #include <vector>
 #define WIN32_LEAN_AND_MEAN
@@ -74,5 +75,11 @@ void Game::Tick(float deltaTime) {
 
 void Game::PhysicsTick(double t, double dt) {}
 
-void Game::Shutdown() { Shader::unload(shader); }
+void Game::Shutdown() {
+  Shader::unload(shader);
+
+  for (auto &tex : Texture::gAllTextures) {
+    Texture::Unload(tex.second->textureID);
+  }
+}
 } // namespace Tmpl8

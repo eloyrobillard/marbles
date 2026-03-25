@@ -3,7 +3,7 @@
   "vertexformat": "PosNormSkinTex",
   "shader": "Skinned",
   "textures": [
-    "Assets/sphere-marble"
+    "Assets/sphere-marble.png"
   ],
   "specularPower": 100.0,
   "rotationEuler": [

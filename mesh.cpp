@@ -2,6 +2,7 @@
 #include "SDL_log.h"
 #include "rapidjson/document.h"
 #include "template.h"
+#include "texture.h"
 #include "utils.h"
 #include <fstream>
 #include <iostream>
@@ -60,6 +61,25 @@ GLuint createVertexArray(const float *verts, uint numVerts, const uint *indices,
   return vertexArray;
 }
 
+Texture::Texture *GetTexture(Mesh &mesh, const std::string &fileName) {
+  Texture::Texture *tex = nullptr;
+  auto iter = Texture::gAllTextures.find(fileName);
+
+  if (iter != Texture::gAllTextures.end()) {
+    tex = iter->second;
+  } else {
+    Texture::Texture tmp = Texture::load(fileName);
+    tex = &tmp;
+
+    if (tex->isValid) {
+      Texture::gAllTextures.emplace(fileName, tex);
+    } else {
+      tex = nullptr;
+    }
+  }
+  return tex;
+}
+
 Mesh load(const std::string &filename) {
   Mesh mesh;
 
@@ -85,6 +105,32 @@ Mesh load(const std::string &filename) {
   }
 
   std::string shader = document["shader"].GetString();
+
+  // Load textures
+  const rapidjson::Value &textures = document["textures"];
+  if (!textures.IsArray() || textures.Size() < 1) {
+    SDL_Log("Mesh %s has no textures, there should be at least one",
+            filename.c_str());
+
+    mesh.isValid = false;
+    return mesh;
+  }
+
+  for (rapidjson::SizeType i = 0; i < textures.Size(); i++) {
+    // Is this texture already loaded?
+    std::string texName = textures[i].GetString();
+    Texture::Texture *t = GetTexture(mesh, texName);
+    if (t == nullptr) {
+      // Try loading the texture
+      t = GetTexture(mesh, texName);
+      if (t == nullptr) {
+        // If it's still null, just use the default texture
+        t = GetTexture(mesh, "Assets/Default.png");
+      }
+    }
+
+    mesh.textures.emplace_back(t);
+  }
 
   Value &scaleJSON = document["scale"];
   if (!scaleJSON.IsArray() && scaleJSON.Size() != 3) {
@@ -208,4 +254,10 @@ void deleteVertexArray(GLuint vertexBuffer, GLuint indexBuffer,
   glDeleteBuffers(1, &vertexArray);
 }
 
+Texture::Texture *getTexture(Mesh &mesh, size_t index) {
+  if (index < mesh.textures.size())
+    return mesh.textures[index];
+  else
+    return nullptr;
+}
 } // namespace Mesh

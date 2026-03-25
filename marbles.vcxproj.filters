@@ -12,6 +12,7 @@
     </ClCompile>
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="mesh.cpp" />
+    <ClCompile Include="texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\FreeImage\inc\FreeImage.h">
@@ -235,6 +236,7 @@
     </ClInclude>
     <ClInclude Include="shader.h" />
     <ClInclude Include="mesh.h" />
+    <ClInclude Include="texture.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

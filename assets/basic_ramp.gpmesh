@@ -2,7 +2,9 @@
   "version": 1,
   "vertexformat": "PosNormSkinTex",
   "shader": "Skinned",
-  "textures": [],
+  "textures": [
+    "Assets/ramp-marble.png"
+  ],
   "specularPower": 100.0,
   "rotationEuler": [
     -0.3180021643638611,

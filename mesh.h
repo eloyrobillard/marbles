@@ -5,6 +5,7 @@
 
 #include "shader.h"
 #include "template.h"
+#include "texture.h"
 
 using std::vector;
 using Tmpl8::quat;
@@ -18,6 +19,7 @@ typedef struct {
   vector<float> verts;
   vector<unsigned int> indices;
   GLuint vertexArray;
+  vector<Texture::Texture *> textures;
   bool isValid;
 } Mesh;
 
