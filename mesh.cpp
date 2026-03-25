@@ -1,4 +1,5 @@
 #include "mesh.h"
+#include "SDL_log.h"
 #include "rapidjson/document.h"
 #include "template.h"
 #include "utils.h"
@@ -86,29 +87,49 @@ Mesh load(const std::string &filename) {
   std::string shader = document["shader"].GetString();
 
   Value &scaleJSON = document["scale"];
-  if (scaleJSON.IsArray() && scaleJSON.Size() == 3) {
-    mesh.scale.x = static_cast<float>(scaleJSON[0].GetDouble());
-    mesh.scale.y = static_cast<float>(scaleJSON[1].GetDouble());
-    mesh.scale.z = static_cast<float>(scaleJSON[2].GetDouble());
+  if (!scaleJSON.IsArray() && scaleJSON.Size() != 3) {
+    SDL_Log("Mesh %s should have scale info", filename.c_str());
+
+    mesh.isValid = false;
+    return mesh;
   }
+
+  mesh.scale.x = static_cast<float>(scaleJSON[0].GetDouble());
+  mesh.scale.y = static_cast<float>(scaleJSON[1].GetDouble());
+  mesh.scale.z = static_cast<float>(scaleJSON[2].GetDouble());
 
   Value &rotJSON = document["rotationQuaternion"];
-  if (rotJSON.IsArray() && rotJSON.Size() == 4) {
-    mesh.rotation.x = static_cast<float>(rotJSON[0].GetDouble());
-    mesh.rotation.y = static_cast<float>(rotJSON[1].GetDouble());
-    mesh.rotation.z = static_cast<float>(rotJSON[2].GetDouble());
-    mesh.rotation.w = static_cast<float>(rotJSON[3].GetDouble());
+  if (!rotJSON.IsArray() && rotJSON.Size() != 4) {
+    SDL_Log("Mesh %s should have rotation info", filename.c_str());
+
+    mesh.isValid = false;
+    return mesh;
   }
+
+  mesh.rotation.x = static_cast<float>(rotJSON[0].GetDouble());
+  mesh.rotation.y = static_cast<float>(rotJSON[1].GetDouble());
+  mesh.rotation.z = static_cast<float>(rotJSON[2].GetDouble());
+  mesh.rotation.w = static_cast<float>(rotJSON[3].GetDouble());
 
   Value &translationJSON = document["translation"];
-  if (translationJSON.IsArray() && translationJSON.Size() == 3) {
-    mesh.translation.x = static_cast<float>(translationJSON[0].GetDouble());
-    mesh.translation.y = static_cast<float>(translationJSON[1].GetDouble());
-    mesh.translation.z = static_cast<float>(translationJSON[2].GetDouble());
+  if (!translationJSON.IsArray() && translationJSON.Size() != 3) {
+    SDL_Log("Mesh %s should have translation coordinates", filename.c_str());
+
+    mesh.isValid = false;
+    return mesh;
   }
 
+  mesh.translation.x = static_cast<float>(translationJSON[0].GetDouble());
+  mesh.translation.y = static_cast<float>(translationJSON[1].GetDouble());
+  mesh.translation.z = static_cast<float>(translationJSON[2].GetDouble());
+
   Value &vertsJSON = document["vertices"];
-  assert(vertsJSON.IsArray() && vertsJSON.Size() > 0);
+  if (!vertsJSON.IsArray() && vertsJSON.Size() <= 0) {
+    SDL_Log("Mesh %s should have vertices", filename.c_str());
+
+    mesh.isValid = false;
+    return mesh;
+  }
 
   size_t sizeVert = 8;
 
@@ -130,7 +151,12 @@ Mesh load(const std::string &filename) {
   }
 
   Value &indicesJSON = document["indices"];
-  assert(indicesJSON.IsArray() && indicesJSON.Size() > 0);
+  if (!indicesJSON.IsArray() && indicesJSON.Size() <= 0) {
+    SDL_Log("Mesh %s should have vertex indices", filename.c_str());
+
+    mesh.isValid = false;
+    return mesh;
+  }
 
   std::vector<unsigned int> indices;
   indices.reserve(indicesJSON.Size() * 3);

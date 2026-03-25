@@ -29,7 +29,10 @@ mat4 projMat;
 void Game::Init() {
   vector<string> meshNames{"assets/basic_ramp.gpmesh", "assets/sphere.gpmesh"};
   for (const auto &meshName : meshNames) {
-    meshes.emplace_back(Mesh::load(meshName));
+    Mesh::Mesh mesh = Mesh::load(meshName);
+
+    if (mesh.isValid)
+      meshes.emplace_back(Mesh::load(meshName));
   }
 
   shader = Shader::load("shaders/basic.vert", "shaders/basic.frag");
