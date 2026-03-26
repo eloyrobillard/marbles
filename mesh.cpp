@@ -59,8 +59,7 @@ Texture::Texture *GetTexture(Mesh &mesh, const std::string &fileName) {
   if (iter != Texture::gAllTextures.end()) {
     tex = iter->second;
   } else {
-    Texture::Texture tmp = Texture::load(fileName);
-    tex = &tmp;
+    tex = Texture::load(fileName);
 
     if (tex->isValid) {
       Texture::gAllTextures.emplace(fileName, tex);
@@ -97,7 +96,7 @@ Mesh load(const std::string &filename) {
   std::string shader = document["shader"].GetString();
 
   // Load textures
-  const rapidjson::Value &textures = document["textures"];
+  const Value &textures = document["textures"];
   if (!textures.IsArray() || textures.Size() < 1) {
     SDL_Log("Mesh %s has no textures, there should be at least one",
             filename.c_str());
@@ -109,6 +108,7 @@ Mesh load(const std::string &filename) {
   for (rapidjson::SizeType i = 0; i < textures.Size(); i++) {
     // Is this texture already loaded?
     std::string texName = textures[i].GetString();
+
     Texture::Texture *t = GetTexture(mesh, texName);
     if (t == nullptr) {
       // Try loading the texture

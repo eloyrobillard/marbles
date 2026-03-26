@@ -17,6 +17,7 @@
 #include <glew.h>
 #include <iostream>
 #include <iterator>
+#include <memory>
 #include <ostream>
 #include <rapidjson/document.h>
 #include <sstream>
