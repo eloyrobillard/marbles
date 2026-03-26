@@ -226,9 +226,7 @@ Texture::Texture *lookTextureUp(Mesh &mesh, size_t index) {
 
 mat4 getWorldTransform(const Mesh &mesh) {
   mat4 scale = mat4::CreateScale(mesh.scale);
-
   mat4 rotation = mat4::CreateFromQuaternion(mesh.rotation);
-
   mat4 translation = mat4::CreateTranslation(mesh.translation);
 
   return scale * rotation * translation;
