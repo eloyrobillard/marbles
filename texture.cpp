@@ -1,7 +1,6 @@
 #include "texture.h"
 #include "SDL_log.h"
-#include "SOIL/include/SOIL.h"
-#include <string>
+#include "pch.h"
 
 namespace Texture {
 

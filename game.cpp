@@ -1,17 +1,14 @@
 
+#include "game.h"
 #include "mesh.h"
+#include "pch.h"
 #include "shader.h"
 #include "surface.h"
 #include "template.h"
 #include "texture.h"
-#include <cassert>
-#include <vector>
-#define WIN32_LEAN_AND_MEAN
-#include <iostream>
-#include <windows.h>
 
-#include "game.h"
-#include "glew.h"
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 
 using std::cerr;
 using std::cout;

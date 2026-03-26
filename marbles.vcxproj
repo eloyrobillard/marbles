@@ -107,7 +107,7 @@
       <MinimalRebuild>
       </MinimalRebuild>
       <Optimization>Disabled</Optimization>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <RemoveUnreferencedCodeData>
       </RemoveUnreferencedCodeData>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -121,6 +121,8 @@
       <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <ForcedIncludeFiles>pch.h</ForcedIncludeFiles>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;_WINDOWS;CMAKE_INTDIR=\"Debug\"</PreprocessorDefinitions>
@@ -354,6 +356,9 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="mesh.cpp" />
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="texture.cpp" />
     <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\FreeImage\inc\FreeImage.h" />
@@ -432,6 +437,7 @@
     <ClCompile Include="C:\Users\eloyr\Projects\marbles\game.cpp" />
     <ClInclude Include="C:\Users\eloyr\Projects\marbles\game.h" />
     <ClInclude Include="mesh.h" />
+    <ClInclude Include="pch.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="utils.h" />

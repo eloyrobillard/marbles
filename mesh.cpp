@@ -1,20 +1,11 @@
 #include "mesh.h"
 #include "SDL_log.h"
+#include "pch.h"
 #include "rapidjson/document.h"
 #include "template.h"
 #include "texture.h"
 #include "utils.h"
-#include <fstream>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <vector>
 
-using rapidjson::Value;
-using std::cerr;
-using std::cout;
-using std::endl;
-using std::vector;
 using Tmpl8::mat4;
 using Tmpl8::vec3;
 using Tmpl8::vec4;

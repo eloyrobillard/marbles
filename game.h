@@ -1,7 +1,6 @@
 #pragma once
 
-#include <SDL_scancode.h>
-#include <bitset>
+#include "pch.h"
 
 namespace Tmpl8 {
 

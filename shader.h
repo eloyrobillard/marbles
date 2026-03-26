@@ -1,7 +1,7 @@
 #pragma once
-#include "glew.h"
+
+#include "pch.h"
 #include "template.h"
-#include <string>
 
 namespace Shader {
 typedef struct {
@@ -13,11 +13,8 @@ typedef struct {
 
 // NOTE: From "Game Programming in C++" by Sanjay Madhav
 Shader load(const std::string &vertName, const std::string &fragName);
-// NOTE: From "Game Programming in C++" by Sanjay Madhav
 void unload(Shader &shader);
-// NOTE: From "Game Programming in C++" by Sanjay Madhav
 void setActive(Shader &shader);
-// NOTE: From "Game Programming in C++" by Sanjay Madhav
 void setMatrixUniform(Shader &shader, const char *name,
                       const Tmpl8::mat4 &matrix);
 } // namespace Shader

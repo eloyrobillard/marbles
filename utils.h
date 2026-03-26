@@ -1,10 +1,6 @@
 #pragma once
 
-#include <algorithm>
-#include <iterator>
-#include <ostream>
-#include <vector>
-
+#include "pch.h"
 #include "template.h"
 
 using std::copy;

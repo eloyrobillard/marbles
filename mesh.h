@@ -1,8 +1,6 @@
 #ifndef MESH_H
 #define MESH_H
 
-#include <vector>
-
 #include "shader.h"
 #include "template.h"
 #include "texture.h"

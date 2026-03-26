@@ -2,7 +2,6 @@
 // IGAD/BUAS(NHTV)/UU - Jacco Bikker - 2006-2020
 
 #pragma once
-#include <ostream>
 #if defined _M_IX86
 #pragma comment(                                                               \
     linker,                                                                    \
@@ -13,9 +12,7 @@
     "/manifestdependency:\"name='dlls_x64' version='1.0.0.0' type='x64'\"")
 #endif
 
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
+#include "pch.h"
 
 constexpr int ScreenWidth = 800;
 constexpr int ScreenHeight = 512;

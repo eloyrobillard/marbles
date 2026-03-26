@@ -1,8 +1,8 @@
 #pragma once
 
+#include "pch.h"
 #include "shader.h"
-#include <string>
-#include <unordered_map>
+
 namespace Texture {
 
 struct Texture {
