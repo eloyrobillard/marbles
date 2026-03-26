@@ -85,7 +85,6 @@ Mesh load(const std::string &filename) {
   std::stringstream fileStream;
   fileStream << ifs.rdbuf();
   std::string gpmesh = fileStream.str();
-  ifs.close();
 
   rapidjson::Document document;
   document.Parse(gpmesh.c_str());
