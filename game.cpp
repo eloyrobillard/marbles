@@ -2,6 +2,7 @@
 #include "game.h"
 #include "mesh.h"
 #include "pch.h"
+#include "physics.h"
 #include "shader.h"
 #include "surface.h"
 #include "template.h"
@@ -20,6 +21,7 @@ namespace Tmpl8 {
 
 Shader::Shader shader;
 vector<Mesh::Mesh> meshes;
+vector<RigidBody> bodies;
 
 mat4 viewMat;
 mat4 projMat;
@@ -27,10 +29,12 @@ mat4 projMat;
 void Game::Init() {
   vector<string> meshNames{"assets/basic_ramp.gpmesh", "assets/sphere.gpmesh"};
   for (const auto &meshName : meshNames) {
-    Mesh::Mesh mesh = Mesh::load(meshName);
+    auto [mesh, rb] = Mesh::load(meshName);
 
-    if (mesh.isValid)
-      meshes.emplace_back(Mesh::load(meshName));
+    if (mesh.isValid) {
+      meshes.emplace_back(mesh);
+      bodies.emplace_back(rb);
+    }
   }
 
   shader = Shader::load("shaders/basic.vert", "shaders/basic.frag");
@@ -65,12 +69,17 @@ void Game::Tick(float deltaTime) {
   // Update view-projection matrix
   Shader::setMatrixUniform(shader, "uViewProj", viewMat * projMat);
 
-  for (auto &mesh : meshes) {
-    Mesh::draw(shader, mesh);
+  assert(meshes.size() == bodies.size());
+  for (size_t i = 0; i < meshes.size(); i++) {
+    Mesh::draw(shader, meshes[i], bodies[i]);
   }
 }
 
-void Game::PhysicsTick(double t, double dt) {}
+void Game::PhysicsTick(float time, float dt) {
+  for (auto &rb : bodies) {
+    Physics::Update(rb, time, dt);
+  }
+}
 
 void Game::Shutdown() {
   Shader::unload(shader);

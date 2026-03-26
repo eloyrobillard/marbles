@@ -146,7 +146,7 @@ public:
     };
     float cell[4];
   };
-  vec3() {}
+  vec3() : x(0.0f), y(0.0f), z(0.0f) {}
   vec3(float v) : x(v), y(v), z(v) {}
   vec3(vec4 v);
   vec3(float x, float y, float z) : x(x), y(y), z(z) {}

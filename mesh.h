@@ -1,6 +1,7 @@
 #ifndef MESH_H
 #define MESH_H
 
+#include "physics.h"
 #include "shader.h"
 #include "template.h"
 #include "texture.h"
@@ -11,9 +12,6 @@ using Tmpl8::vec3;
 
 namespace Mesh {
 typedef struct {
-  quat rotation;
-  vec3 scale;
-  vec3 translation;
   vector<float> verts;
   vector<unsigned int> indices;
   GLuint vertexArray;
@@ -21,8 +19,8 @@ typedef struct {
   bool isValid;
 } Mesh;
 
-Mesh load(const std::string &filename);
-void draw(Shader::Shader &shader, Mesh &mesh);
+std::pair<Mesh, RigidBody> load(const std::string &filename);
+void draw(Shader::Shader &shader, Mesh &mesh, RigidBody &rb);
 void deleteVertexArray(GLuint vertexBuffer, GLuint indexBuffer,
                        GLuint vertexArray);
 } // namespace Mesh

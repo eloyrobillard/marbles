@@ -11,7 +11,7 @@ public:
   void Init();
   void Shutdown();
   void Tick(float deltaTime);
-  void PhysicsTick(double t, double dt);
+  static void PhysicsTick(float t, float dt);
   void MouseUp(
       int button) { /* implement if you want to detect mouse button presses */ }
   void MouseDown(

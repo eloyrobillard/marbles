@@ -1,11 +1,13 @@
 #include "mesh.h"
 #include "SDL_log.h"
 #include "pch.h"
+#include "physics.h"
 #include "rapidjson/document.h"
 #include "template.h"
 #include "texture.h"
 #include "utils.h"
 
+using std::pair;
 using Tmpl8::mat4;
 using Tmpl8::vec3;
 using Tmpl8::vec4;
@@ -70,15 +72,18 @@ Texture::Texture *GetTexture(Mesh &mesh, const std::string &fileName) {
   return tex;
 }
 
-Mesh load(const std::string &filename) {
-  Mesh mesh;
+std::pair<Mesh, RigidBody> load(const std::string &filename) {
+  Mesh mesh{};
+  RigidBody rb{};
+  rb.velocity = vec3();
+  rb.rotational_velocity = vec3();
 
   std::ifstream ifs;
   ifs.open(filename);
 
   if (!ifs.is_open()) {
     cerr << "Could not open file" << endl;
-    return mesh;
+    return {mesh, rb};
   }
 
   std::stringstream fileStream;
@@ -90,7 +95,7 @@ Mesh load(const std::string &filename) {
 
   if (!document.IsObject()) {
     cerr << "Mesh " << filename << " is not a valid JSON." << endl;
-    return mesh;
+    return {mesh, rb};
   }
 
   std::string shader = document["shader"].GetString();
@@ -102,7 +107,7 @@ Mesh load(const std::string &filename) {
             filename.c_str());
 
     mesh.isValid = false;
-    return mesh;
+    return {mesh, rb};
   }
 
   for (rapidjson::SizeType i = 0; i < textures.Size(); i++) {
@@ -127,44 +132,44 @@ Mesh load(const std::string &filename) {
     SDL_Log("Mesh %s should have scale info", filename.c_str());
 
     mesh.isValid = false;
-    return mesh;
+    return {mesh, rb};
   }
 
-  mesh.scale.x = static_cast<float>(scaleJSON[0].GetDouble());
-  mesh.scale.y = static_cast<float>(scaleJSON[1].GetDouble());
-  mesh.scale.z = static_cast<float>(scaleJSON[2].GetDouble());
+  rb.scale.x = static_cast<float>(scaleJSON[0].GetDouble());
+  rb.scale.y = static_cast<float>(scaleJSON[1].GetDouble());
+  rb.scale.z = static_cast<float>(scaleJSON[2].GetDouble());
 
   Value &rotJSON = document["rotationQuaternion"];
   if (!rotJSON.IsArray() && rotJSON.Size() != 4) {
     SDL_Log("Mesh %s should have rotation info", filename.c_str());
 
     mesh.isValid = false;
-    return mesh;
+    return {mesh, rb};
   }
 
-  mesh.rotation.x = static_cast<float>(rotJSON[0].GetDouble());
-  mesh.rotation.y = static_cast<float>(rotJSON[1].GetDouble());
-  mesh.rotation.z = static_cast<float>(rotJSON[2].GetDouble());
-  mesh.rotation.w = static_cast<float>(rotJSON[3].GetDouble());
+  rb.rotation.x = static_cast<float>(rotJSON[0].GetDouble());
+  rb.rotation.y = static_cast<float>(rotJSON[1].GetDouble());
+  rb.rotation.z = static_cast<float>(rotJSON[2].GetDouble());
+  rb.rotation.w = static_cast<float>(rotJSON[3].GetDouble());
 
   Value &translationJSON = document["translation"];
   if (!translationJSON.IsArray() && translationJSON.Size() != 3) {
     SDL_Log("Mesh %s should have translation coordinates", filename.c_str());
 
     mesh.isValid = false;
-    return mesh;
+    return {mesh, rb};
   }
 
-  mesh.translation.x = static_cast<float>(translationJSON[0].GetDouble());
-  mesh.translation.y = static_cast<float>(translationJSON[1].GetDouble());
-  mesh.translation.z = static_cast<float>(translationJSON[2].GetDouble());
+  rb.position.x = static_cast<float>(translationJSON[0].GetDouble());
+  rb.position.y = static_cast<float>(translationJSON[1].GetDouble());
+  rb.position.z = static_cast<float>(translationJSON[2].GetDouble());
 
   Value &vertsJSON = document["vertices"];
   if (!vertsJSON.IsArray() && vertsJSON.Size() <= 0) {
     SDL_Log("Mesh %s should have vertices", filename.c_str());
 
     mesh.isValid = false;
-    return mesh;
+    return {mesh, rb};
   }
 
   size_t sizeVert = 8;
@@ -191,7 +196,7 @@ Mesh load(const std::string &filename) {
     SDL_Log("Mesh %s should have vertex indices", filename.c_str());
 
     mesh.isValid = false;
-    return mesh;
+    return {mesh, rb};
   }
 
   std::vector<unsigned int> indices;
@@ -212,7 +217,7 @@ Mesh load(const std::string &filename) {
   mesh.vertexArray = vertexArray;
   mesh.isValid = true;
 
-  return mesh;
+  return {mesh, rb};
 }
 
 void setVerticesActive(GLuint vertexArray) { glBindVertexArray(vertexArray); }
@@ -224,17 +229,17 @@ Texture::Texture *lookTextureUp(Mesh &mesh, size_t index) {
     return nullptr;
 }
 
-mat4 getWorldTransform(const Mesh &mesh) {
-  mat4 scale = mat4::CreateScale(mesh.scale);
-  mat4 rotation = mat4::CreateFromQuaternion(mesh.rotation);
-  mat4 translation = mat4::CreateTranslation(mesh.translation);
+mat4 getWorldTransform(const RigidBody &rb) {
+  mat4 scale = mat4::CreateScale(rb.scale);
+  mat4 rotation = mat4::CreateFromQuaternion(rb.rotation);
+  mat4 translation = mat4::CreateTranslation(rb.position);
 
   return scale * rotation * translation;
 }
 
-void draw(Shader::Shader &shader, Mesh &mesh) {
+void draw(Shader::Shader &shader, Mesh &mesh, RigidBody &rb) {
   // Set world transform
-  mat4 worldTransform = getWorldTransform(mesh);
+  mat4 worldTransform = getWorldTransform(rb);
 
   Shader::setMatrixUniform(shader, "uWorldTransform", worldTransform);
 

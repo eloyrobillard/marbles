@@ -359,6 +359,7 @@
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="physics.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="texture.cpp" />
     <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\FreeImage\inc\FreeImage.h" />
@@ -438,6 +439,7 @@
     <ClInclude Include="C:\Users\eloyr\Projects\marbles\game.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="physics.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="utils.h" />
