@@ -21,7 +21,7 @@ namespace Tmpl8 {
 
 Shader::Shader shader;
 vector<Mesh::Mesh> meshes;
-vector<RigidBody> bodies;
+std::deque<Body> bodies;
 
 mat4 viewMat;
 mat4 projMat;
@@ -29,11 +29,11 @@ mat4 projMat;
 void Game::Init() {
   vector<string> meshNames{"assets/basic_ramp.gpmesh", "assets/sphere.gpmesh"};
   for (const auto &meshName : meshNames) {
-    auto [mesh, rb] = Mesh::load(meshName);
+    auto [mesh, body] = Mesh::load(meshName);
 
     if (mesh.isValid) {
       meshes.emplace_back(mesh);
-      bodies.emplace_back(rb);
+      bodies.emplace_back(body);
     }
   }
 
@@ -76,8 +76,8 @@ void Game::Tick(float deltaTime) {
 }
 
 void Game::PhysicsTick(float time, float dt) {
-  for (auto &rb : bodies) {
-    Physics::Update(rb, time, dt);
+  for (auto &body : bodies) {
+    Physics::Update(body, time, dt);
   }
 }
 

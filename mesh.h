@@ -19,8 +19,8 @@ typedef struct {
   bool isValid;
 } Mesh;
 
-std::pair<Mesh, RigidBody> load(const std::string &filename);
-void draw(Shader::Shader &shader, Mesh &mesh, RigidBody &rb);
+std::pair<Mesh, Body> load(const std::string &filename);
+void draw(Shader::Shader &shader, Mesh &mesh, Body &rb);
 void deleteVertexArray(GLuint vertexBuffer, GLuint indexBuffer,
                        GLuint vertexArray);
 } // namespace Mesh
