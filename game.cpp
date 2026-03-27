@@ -20,20 +20,32 @@ using std::vector;
 namespace Tmpl8 {
 
 Shader::Shader shader;
-vector<Mesh::Mesh> meshes;
+std::deque<Mesh::Mesh> meshes;
 std::deque<Body> bodies;
+int num_static_bodies = 0;
 
 mat4 viewMat;
 mat4 projMat;
 
+enum class BodyType { Dynamic, Static };
+
 void Game::Init() {
-  vector<string> meshNames{"assets/basic_ramp.gpmesh", "assets/sphere.gpmesh"};
-  for (const auto &meshName : meshNames) {
+  vector<std::pair<string, BodyType>> meshNames{
+      {"assets/basic_ramp.gpmesh", BodyType::Static},
+      {"assets/sphere.gpmesh", BodyType::Dynamic}};
+
+  for (const auto &[meshName, type] : meshNames) {
     auto [mesh, body] = Mesh::load(meshName);
 
     if (mesh.isValid) {
-      meshes.emplace_back(mesh);
-      bodies.emplace_back(body);
+      if (type == BodyType::Dynamic) {
+        meshes.emplace_back(mesh);
+        bodies.emplace_back(body);
+      } else {
+        meshes.emplace_front(mesh);
+        bodies.emplace_front(body);
+        num_static_bodies++;
+      }
     }
   }
 
@@ -76,8 +88,8 @@ void Game::Tick(float deltaTime) {
 }
 
 void Game::PhysicsTick(float time, float dt) {
-  for (auto &body : bodies) {
-    Physics::Update(body, time, dt);
+  for (int i = num_static_bodies; i < bodies.size(); i++) {
+    Physics::Update(bodies[i], time, dt);
   }
 }
 

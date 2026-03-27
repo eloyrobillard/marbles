@@ -20,7 +20,7 @@ typedef struct {
 } Mesh;
 
 std::pair<Mesh, Body> load(const std::string &filename);
-void draw(Shader::Shader &shader, Mesh &mesh, Body &rb);
+void draw(Shader::Shader &shader, Mesh &mesh, Body &body);
 void deleteVertexArray(GLuint vertexBuffer, GLuint indexBuffer,
                        GLuint vertexArray);
 } // namespace Mesh
