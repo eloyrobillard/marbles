@@ -1,2 +1,4 @@
 CompileFlags:
-  Add: [-fmodules-ts]
+  Add:
+    - -fmodules-ts
+    - -std=c++20
