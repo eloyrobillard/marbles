@@ -211,6 +211,10 @@ public:
   static const vec3 forward;
 };
 
+inline ostream &operator<<(ostream &os, const vec3 &v) {
+  return os << "{ " << v.x << ", " << v.y << ", " << v.z << " }";
+}
+
 class vec4 {
 public:
   union {

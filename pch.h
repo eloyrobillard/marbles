@@ -30,5 +30,12 @@ using rapidjson::Value;
 using std::cerr;
 using std::cout;
 using std::endl;
+using std::ostream;
+using std::ostream_iterator;
 using std::string;
 using std::vector;
+
+template <typename T> ostream &operator<<(ostream &os, const vector<T> &v) {
+  copy(v.begin(), v.end(), ostream_iterator<T>(os, ", "));
+  return os;
+}
