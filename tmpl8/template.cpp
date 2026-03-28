@@ -392,6 +392,10 @@ int main(int argc, char **argv) {
     if (firstframe) {
       game->Init();
       firstframe = false;
+      // HACK: Only make game start one init is over.
+      // This is to prevent the physics update from occuring many times before
+      // anything is even shown.
+      t.reset();
     }
 
     // calculate frame time and pass it to game->Tick
