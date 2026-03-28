@@ -22,28 +22,34 @@ namespace Tmpl8 {
 Shader::Shader shader;
 std::deque<Mesh::Mesh> meshes;
 std::deque<Body> bodies;
+vector<SphereCollider> dynamicColliders;
+vector<vector<TriangleCollider>> staticColliders;
 int num_static_bodies = 0;
 
 mat4 viewMat;
 mat4 projMat;
 
 enum class BodyType { Dynamic, Static };
+// enum class ColliderType { Sphere, Complex };
 
 void Game::Init() {
   vector<std::pair<string, BodyType>> meshNames{
       {"assets/basic_ramp.gpmesh", BodyType::Static},
       {"assets/sphere.gpmesh", BodyType::Dynamic}};
 
-  for (const auto &[meshName, type] : meshNames) {
+  for (const auto &[meshName, btype] : meshNames) {
     auto [mesh, body] = Mesh::load(meshName);
 
     if (mesh.isValid) {
-      if (type == BodyType::Dynamic) {
+      if (btype == BodyType::Dynamic) {
         meshes.emplace_back(mesh);
         bodies.emplace_back(body);
+        dynamicColliders.emplace_back(&body.position, 3.0f);
       } else {
         meshes.emplace_front(mesh);
         bodies.emplace_front(body);
+        staticColliders.emplace_back(
+            Mesh::generateTriangleCollidersFromMesh(mesh, body));
         num_static_bodies++;
       }
     }

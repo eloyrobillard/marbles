@@ -172,19 +172,35 @@ std::pair<Mesh, Body> load(const std::string &filename) {
 
   size_t sizeVert = 8;
 
-  std::vector<float> verts;
+  vector<float> verts;
   verts.reserve(vertsJSON.Size() * sizeVert);
+  vector<vec3> vert_coord;
+  vector<vec3> vert_norm;
+  vert_coord.reserve(vertsJSON.Size());
+  vert_norm.reserve(vertsJSON.Size());
 
   for (int i = 0; i < vertsJSON.Size(); i++) {
     auto &vert = vertsJSON[i];
     assert(vert.IsArray() && vert.Size() == 16);
 
-    verts.push_back(static_cast<float>(vert[0].GetDouble()));
-    verts.push_back(static_cast<float>(vert[1].GetDouble()));
-    verts.push_back(static_cast<float>(vert[2].GetDouble()));
-    verts.push_back(static_cast<float>(vert[3].GetDouble()));
-    verts.push_back(static_cast<float>(vert[4].GetDouble()));
-    verts.push_back(static_cast<float>(vert[5].GetDouble()));
+    float coord0 = vert[0].GetDouble();
+    float coord1 = vert[1].GetDouble();
+    float coord2 = vert[2].GetDouble();
+
+    vert_coord.emplace_back(coord0, coord1, coord2);
+
+    float norm0 = vert[3].GetDouble();
+    float norm1 = vert[4].GetDouble();
+    float norm2 = vert[5].GetDouble();
+
+    vert_norm.emplace_back(norm0, norm1, norm2);
+
+    verts.push_back(static_cast<float>(coord0));
+    verts.push_back(static_cast<float>(coord1));
+    verts.push_back(static_cast<float>(coord2));
+    verts.push_back(static_cast<float>(norm0));
+    verts.push_back(static_cast<float>(norm1));
+    verts.push_back(static_cast<float>(norm2));
     verts.push_back(static_cast<float>(vert[14].GetDouble()));
     verts.push_back(static_cast<float>(vert[15].GetDouble()));
   }
@@ -197,14 +213,23 @@ std::pair<Mesh, Body> load(const std::string &filename) {
     return {mesh, body};
   }
 
-  std::vector<unsigned int> indices;
+  std::vector<uint> indices;
   indices.reserve(indicesJSON.Size() * 3);
+  std::vector<std::tuple<uint, uint, uint>> idx_triplets;
+  idx_triplets.reserve(indicesJSON.Size());
 
   for (int i = 0; i < indicesJSON.Size(); i++) {
     auto &index = indicesJSON[i];
-    indices.emplace_back(index[0].GetUint());
-    indices.emplace_back(index[1].GetUint());
-    indices.emplace_back(index[2].GetUint());
+
+    uint a = index[0].GetUint();
+    uint b = index[1].GetUint();
+    uint c = index[2].GetUint();
+
+    indices.emplace_back(a);
+    indices.emplace_back(b);
+    indices.emplace_back(c);
+
+    idx_triplets.emplace_back(a, b, c);
   }
 
   GLuint vertexArray = createVertexArray(
@@ -213,6 +238,9 @@ std::pair<Mesh, Body> load(const std::string &filename) {
   mesh.verts = verts;
   mesh.indices = indices;
   mesh.vertexArray = vertexArray;
+  mesh.vert_coord = vert_coord;
+  mesh.vert_normal = vert_norm;
+  mesh.idx_triplets = idx_triplets;
   mesh.isValid = true;
 
   return {mesh, body};
@@ -256,6 +284,28 @@ void deleteVertexArray(GLuint vertexBuffer, GLuint indexBuffer,
   glDeleteBuffers(1, &vertexBuffer);
   glDeleteBuffers(1, &indexBuffer);
   glDeleteBuffers(1, &vertexArray);
+}
+
+vector<TriangleCollider> generateTriangleCollidersFromMesh(Mesh &mesh,
+                                                           Body &body) {
+  vector<TriangleCollider> triangles;
+  triangles.reserve(mesh.idx_triplets.size());
+
+  for (const auto &[i0, i1, i2] : mesh.idx_triplets) {
+    auto a = mesh.vert_coord[i0];
+    auto b = mesh.vert_coord[i1];
+    auto c = mesh.vert_coord[i2];
+
+    auto n0 = mesh.vert_normal[i0];
+    auto n1 = mesh.vert_normal[i1];
+    auto n2 = mesh.vert_normal[i2];
+
+    vec3 average_normal = (n0 + n1 + n2) * (1.0f / 3.0f);
+
+    triangles.emplace_back(average_normal, a, b, c, &body.position);
+  }
+
+  return triangles;
 }
 
 } // namespace Mesh
