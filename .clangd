@@ -1,4 +1,3 @@
 CompileFlags:
   Add:
-    - -fmodules-ts
-    - -std=c++20
+    - /std:c++latest

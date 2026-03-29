@@ -95,7 +95,8 @@ void Game::Tick(float deltaTime) {
 
 void Game::PhysicsTick(float time, float dt) {
   for (int i = num_static_bodies; i < bodies.size(); i++) {
-    Physics::Update(bodies[i], time, dt);
+    Physics::Update(bodies[i], time, dt, staticColliders, dynamicColliders,
+                    dynamicColliders[i - num_static_bodies]);
   }
 }
 

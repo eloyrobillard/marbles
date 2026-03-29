@@ -5,9 +5,7 @@
 #include "rapidjson/document.h"
 #include "template.h"
 #include "texture.h"
-#include "utils.h"
 
-using std::pair;
 using Tmpl8::mat4;
 using Tmpl8::vec3;
 using Tmpl8::vec4;
