@@ -16,11 +16,15 @@
 #include <iostream>
 #include <iterator>
 #include <memory>
+#include <numeric>
+#include <optional>
 #include <ostream>
+#include <print>
 #include <ranges>
 #include <rapidjson/document.h>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <unordered_map>
 #include <vector>
 
@@ -30,15 +34,18 @@ using rapidjson::Value;
 using std::cerr;
 using std::cout;
 using std::endl;
+using std::optional;
 using std::ostream;
 using std::ostream_iterator;
 using std::pair;
 using std::string;
+using std::thread;
 using std::tuple;
 using std::vector;
 
 #define v(T) vector<T>
 #define vv(T) v(v(T))
+#define ALL(v) (v).begin(), (v).end()
 
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &v) {
   copy(v.begin(), v.end(), ostream_iterator<T>(os, ", "));

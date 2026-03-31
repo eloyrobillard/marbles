@@ -182,11 +182,11 @@ public:
   }
   float operator[](const uint &idx) const { return cell[idx]; }
   float &operator[](const uint &idx) { return cell[idx]; }
-  float length() const { return sqrtf(x * x + y * y + z * z); }
-  float sqrLentgh() const { return x * x + y * y + z * z; }
-  vec3 normalized() const {
+  [[nodiscard]] float length() const { return sqrtf(x * x + y * y + z * z); }
+  [[nodiscard]] float sqrLentgh() const { return x * x + y * y + z * z; }
+  [[nodiscard]] vec3 normalized() const {
     float r = 1.0f / length();
-    return vec3(x * r, y * r, z * r);
+    return {x * r, y * r, z * r};
   }
   void normalize() {
     float r = 1.0f / length();
@@ -194,13 +194,20 @@ public:
     y *= r;
     z *= r;
   }
+
   static vec3 normalize(const vec3 v) { return v.normalized(); }
-  vec3 cross(const vec3 &operand) const {
-    return vec3(y * operand.z - z * operand.y, z * operand.x - x * operand.z,
-                x * operand.y - y * operand.x);
+
+  [[nodiscard]] vec3 cross(const vec3 &operand) const {
+    return {y * operand.z - z * operand.y, z * operand.x - x * operand.z,
+            x * operand.y - y * operand.x};
   }
-  float dot(const vec3 &operand) const {
+
+  [[nodiscard]] float dot(const vec3 &operand) const {
     return x * operand.x + y * operand.y + z * operand.z;
+  }
+
+  [[nodiscard]] float distance(const vec3 &operand) const {
+    return sqrt(dot({x - operand.x, y - operand.y, z - operand.z}));
   }
 
   static vec3 transform(const vec3 &vec, const quat &q);

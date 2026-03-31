@@ -290,9 +290,9 @@ vector<TriangleCollider> generateTriangleCollidersFromMesh(Mesh &mesh,
   triangles.reserve(mesh.idx_triplets.size());
 
   for (const auto &[i0, i1, i2] : mesh.idx_triplets) {
-    auto a = mesh.vert_coord[i0];
-    auto b = mesh.vert_coord[i1];
-    auto c = mesh.vert_coord[i2];
+    auto a = body.position + mesh.vert_coord[i0];
+    auto b = body.position + mesh.vert_coord[i1];
+    auto c = body.position + mesh.vert_coord[i2];
 
     auto n0 = mesh.vert_normal[i0];
     auto n1 = mesh.vert_normal[i1];

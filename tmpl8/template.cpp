@@ -14,7 +14,7 @@
 // #define FULLSCREEN
 #define ADVANCEDGL
 
-#include "../game.h"
+#include "game.h"
 
 #include "surface.h"
 #include "template.h"
