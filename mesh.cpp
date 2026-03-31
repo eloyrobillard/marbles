@@ -155,7 +155,6 @@ optional<pair<Mesh, Body>> load(const std::string &filename) {
   body.position.x = static_cast<float>(translationJSON[0].GetDouble());
   body.position.y = static_cast<float>(translationJSON[1].GetDouble());
   body.position.z = static_cast<float>(translationJSON[2].GetDouble());
-  cout << body.position << endl;
 
   Value &vertsJSON = document["vertices"];
   if (!vertsJSON.IsArray() && vertsJSON.Size() <= 0) {

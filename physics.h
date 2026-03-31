@@ -13,11 +13,11 @@ const vec3 grav_force = vec3(0.0f, 0.0f, -9.81f);
 struct Collider {};
 
 struct SphereCollider : Collider {
-  SphereCollider(vec3 *position, float radius)
+  SphereCollider(vec3 position, float radius)
       : position(position), radius(radius) {}
 
+  vec3 position;
   float radius;
-  vec3 *position;
 };
 
 // For static objects

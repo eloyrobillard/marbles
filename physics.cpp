@@ -59,7 +59,7 @@ getPlaneFromNormalAndPoint(const vec3 &normal, const vec3 &point) {
 
 optional<vec3> intersectsTriangle(const TriangleCollider &t,
                                   const SphereCollider &s) {
-  const vec3 center = *s.position;
+  const vec3 &center = s.position;
 
   auto [a, b, c, d] = getPlaneFromNormalAndPoint(t.normal, t.a);
 
@@ -100,8 +100,8 @@ optional<vec3> intersectsTriangle(const TriangleCollider &t,
 
 optional<vec3> intersectsSphere(const SphereCollider &s1,
                                 const SphereCollider &s2) {
-  const vec3 c1 = *s1.position;
-  const vec3 c2 = *s2.position;
+  const vec3 &c1 = s1.position;
+  const vec3 &c2 = s2.position;
 
   if (c1.distance(c2) > s1.radius + s2.radius)
     return {};
@@ -189,6 +189,8 @@ void Physics::Update(Body &body, float t, float dt,
 
   body.velocity = std::accumulate(ALL(forces), body.velocity);
   body.position = prev_p + dt / 1024.0f * body.velocity;
+
+  col.position = body.position;
 
   std::println(stdout, "{} {} {}, collisions: {}", body.position.x,
                body.position.y, body.position.z, normals.size());
