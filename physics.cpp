@@ -68,18 +68,21 @@ optional<vec3> intersectsTriangle(const TriangleCollider &t,
                  t.normal.dot(t.normal);
   vec3 projected_center = center + t.normal * lambda;
 
-  // If the projection is outside the sphere, no point in looking further
-  if (projected_center.distance(center) > s.radius) {
+  // If the sphere doesn't intersect the triangle's plane, no need to look
+  // further
+  bool sphere_intersects_plane = projected_center.distance(center) <= s.radius;
+  if (!sphere_intersects_plane) {
     return {};
   }
 
   auto [closest_point, opposite] =
-      getClosestPoint(projected_center, t.normal, t.a, t.b, t.c);
+      getClosestPointOnTriangle(projected_center, t.normal, t.a, t.b, t.c);
 
   // If we find our projected center to be in the triangle
   // that's definitely the closest point to the sphere's center
-  // (it won't necessarilly return the exact intersection point though)
-  if (opposite.distance(closest_point) > opposite.distance(projected_center)) {
+  bool projection_is_in_triangle =
+      opposite.distance(closest_point) > opposite.distance(projected_center);
+  if (projection_is_in_triangle) {
     closest_point = projected_center;
   }
 
