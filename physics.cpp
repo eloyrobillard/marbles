@@ -143,22 +143,13 @@ getCollisionNormals(const vector<vector<TriangleCollider>> &allStaticColliders,
                         colls.size());
     });
 
-    // for (const auto &coll : colls) {
-    //   auto maybe_collision = intersectsTriangle(coll, collider);
-    //
-    //   if (!maybe_collision.has_value())
-    //     continue;
-    //
-    //   collisions.emplace_back(maybe_collision.value());
-    // }
-
     t1.join();
     t2.join();
   }
 
-  for (const auto coll : allDynamicColliders) {
+  for (const auto &coll : allDynamicColliders) {
     // Pointer comparison
-    if (coll.position != collider.position) {
+    if (&coll != &collider) {
       auto maybe_collision = intersectsSphere(coll, collider);
 
       if (!maybe_collision.has_value())
