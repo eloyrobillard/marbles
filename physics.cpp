@@ -2,8 +2,9 @@
 #include "pch.h"
 #include "template.h"
 
-pair<vec3, vec3> getClosestPoint(const vec3 projection, const vec3 &normal,
-                                 const vec3 &a, const vec3 &b, const vec3 &c) {
+pair<vec3, vec3> getClosestPointOnTriangle(const vec3 point, const vec3 &normal,
+                                           const vec3 &a, const vec3 &b,
+                                           const vec3 &c) {
   // To see if our projection is in the triangle, we first get the closest point
   // belonging to an edge of the triangle
   vec3 closest_point{std::numeric_limits<float>::infinity()};
@@ -29,11 +30,11 @@ pair<vec3, vec3> getClosestPoint(const vec3 projection, const vec3 &normal,
     float t_orth = (A.x * u.y - point.x * u.y + u.x * point.y - A.y * u.x) /
                    (v.x * u.y - u.x * v.y);
 
-    vec3 intersection_point = projection + t_orth * v;
+    vec3 intersection_point = point + t_orth * v;
 
     bool is_on_triangle = 0 <= t_orth && t_orth <= 1;
-    bool is_closer = projection.distance(intersection_point) <
-                     projection.distance(closest_point);
+    bool is_closer =
+        point.distance(intersection_point) < point.distance(closest_point);
 
     if (is_on_triangle && is_closer) {
       closest_point = intersection_point;
