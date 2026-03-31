@@ -26,9 +26,8 @@ pair<vec3, vec3> getClosestPoint(const vec3 projection, const vec3 &normal,
 
     // Find by what factor v needs to be multiplied to get the closest point the
     // projected center (C')
-    float t_orth =
-        (A.x * u.y - projection.x * u.y + u.x * projection.y - A.y * u.x) /
-        (v.x * u.y - u.x * v.y);
+    float t_orth = (A.x * u.y - point.x * u.y + u.x * point.y - A.y * u.x) /
+                   (v.x * u.y - u.x * v.y);
 
     vec3 intersection_point = projection + t_orth * v;
 
