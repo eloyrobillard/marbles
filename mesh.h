@@ -19,10 +19,9 @@ typedef struct {
   vector<vec3> vert_coord;
   vector<vec3> vert_normal;
   vector<std::tuple<uint, uint, uint>> idx_triplets;
-  bool isValid;
 } Mesh;
 
-std::pair<Mesh, Body> load(const std::string &filename);
+optional<pair<Mesh, Body>> load(const std::string &filename);
 void draw(Shader::Shader &shader, Mesh &mesh, Body &body);
 void deleteVertexArray(GLuint vertexBuffer, GLuint indexBuffer,
                        GLuint vertexArray);

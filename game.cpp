@@ -37,9 +37,11 @@ void Game::Init() {
       {"assets/sphere.gpmesh", BodyType::Dynamic}};
 
   for (const auto &[meshName, btype] : meshNames) {
-    auto [mesh, body] = Mesh::load(meshName);
+    auto result = Mesh::load(meshName);
 
-    if (mesh.isValid) {
+    if (result.has_value()) {
+      auto [mesh, body] = result.value();
+
       if (btype == BodyType::Dynamic) {
         meshes.emplace_back(mesh);
         bodies.emplace_back(body);

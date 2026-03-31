@@ -70,7 +70,7 @@ Texture::Texture *GetTexture(Mesh &mesh, const std::string &fileName) {
   return tex;
 }
 
-std::pair<Mesh, Body> load(const std::string &filename) {
+optional<pair<Mesh, Body>> load(const std::string &filename) {
   Mesh mesh{};
   Body body{};
 
@@ -79,7 +79,7 @@ std::pair<Mesh, Body> load(const std::string &filename) {
 
   if (!ifs.is_open()) {
     cerr << "Could not open file" << endl;
-    return {mesh, body};
+    return {};
   }
 
   std::stringstream fileStream;
@@ -91,7 +91,7 @@ std::pair<Mesh, Body> load(const std::string &filename) {
 
   if (!document.IsObject()) {
     cerr << "Mesh " << filename << " is not a valid JSON." << endl;
-    return {mesh, body};
+    return {};
   }
 
   std::string shader = document["shader"].GetString();
@@ -102,8 +102,7 @@ std::pair<Mesh, Body> load(const std::string &filename) {
     SDL_Log("Mesh %s has no textures, there should be at least one",
             filename.c_str());
 
-    mesh.isValid = false;
-    return {mesh, body};
+    return {};
   }
 
   for (rapidjson::SizeType i = 0; i < textures.Size(); i++) {
@@ -127,8 +126,7 @@ std::pair<Mesh, Body> load(const std::string &filename) {
   if (!scaleJSON.IsArray() && scaleJSON.Size() != 3) {
     SDL_Log("Mesh %s should have scale info", filename.c_str());
 
-    mesh.isValid = false;
-    return {mesh, body};
+    return {};
   }
 
   body.scale.x = static_cast<float>(scaleJSON[0].GetDouble());
@@ -139,8 +137,7 @@ std::pair<Mesh, Body> load(const std::string &filename) {
   if (!rotJSON.IsArray() && rotJSON.Size() != 4) {
     SDL_Log("Mesh %s should have rotation info", filename.c_str());
 
-    mesh.isValid = false;
-    return {mesh, body};
+    return {};
   }
 
   body.rotation.x = static_cast<float>(rotJSON[0].GetDouble());
@@ -152,20 +149,19 @@ std::pair<Mesh, Body> load(const std::string &filename) {
   if (!translationJSON.IsArray() && translationJSON.Size() != 3) {
     SDL_Log("Mesh %s should have translation coordinates", filename.c_str());
 
-    mesh.isValid = false;
-    return {mesh, body};
+    return {};
   }
 
   body.position.x = static_cast<float>(translationJSON[0].GetDouble());
   body.position.y = static_cast<float>(translationJSON[1].GetDouble());
   body.position.z = static_cast<float>(translationJSON[2].GetDouble());
+  cout << body.position << endl;
 
   Value &vertsJSON = document["vertices"];
   if (!vertsJSON.IsArray() && vertsJSON.Size() <= 0) {
     SDL_Log("Mesh %s should have vertices", filename.c_str());
 
-    mesh.isValid = false;
-    return {mesh, body};
+    return {};
   }
 
   size_t sizeVert = 8;
@@ -207,8 +203,7 @@ std::pair<Mesh, Body> load(const std::string &filename) {
   if (!indicesJSON.IsArray() && indicesJSON.Size() <= 0) {
     SDL_Log("Mesh %s should have vertex indices", filename.c_str());
 
-    mesh.isValid = false;
-    return {mesh, body};
+    return {};
   }
 
   std::vector<uint> indices;
@@ -239,9 +234,8 @@ std::pair<Mesh, Body> load(const std::string &filename) {
   mesh.vert_coord = vert_coord;
   mesh.vert_normal = vert_norm;
   mesh.idx_triplets = idx_triplets;
-  mesh.isValid = true;
 
-  return {mesh, body};
+  return {{mesh, body}};
 }
 
 void setVerticesActive(GLuint vertexArray) { glBindVertexArray(vertexArray); }
