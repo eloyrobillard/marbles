@@ -172,11 +172,9 @@ void Physics::Update(Body &body, float t, float dt,
                   return normal * body.velocity;
                 });
 
-  body.velocity = std::accumulate(ALL(forces), body.velocity);
+  body.velocity = std::accumulate(ALL(forces), body.velocity) *
+                  (1.0f / static_cast<float>(normals.size() + 1));
   body.position = prev_p + dt / 1024.0f * body.velocity;
 
   col.position = body.position;
-
-  std::println(stdout, "{} {} {}, collisions: {}", body.position.x,
-               body.position.y, body.position.z, normals.size());
 }
