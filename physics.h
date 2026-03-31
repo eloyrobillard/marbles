@@ -58,8 +58,9 @@ struct Body {
 };
 
 namespace Physics {
-void Update(Body &body, float t, float dt, vector<vector<TriangleCollider>> &sc,
-            vector<SphereCollider> &dc, SphereCollider &col);
+void Update(Body &body, float t, float dt,
+            const vector<vector<TriangleCollider>> &sc,
+            const vector<SphereCollider> &dc, SphereCollider &col);
 } // namespace Physics
 
 #endif // _PHYSICS_H

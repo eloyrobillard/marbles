@@ -129,8 +129,8 @@ void processCollisions(vector<vec3> &collisions,
 }
 
 vector<vec3>
-getCollisionNormals(vector<vector<TriangleCollider>> &allStaticColliders,
-                    vector<SphereCollider> &allDynamicColliders,
+getCollisionNormals(const vector<vector<TriangleCollider>> &allStaticColliders,
+                    const vector<SphereCollider> &allDynamicColliders,
                     SphereCollider &collider) {
   vector<vec3> collisions{};
 
@@ -172,8 +172,8 @@ getCollisionNormals(vector<vector<TriangleCollider>> &allStaticColliders,
 }
 
 void Physics::Update(Body &body, float t, float dt,
-                     vector<vector<TriangleCollider>> &sc,
-                     vector<SphereCollider> &dc, SphereCollider &col) {
+                     const vector<vector<TriangleCollider>> &sc,
+                     const vector<SphereCollider> &dc, SphereCollider &col) {
   const vec3 prev_v = body.velocity;
   const vec3 prev_p = body.position;
 
