@@ -207,7 +207,8 @@ public:
   }
 
   [[nodiscard]] float distance(const vec3 &operand) const {
-    return sqrt(dot({x - operand.x, y - operand.y, z - operand.z}));
+    const vec3 diff = {x - operand.x, y - operand.y, z - operand.z};
+    return sqrt(diff.dot(diff));
   }
 
   static vec3 transform(const vec3 &vec, const quat &q);
