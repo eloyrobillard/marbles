@@ -45,7 +45,7 @@ void Game::Init() {
       if (btype == BodyType::Dynamic) {
         meshes.emplace_back(mesh);
         bodies.emplace_back(body);
-        dynamicColliders.emplace_back(body.position, 3.0f);
+        dynamicColliders.emplace_back(body.position, body.scale.x);
       } else {
         meshes.emplace_front(mesh);
         bodies.emplace_front(body);
