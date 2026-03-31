@@ -13,7 +13,7 @@ using Tmpl8::vec4;
 namespace Mesh {
 
 GLuint createVertexArray(const float *verts, uint numVerts, const uint *indices,
-                         uint numIndices, size_t sizeVert) {
+                         uint numIndices, size_t vertSize) {
 
   GLuint vertexArray;
   glGenVertexArrays(1, &vertexArray);
@@ -23,7 +23,7 @@ GLuint createVertexArray(const float *verts, uint numVerts, const uint *indices,
   GLuint vertexBuffer = 0;
   glGenBuffers(1, &vertexBuffer);
   glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-  glBufferData(GL_ARRAY_BUFFER, numVerts * sizeVert * sizeof(float), verts,
+  glBufferData(GL_ARRAY_BUFFER, numVerts * vertSize * sizeof(float), verts,
                GL_STATIC_DRAW);
 
   // Create index buffer
@@ -37,17 +37,17 @@ GLuint createVertexArray(const float *verts, uint numVerts, const uint *indices,
   // (For now, assume one vertex format)
   // Position is 3 floats
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeVert * sizeof(float),
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertSize * sizeof(float),
                         nullptr);
   // Normal is 3 floats
   glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeVert * sizeof(float),
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertSize * sizeof(float),
                         reinterpret_cast<void *>(sizeof(float) * 3));
   // Texture coordinates is 2 floats
   glEnableVertexAttribArray(2);
   glVertexAttribPointer(
-      2, 2, GL_FLOAT, GL_FALSE, sizeVert * sizeof(float),
-      reinterpret_cast<void *>(sizeof(float) * (sizeVert - 2)));
+      2, 2, GL_FLOAT, GL_FALSE, vertSize * sizeof(float),
+      reinterpret_cast<void *>(sizeof(float) * (vertSize - 2)));
 
   return vertexArray;
 }
@@ -163,10 +163,10 @@ optional<pair<Mesh, Body>> load(const std::string &filename) {
     return {};
   }
 
-  size_t sizeVert = 8;
+  size_t vertSize = 8;
 
   vector<float> verts;
-  verts.reserve(vertsJSON.Size() * sizeVert);
+  verts.reserve(vertsJSON.Size() * vertSize);
   vector<vec3> vert_coord;
   vector<vec3> vert_norm;
   vert_coord.reserve(vertsJSON.Size());
@@ -174,7 +174,11 @@ optional<pair<Mesh, Body>> load(const std::string &filename) {
 
   for (int i = 0; i < vertsJSON.Size(); i++) {
     auto &vert = vertsJSON[i];
-    assert(vert.IsArray() && vert.Size() == 16);
+    if (!vert.IsArray() || vert.Size() != 16) {
+      SDL_Log("Vertex of the wrong size (size: %d, idx: %d). Skipping...",
+              vert.Size(), i);
+      continue;
+    }
 
     float coord0 = vert[0].GetDouble();
     float coord1 = vert[1].GetDouble();
@@ -212,6 +216,11 @@ optional<pair<Mesh, Body>> load(const std::string &filename) {
 
   for (int i = 0; i < indicesJSON.Size(); i++) {
     auto &index = indicesJSON[i];
+    if (!index.IsArray() || index.Size() != 3) {
+      SDL_Log("Vertex of the wrong size (size: %d, idx: %d). Skipping...",
+              index.Size(), i);
+      continue;
+    }
 
     uint a = index[0].GetUint();
     uint b = index[1].GetUint();
@@ -224,8 +233,9 @@ optional<pair<Mesh, Body>> load(const std::string &filename) {
     idx_triplets.emplace_back(a, b, c);
   }
 
-  GLuint vertexArray = createVertexArray(
-      verts.data(), vertsJSON.Size(), indices.data(), indices.size(), sizeVert);
+  GLuint vertexArray =
+      createVertexArray(verts.data(), verts.size() / vertSize, indices.data(),
+                        indices.size(), vertSize);
 
   mesh.verts = verts;
   mesh.indices = indices;

@@ -135,29 +135,20 @@ getCollisionNormals(const vector<vector<TriangleCollider>> &allStaticColliders,
   vector<vec3> collisions{};
 
   for (const auto &colls : allStaticColliders) {
-    thread t1([&]() {
-      processCollisions(collisions, colls, collider, 0, colls.size() / 2);
-    });
-    thread t2([&]() {
-      processCollisions(collisions, colls, collider, colls.size() / 2,
-                        colls.size());
-    });
-
-    t1.join();
-    t2.join();
+    processCollisions(collisions, colls, collider, 0, colls.size());
   }
 
-  for (const auto &coll : allDynamicColliders) {
-    // Pointer comparison
-    if (&coll != &collider) {
-      auto maybe_collision = intersectsSphere(coll, collider);
-
-      if (!maybe_collision.has_value())
-        continue;
-
-      collisions.emplace_back(maybe_collision.value());
-    }
-  }
+  // for (const auto &coll : allDynamicColliders) {
+  //   // Pointer comparison
+  //   if (&coll != &collider) {
+  //     auto maybe_collision = intersectsSphere(coll, collider);
+  //
+  //     if (!maybe_collision.has_value())
+  //       continue;
+  //
+  //     collisions.emplace_back(maybe_collision.value());
+  //   }
+  // }
 
   return collisions;
 }
