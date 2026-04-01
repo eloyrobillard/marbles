@@ -110,7 +110,7 @@ optional<vec3> intersectsSphere(const SphereCollider &s1,
 
   // Return the direction away from c1
   // Using a unit vector is needed to compute the strength of the rebound
-  return {(c2 - c1).normalized()};
+  return {(c1 - c2).normalized()};
 }
 
 void processCollisions(vector<vec3> &collisions,
@@ -168,7 +168,9 @@ void Physics::Update(Body &body, float t, float dt,
   // before getting pushed out
   // Compute the new direction (velocity)
   auto forces = normals | transform([&](const vec3 normal) {
-                  return normal * body.velocity;
+                  // If two bodies exert forces on each other, these forces have
+                  // the same magnitude but opposite directions.
+                  return normal * (-body.velocity);
                 });
 
   body.velocity = std::accumulate(ALL(forces), body.velocity) *
