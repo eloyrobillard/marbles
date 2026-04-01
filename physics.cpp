@@ -7,7 +7,7 @@ pair<vec3, vec3> getClosestPointOnTriangle(const vec3 point, const vec3 &normal,
                                            const vec3 &c) {
   // To see if our projection is in the triangle, we first get the closest point
   // belonging to an edge of the triangle
-  vec3 closest_point{std::numeric_limits<float>::infinity()};
+  vec3 closest_point(std::numeric_limits<float>::infinity());
   int closest_idx = -1;
 
   // Combinations of opposite point (idx 0) to edge (idx 1 & 2)
@@ -16,23 +16,22 @@ pair<vec3, vec3> getClosestPointOnTriangle(const vec3 point, const vec3 &normal,
   for (int i = 0; i < 3; i++) {
     vec3 opposite = combs[i][0];
 
-    // Arbitrarily naming the edge "AB"
     vec3 A = combs[i][1];
     vec3 B = combs[i][2];
 
-    // Direction vector for line containing edge
+    // Direction vector for line containing the edge
     vec3 u = B - A;
-    // Vector belonging to same plane as triangle and perpendicular to AB
+    // Vector belonging to same plane as triangle and orthogonal to u
     vec3 v = u.cross(normal);
 
     // Find by what factor v needs to be multiplied to get the closest point the
     // projected center (C')
-    float t_orth = (A.x * u.y - point.x * u.y + u.x * point.y - A.y * u.x) /
-                   (v.x * u.y - u.x * v.y);
+    float t_AB = (point.y * v.x + v.x * A.x - v.y * point.x - v.x * A.x) /
+                 (v.x * u.y - u.x * v.y);
 
-    vec3 intersection_point = point + t_orth * v;
+    vec3 intersection_point = A + t_AB * u;
 
-    bool is_on_triangle = 0 <= t_orth && t_orth <= 1;
+    bool is_on_triangle = 0 <= t_AB && t_AB <= 1;
     bool is_closer =
         point.distance(intersection_point) < point.distance(closest_point);
 
