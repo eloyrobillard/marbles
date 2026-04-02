@@ -153,22 +153,24 @@ mat4 mat4::rotatez(const float rad) {
   return M;
 }
 
+// SOURCE:
+// https://qiita.com/aa_debdeb/items/3d02e28fb9ebfa357eaf#%E3%82%AF%E3%82%A9%E3%83%BC%E3%82%BF%E3%83%8B%E3%82%AA%E3%83%B3%E3%81%8B%E3%82%89%E5%9B%9E%E8%BB%A2%E8%A1%8C%E5%88%97
 mat4 mat4::CreateFromQuaternion(const class quat &q) {
   float mat[4][4];
 
-  mat[0][0] = 1.0f - 2.0f * q.y * q.y - 2.0f * q.z * q.z;
-  mat[0][1] = 2.0f * q.x * q.y + 2.0f * q.w * q.z;
-  mat[0][2] = 2.0f * q.x * q.z - 2.0f * q.w * q.y;
+  mat[0][0] = 2.0f * q.w * q.w + 2.0f * q.x * q.x - 1.0f;
+  mat[0][1] = 2.0f * q.x * q.y - 2.0f * q.w * q.z;
+  mat[0][2] = 2.0f * q.x * q.z + 2.0f * q.w * q.y;
   mat[0][3] = 0.0f;
 
-  mat[1][0] = 2.0f * q.x * q.y - 2.0f * q.w * q.z;
-  mat[1][1] = 1.0f - 2.0f * q.x * q.x - 2.0f * q.z * q.z;
-  mat[1][2] = 2.0f * q.y * q.z + 2.0f * q.w * q.x;
+  mat[1][0] = 2.0f * q.x * q.y + 2.0f * q.w * q.z;
+  mat[1][1] = 2.0f * q.w * q.w + 2.0f * q.y * q.y - 1.0f;
+  mat[1][2] = 2.0f * q.y * q.z - 2.0f * q.w * q.x;
   mat[1][3] = 0.0f;
 
-  mat[2][0] = 2.0f * q.x * q.z + 2.0f * q.w * q.y;
-  mat[2][1] = 2.0f * q.y * q.z - 2.0f * q.w * q.x;
-  mat[2][2] = 1.0f - 2.0f * q.x * q.x - 2.0f * q.y * q.y;
+  mat[2][0] = 2.0f * q.x * q.z - 2.0f * q.w * q.y;
+  mat[2][1] = 2.0f * q.y * q.z + 2.0f * q.w * q.x;
+  mat[2][2] = 2.0f * q.w * q.w + 2.0f * q.z * q.z - 1.0f;
   mat[2][3] = 0.0f;
 
   mat[3][0] = 0.0f;
