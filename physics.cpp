@@ -92,8 +92,8 @@ optional<vec3> intersectsTriangle(const TriangleCollider &t,
   }
 
   // Return the normal of the triangle pointing towards the sphere
-  const bool hit_backside_of_triangle =
-      (center - closest_point).dot(t.normal) < 0;
+  const double dot_with_normal = (center - closest_point).dot(t.normal);
+  const bool hit_backside_of_triangle = dot_with_normal < 0;
   const vec3 outward_normal = hit_backside_of_triangle ? -t.normal : t.normal;
 
   // Using a unit vector is needed to compute the strength of the rebound
