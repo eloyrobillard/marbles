@@ -304,8 +304,11 @@ vector<TriangleCollider> generateTriangleCollidersFromMesh(Mesh &mesh,
     auto n2 = mesh.vert_normal[i2];
 
     vec3 average_normal = (n0 + n1 + n2) * (1.0f / 3.0f);
+    average_normal =
+        vec4(average_normal, 1.0f) * mat4::CreateFromQuaternion(body.rotation);
 
-    triangles.emplace_back(average_normal, a, b, c, &body.position);
+    triangles.emplace_back(
+        TriangleCollider(average_normal, a, b, c, body.position));
   }
 
   return triangles;

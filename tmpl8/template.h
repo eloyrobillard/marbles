@@ -590,6 +590,7 @@ public:
   }
 
   float &operator[](const int idx) { return cell[idx]; }
+  vec4 operator*(const vec4 &v);
   static mat4 identity();
 
   static mat4 rotate(vec3 v, float rad);
