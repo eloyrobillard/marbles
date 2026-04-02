@@ -213,15 +213,15 @@ public:
 
   static vec3 transform(const vec3 &vec, const quat &q);
 
+  friend ostream &operator<<(ostream &os, const vec3 &v) {
+    return os << "{ " << v.x << ", " << v.y << ", " << v.z << " }";
+  }
+
   static const vec3 zero;
   static const vec3 right;
   static const vec3 up;
   static const vec3 forward;
 };
-
-inline ostream &operator<<(ostream &os, const vec3 &v) {
-  return os << "{ " << v.x << ", " << v.y << ", " << v.z << " }";
-}
 
 class vec4 {
 public:
@@ -237,7 +237,6 @@ public:
   };
   vec4() {}
   vec4(float v) : x(v), y(v), z(v), w(v) {}
-  vec4(vec3 v) : x(v.x), y(v.y), z(v.z), w(1.0f) {}
   vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
   vec4(vec3 a, float b) : x(a.x), y(a.y), z(a.z), w(b) {}
   vec4 operator-() const { return vec4(-x, -y, -z, -w); }
@@ -293,6 +292,11 @@ public:
   static vec4 normalize(vec4 v) { return v.normalized(); }
   float dot(const vec4 &operand) const {
     return x * operand.x + y * operand.y + z * operand.z + w * operand.w;
+  }
+
+  friend ostream &operator<<(ostream &os, const vec4 v) {
+    return os << "{ " << v.x << ", " << v.y << ", " << v.z << ", " << v.w
+              << " }";
   }
 };
 
