@@ -292,12 +292,12 @@ vector<TriangleCollider> generateTriangleCollidersFromMesh(Mesh &mesh,
   vector<TriangleCollider> triangles;
   triangles.reserve(mesh.idx_triplets.size());
 
+  const mat4 worldTransform = getWorldTransform(body);
+
   for (const auto &[i0, i1, i2] : mesh.idx_triplets) {
     auto a = vec4(mesh.vert_coord[i0], 1.0f) * worldTransform;
     auto b = vec4(mesh.vert_coord[i1], 1.0f) * worldTransform;
     auto c = vec4(mesh.vert_coord[i2], 1.0f) * worldTransform;
-
-    cout << a << b << c << endl;
 
     auto n0 = mesh.vert_normal[i0];
     auto n1 = mesh.vert_normal[i1];

@@ -10,12 +10,6 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
-using std::cerr;
-using std::cout;
-using std::endl;
-using std::string;
-using std::vector;
-
 namespace Tmpl8 {
 
 Shader::Shader meshShader;

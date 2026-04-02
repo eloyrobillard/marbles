@@ -22,14 +22,14 @@ struct SphereCollider : Collider {
 
 // For static objects
 struct TriangleCollider : Collider {
-  TriangleCollider(vec3 normal, vec3 a, vec3 b, vec3 c, vec3 *position)
+  TriangleCollider(vec3 normal, vec3 a, vec3 b, vec3 c, vec3 position)
       : normal(normal), a(a), b(b), c(c), position(position) {}
 
   vec3 a;
   vec3 b;
   vec3 c;
   vec3 normal;
-  vec3 *position;
+  vec3 position;
 };
 
 inline ostream &operator<<(ostream &os, const SphereCollider &coll) {
