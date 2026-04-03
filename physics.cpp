@@ -2,102 +2,68 @@
 #include "pch.h"
 #include "template.h"
 
-pair<vec3, vec3> getClosestPointOnTriangle(const vec3 point, const vec3 &normal,
-                                           const vec3 &a, const vec3 &b,
-                                           const vec3 &c) {
-  // To see if our projection is in the triangle, we first get the closest point
-  // belonging to an edge of the triangle
-  vec3 closest_point(std::numeric_limits<float>::infinity());
-  int closest_idx = -1;
+vec3 ClosestPtvec3Triangle(vec3 p, vec3 a, vec3 b, vec3 c) {
+  vec3 ab = b - a;
+  vec3 ac = c - a;
+  vec3 bc = c - b;
 
-  // Combinations of opposite point (idx 0) to edge (idx 1 & 2)
-  vec3 combs[3][3] = {{a, b, c}, {b, c, a}, {c, a, b}};
+  // Compute parametric position s for projection P’ of P on AB,
+  // P’ = A + s*AB, s = snom/(snom+sdenom)
+  float snom = (p - a).dot(ab), sdenom = (p - b).dot(a - b);
 
-  for (int i = 0; i < 3; i++) {
-    vec3 opposite = combs[i][0];
+  // Compute parametric position t for projection P’ of P on AC,
+  // P’ = A + t*AC, s = tnom/(tnom+tdenom)
+  float tnom = (p - a).dot(ac), tdenom = (p - c).dot(a - c);
+  if (snom <= 0.0f && tnom <= 0.0f)
+    return a; // Vertex region early out
 
-    vec3 A = combs[i][1];
-    vec3 B = combs[i][2];
+  // Compute parametric position u for projection P’ of P on BC,
+  // P’ = B + u*BC, u = unom/(unom+udenom)
+  float unom = (p - b).dot(bc), udenom = (p - c).dot(b - c);
+  if (sdenom <= 0.0f && unom <= 0.0f)
+    return b; // Vertex region early out
+  if (tdenom <= 0.0f && udenom <= 0.0f)
+    return c; // Vertex region early out
 
-    // Direction vector for line containing the edge
-    vec3 u = B - A;
-    // Vector belonging to same plane as triangle and orthogonal to u
-    vec3 v = u.cross(normal);
+  // P is outside (or on) AB if the triple scalar product [N PA PB] <= 0
+  vec3 n = (b - a).cross(c - a);
+  float vc = n.dot((a - p).cross(b - p));
 
-    // Find by what factor v needs to be multiplied to get the closest point the
-    // projected center (C')
-    float t_AB = (point.y * v.x + v.x * A.x - v.y * point.x - v.x * A.x) /
-                 (v.x * u.y - u.x * v.y);
+  // If P outside AB and within feature region of AB,
+  // return projection of P onto AB
+  if (vc <= 0.0f && snom >= 0.0f && sdenom >= 0.0f)
+    return a + snom / (snom + sdenom) * ab;
 
-    vec3 intersection_point = A + t_AB * u;
+  // P is outside (or on) BC if the triple scalar product [N PB PC] <= 0
+  float va = n.dot((b - p).cross(c - p));
+  // If P outside BC and within feature region of BC,
+  // return projection of P onto BC
+  if (va <= 0.0f && unom >= 0.0f && udenom >= 0.0f)
+    return b + unom / (unom + udenom) * bc;
 
-    bool is_on_triangle = 0 <= t_AB && t_AB <= 1;
-    bool is_closer =
-        point.distance(intersection_point) < point.distance(closest_point);
+  // P is outside (or on) CA if the triple scalar product [N PC PA] <= 0
+  float vb = n.dot((c - p).cross(a - p));
+  // If P outside CA and within feature region of CA,
+  // return projection of P onto CA
+  if (vb <= 0.0f && tnom >= 0.0f && tdenom >= 0.0f)
+    return a + tnom / (tnom + tdenom) * ac;
 
-    if (is_on_triangle && is_closer) {
-      closest_point = intersection_point;
-      closest_idx = i;
-    }
-  }
-
-  return {closest_point, combs[closest_idx][0]};
+  // P must project inside face region. Compute Q using barycentric coordinates
+  float u = va / (va + vb + vc);
+  float v = vb / (va + vb + vc);
+  float w = 1.0f - u - v; // = vc / (va + vb + vc)
+  return u * a + v * b + w * c;
 }
 
-// Derive the coefficients of the triangle's plane from its normal
-// and one vertex: ax + by + cz + d = 0
-tuple<float, float, float, float>
-getPlaneFromNormalAndPoint(const vec3 &normal, const vec3 &point) {
-  float a = normal.x;
-  float b = normal.y;
-  float c = normal.z;
-  float d = -(a * point.x + b * point.y + c * point.z);
-
-  return {a, b, c, d};
-}
-
-optional<vec3> intersectsTriangle(const TriangleCollider &t,
-                                  const SphereCollider &s) {
+bool intersectsTriangle(const TriangleCollider &t, const SphereCollider &s) {
   const vec3 &center = s.position;
 
-  auto [a, b, c, d] = getPlaneFromNormalAndPoint(t.normal, t.a);
+  auto closest_point = ClosestPtvec3Triangle(center, t.a, t.b, t.c);
 
-  // Get the sphere center's projection on the triangle's plane
-  float lambda = -(a * center.x + b * center.y + c * center.z + d) /
-                 t.normal.dot(t.normal);
-  vec3 projected_center = center + t.normal * lambda;
-
-  // If the sphere doesn't intersect the triangle's plane, no need to look
-  // further
-  bool sphere_intersects_plane = projected_center.distance(center) <= s.radius;
-  if (!sphere_intersects_plane) {
-    return {};
-  }
-
-  auto [closest_point, opposite] =
-      getClosestPointOnTriangle(projected_center, t.normal, t.a, t.b, t.c);
-
-  // If we find our projected center to be in the triangle
-  // that's definitely the closest point to the sphere's center
-  bool projection_is_in_triangle =
-      opposite.distance(closest_point) > opposite.distance(projected_center);
-  if (projection_is_in_triangle) {
-    closest_point = projected_center;
-  }
-
-  // If the closest point on the triangle is not within the sphere's radius,
-  // no collision
-  if (closest_point.distance(center) > s.radius) {
-    return {};
-  }
-
-  // Return the normal of the triangle pointing towards the sphere
-  const double dot_with_normal = (center - closest_point).dot(t.normal);
-  const bool hit_backside_of_triangle = dot_with_normal < 0;
-  const vec3 outward_normal = hit_backside_of_triangle ? -t.normal : t.normal;
-
-  // Using a unit vector is needed to compute the strength of the rebound
-  return {outward_normal.normalized()};
+  // Sphere and triangle intersect if the (squared) distance from sphere
+  // center to point p is less than the (squared) sphere radius
+  vec3 v = closest_point - center;
+  return v.dot(v) <= s.radius * s.radius;
 }
 
 optional<vec3> intersectsSphere(const SphereCollider &s1,
@@ -118,12 +84,12 @@ void processCollisions(vector<vec3> &collisions,
                        const SphereCollider &collider, size_t start,
                        size_t end) {
   for (size_t i = start; i < end; i++) {
-    auto maybe_collision = intersectsTriangle(colls[i], collider);
+    bool did_collide = intersectsTriangle(colls[i], collider);
 
-    if (!maybe_collision.has_value())
+    if (!did_collide)
       continue;
 
-    collisions.emplace_back(maybe_collision.value());
+    collisions.emplace_back(colls[i].normal);
   }
 }
 
@@ -163,19 +129,21 @@ void Physics::Update(Body &body, float t, float dt,
 
   vector<vec3> normals = getCollisionNormals(sc, dc, col);
 
-  // NOTE: Reset the sphere to its position before the collisions happened
-  // This is to avoid colliding many times with the same object
-  // before getting pushed out
-  // Compute the new direction (velocity)
-  auto forces = normals | transform([&](const vec3 normal) {
-                  // If two bodies exert forces on each other, these forces have
-                  // the same magnitude but opposite directions.
-                  return normal * (-body.velocity);
-                });
+  if (normals.size() > 0) {
+    // Compute the new velocity
+    vec3 vel_mag = abs(prev_v.z);
+    auto forces = normals | transform([&](const vec3 normal) {
+                    return normal * vel_mag;
+                  });
 
-  body.velocity = std::accumulate(ALL(forces), body.velocity) *
-                  (1.0f / static_cast<float>(normals.size() + 1));
-  body.position = prev_p + dt / 1024.0f * body.velocity;
+    auto rebound = std::accumulate(ALL(forces), vec3::zero) *
+                   (1.0f / static_cast<float>(normals.size()));
+
+    // cout << normals << endl;
+
+    body.velocity = prev_v + rebound + dt / 1024.0f * grav_force;
+    body.position = prev_p + dt / 1024.0f * body.velocity;
+  }
 
   col.position = body.position;
 }

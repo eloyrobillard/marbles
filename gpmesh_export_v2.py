@@ -108,7 +108,7 @@ def generate_gpmesh_json():
         gpmesh["vertices"].append(gp_vert)
     
     # UVs are stored separately, because even if multiple vertices share the same pos/normal/..
-    # they can have easily have completely differen UVs!
+    # they can have completely different UVs!
     for l in mesh.loops:
         uv = uv_layer[l.index].uv
         if len(gpmesh["vertices"][l.vertex_index]) <= 14:
