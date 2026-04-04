@@ -2,6 +2,7 @@
 #include "pch.h"
 #include "template.h"
 
+// SOURCE: "Real-Time Collision Detection" by Christer Ericson
 vec3 ClosestPtvec3Triangle(vec3 p, vec3 a, vec3 b, vec3 c) {
   vec3 ab = b - a;
   vec3 ac = c - a;
@@ -55,7 +56,8 @@ vec3 ClosestPtvec3Triangle(vec3 p, vec3 a, vec3 b, vec3 c) {
   return u * a + v * b + w * c;
 }
 
-bool intersectsTriangle(const TriangleCollider &t, const SphereCollider &s) {
+optional<vec3> intersectsTriangle(const TriangleCollider &t,
+                                  const SphereCollider &s) {
   const vec3 &center = s.position;
 
   auto closest_point = ClosestPtvec3Triangle(center, t.a, t.b, t.c);
@@ -63,7 +65,11 @@ bool intersectsTriangle(const TriangleCollider &t, const SphereCollider &s) {
   // Sphere and triangle intersect if the (squared) distance from sphere
   // center to point p is less than the (squared) sphere radius
   vec3 v = closest_point - center;
-  return v.dot(v) <= s.radius * s.radius;
+  if (v.dot(v) > s.radius * s.radius) {
+    return {};
+  }
+
+  return {(center - closest_point).normalized()};
 }
 
 optional<vec3> intersectsSphere(const SphereCollider &s1,
@@ -84,12 +90,12 @@ void processCollisions(vector<vec3> &collisions,
                        const SphereCollider &collider, size_t start,
                        size_t end) {
   for (size_t i = start; i < end; i++) {
-    bool did_collide = intersectsTriangle(colls[i], collider);
+    auto maybe_normal = intersectsTriangle(colls[i], collider);
 
-    if (!did_collide)
+    if (!maybe_normal.has_value())
       continue;
 
-    collisions.emplace_back(colls[i].normal);
+    collisions.emplace_back(maybe_normal.value());
   }
 }
 
