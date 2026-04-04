@@ -60,7 +60,7 @@ void Game::Init() {
 
   viewMat = mat4::CreateLookAt(vec3::zero, vec3::forward, vec3::up);
 
-  float fovy = 45.0f / 180.0f * PI;
+  float fovy = 30.0f / 180.0f * PI;
   projMat = mat4::CreatePerspectiveFOV(fovy, screen->GetWidth(),
                                        screen->GetHeight(), 5.0f, 10000.0f);
 

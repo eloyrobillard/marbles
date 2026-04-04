@@ -124,6 +124,7 @@ getCollisionNormals(const vector<vector<TriangleCollider>> &allStaticColliders,
   return collisions;
 }
 
+const float restitution = 0.3f;
 void Physics::Update(Body &body, float t, float dt,
                      const vector<vector<TriangleCollider>> &sc,
                      const vector<SphereCollider> &dc, SphereCollider &col) {
@@ -136,16 +137,14 @@ void Physics::Update(Body &body, float t, float dt,
   vector<vec3> normals = getCollisionNormals(sc, dc, col);
 
   if (normals.size() > 0) {
-    // Compute the new velocity
-    vec3 vel_mag = abs(prev_v.z);
-    auto forces = normals | transform([&](const vec3 normal) {
-                    return normal * vel_mag;
-                  });
+    // SOURCE: "Game Physics Engine Development" by Ian Millington (section 7.2)
+    auto impulses = normals | transform([&](const vec3 normal) {
+                      const float sepVel = prev_v.dot(normal);
+                      return normal * (-sepVel * restitution - sepVel);
+                    });
 
-    auto rebound = std::accumulate(ALL(forces), vec3::zero) *
+    auto rebound = std::accumulate(ALL(impulses), vec3::zero) *
                    (1.0f / static_cast<float>(normals.size()));
-
-    // cout << normals << endl;
 
     body.velocity = prev_v + rebound + dt / 1024.0f * grav_force;
     body.position = prev_p + dt / 1024.0f * body.velocity;
