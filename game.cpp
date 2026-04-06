@@ -69,11 +69,14 @@ void Game::Init() {
 
 void Game::Tick(float deltaTime) {
   // Set the clear color to light grey
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClearColor(0.5f, 0.7f, 1.0f, 1.0f);
+  // Enable writing into the depth buffer
+  glDepthMask(GL_TRUE);
   // Clear the color buffer
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Draw meshes
+  // Enable depth buffering/disable alpha blend
   glEnable(GL_DEPTH_TEST);
   glDisable(GL_BLEND);
 

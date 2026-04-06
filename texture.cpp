@@ -19,10 +19,7 @@ optional<Texture *> load(const std::string &filename) {
     return {};
   }
 
-  int format = GL_RGB;
-  if (channels == 4) {
-    format = GL_RGBA;
-  }
+  int format = channels == 4 ? GL_RGBA : GL_RGB;
 
   glGenTextures(1, &tex->textureID);
   glBindTexture(GL_TEXTURE_2D, tex->textureID);
