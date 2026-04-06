@@ -3,7 +3,7 @@
   "vertexformat": "PosNormSkinTex",
   "shader": "Skinned",
   "textures": [
-    "Assets/sphere-marble.png"
+    "Assets/black.png"
   ],
   "specularPower": 100.0,
   "rotationEuler": [
@@ -15,7 +15,7 @@
     0.0,
     1.0,
     0.0,
-    -0.0
+    0.0
   ],
   "scale": [
     0.13138476014137268,
@@ -23,9 +23,9 @@
     0.13138476014137268
   ],
   "translation": [
-    5.752729415893555,
-    -0.00430452823638916,
-    1.1807503700256348
+    5.752729892730713,
+    -0.00430000014603138,
+    1.1807500123977661
   ],
   "vertices": [
     [

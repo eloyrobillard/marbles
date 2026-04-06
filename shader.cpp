@@ -2,6 +2,7 @@
 #include <fstream>
 #include <sstream>
 
+#include "pch.h"
 #include "shader.h"
 #include "template.h"
 
@@ -111,4 +112,39 @@ void setMatrixUniform(Shader &shader, const char *name,
   // Send the matrix data to the uniform
   glUniformMatrix4fv(loc, 1, GL_TRUE, matrix.cell);
 }
+
+void setFloatUniform(Shader &shader, const char *name, const float value) {
+  GLuint loc = glGetUniformLocation(shader.program, name);
+  glUniform1f(loc, value);
+}
+
+void setVec3Uniform(Shader &shader, const char *name, const float values[3]) {
+  GLuint loc = glGetUniformLocation(shader.program, name);
+  glUniform3fv(loc, 1, values);
+}
+
+void createLight(Shader &shader, Tmpl8::mat4 &view) {
+  Tmpl8::mat4 camera_pos = view;
+  // Camera position is from inverted view
+  view.invert();
+
+  setVec3Uniform(shader, "uCameraPos", view.getTranslation());
+
+  float ambient[3] = {0.1f, 0.1f, 0.1f};
+  setVec3Uniform(shader, "uAmbientLight", ambient);
+
+  float direction[3] = {1.0f, 1.0f, -1.0f};
+  setVec3Uniform(shader, "uDirLight.direction", direction);
+
+  float diffuse[3] = {1.0f, 1.0f, 1.0f};
+  setVec3Uniform(shader, "uDirLight.diffuseColor", diffuse);
+
+  float specular[3] = {1.0f, 1.0f, 1.0f};
+  setVec3Uniform(shader, "uDirLight.specularColor", specular);
+
+  // Strength of shine
+  float specPower = 32.0f;
+  setFloatUniform(shader, "uSpecPower", specPower);
+}
+
 } // namespace Shader

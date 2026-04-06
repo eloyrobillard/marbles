@@ -23,11 +23,10 @@ mat4 viewMat;
 mat4 projMat;
 
 enum class BodyType { Dynamic, Static };
-// enum class ColliderType { Sphere, Complex };
 
 void Game::Init() {
   vector<std::pair<string, BodyType>> meshNames{
-      {"assets/basic_ramp.gpmesh", BodyType::Static},
+      {"assets/cone.gpmesh", BodyType::Static},
       {"assets/sphere.gpmesh", BodyType::Dynamic}};
 
   for (const auto &[meshName, btype] : meshNames) {
@@ -63,12 +62,10 @@ void Game::Init() {
   float fovy = 30.0f / 180.0f * PI;
   projMat = mat4::CreatePerspectiveFOV(fovy, screen->GetWidth(),
                                        screen->GetHeight(), 5.0f, 10000.0f);
-
-  Shader::setMatrixUniform(meshShader, "uViewProj", viewMat * projMat);
 }
 
 void Game::Tick(float deltaTime) {
-  // Set the clear color to light grey
+  // Set the clear color to sky blue
   glClearColor(0.5f, 0.7f, 1.0f, 1.0f);
   // Enable writing into the depth buffer
   glDepthMask(GL_TRUE);
@@ -84,6 +81,8 @@ void Game::Tick(float deltaTime) {
 
   // Update view-projection matrix
   Shader::setMatrixUniform(meshShader, "uViewProj", viewMat * projMat);
+
+  Shader::createLight(meshShader, viewMat);
 
   assert(meshes.size() == bodies.size());
   for (size_t i = 0; i < meshes.size(); i++) {

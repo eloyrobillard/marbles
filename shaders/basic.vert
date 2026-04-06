@@ -21,12 +21,23 @@ layout(location = 2) in vec2 inTexCoord;
 // Any vertex outputs (other than position)
 out vec2 fragTexCoord;
 
+out vec3 fragNormal;
+out vec3 fragWorldPos;
+
 void main()
 {
         // Convert position to homogeneous coordinates
         vec4 pos = vec4(inPosition, 1.0);
-        // Transform to position world space, then clip space
-        gl_Position = pos * uWorldTransform * uViewProj;
+        pos = pos * uWorldTransform;
+
+        // Send world position to fragment shader
+        fragWorldPos = pos.xyz;
+
+        // Transform to clip space
+        gl_Position = pos * uViewProj;
+
+        // Transfrom normal into world space
+        fragNormal = (vec4(inNormal, 0.0f) * uWorldTransform).xyz;
 
         // Pass along the texture coordinate to frag shader
         fragTexCoord = inTexCoord;

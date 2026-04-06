@@ -9,9 +9,9 @@ class Game {
 public:
   void SetTarget(Surface *surface) { screen = surface; }
   void Init();
-  static void Shutdown();
-  static void Tick(float deltaTime);
-  static void PhysicsTick(float t, float dt);
+  void Shutdown();
+  void Tick(float deltaTime);
+  void PhysicsTick(float t, float dt);
   void MouseUp(
       int button) { /* implement if you want to detect mouse button presses */ }
   void MouseDown(

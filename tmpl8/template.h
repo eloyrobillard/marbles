@@ -767,6 +767,8 @@ public:
         cell[i] = inv[i] * invdet;
     }
   }
+
+  float *getTranslation() { return mat[3]; }
 };
 
 vec4 operator*(const vec4 &v, const mat4 &M);

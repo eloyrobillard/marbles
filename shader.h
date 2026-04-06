@@ -17,4 +17,5 @@ void unload(Shader &shader);
 void setActive(Shader &shader);
 void setMatrixUniform(Shader &shader, const char *name,
                       const Tmpl8::mat4 &matrix);
+void createLight(Shader &shader, Tmpl8::mat4 &view);
 } // namespace Shader
