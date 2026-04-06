@@ -5,7 +5,7 @@ namespace Texture {
 
 Texture::Texture(const string &fileName) : filename(fileName) {}
 
-Texture *load(const std::string &filename) {
+optional<Texture *> load(const std::string &filename) {
   auto *tex = new Texture(filename);
   int channels = 0;
 
@@ -16,8 +16,7 @@ Texture *load(const std::string &filename) {
     SDL_Log("SOIL failed to load image %s: %s", filename.c_str(),
             SOIL_last_result());
 
-    tex->isValid = false;
-    return tex;
+    return {};
   }
 
   int format = GL_RGB;
@@ -37,9 +36,7 @@ Texture *load(const std::string &filename) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-  tex->isValid = true;
-
-  return tex;
+  return {tex};
 }
 
 void SetActive(GLuint textureID) { glBindTexture(GL_TEXTURE_2D, textureID); }

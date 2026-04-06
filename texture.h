@@ -16,7 +16,7 @@ public:
 
 static std::unordered_map<std::string, Texture *> gAllTextures;
 
-Texture *load(const std::string &filename);
+optional<Texture *> load(const std::string &filename);
 void SetActive(GLuint textureID);
 void Unload(GLuint textureID);
 

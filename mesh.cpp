@@ -52,22 +52,21 @@ GLuint createVertexArray(const float *verts, uint numVerts, const uint *indices,
   return vertexArray;
 }
 
-Texture::Texture *GetTexture(Mesh &mesh, const std::string &fileName) {
-  Texture::Texture *tex = nullptr;
+optional<Texture::Texture *> GetTexture(Mesh &mesh,
+                                        const std::string &fileName) {
   auto iter = Texture::gAllTextures.find(fileName);
 
   if (iter != Texture::gAllTextures.end()) {
-    tex = iter->second;
+    return {iter->second};
   } else {
-    tex = Texture::load(fileName);
+    auto maybe_tex = Texture::load(fileName);
 
-    if (tex->isValid) {
-      Texture::gAllTextures.emplace(fileName, tex);
-    } else {
-      tex = nullptr;
+    if (maybe_tex.has_value()) {
+      Texture::gAllTextures.emplace(fileName, maybe_tex.value());
     }
+
+    return maybe_tex;
   }
-  return tex;
 }
 
 optional<pair<Mesh, Body>> load(const std::string &filename) {
@@ -109,17 +108,18 @@ optional<pair<Mesh, Body>> load(const std::string &filename) {
     // Is this texture already loaded?
     std::string texName = textures[i].GetString();
 
-    Texture::Texture *t = GetTexture(mesh, texName);
-    if (t == nullptr) {
+    optional<Texture::Texture *> maybe_tex = GetTexture(mesh, texName);
+    if (!maybe_tex.has_value()) {
       // Try loading the texture
-      t = GetTexture(mesh, texName);
-      if (t == nullptr) {
+      maybe_tex = GetTexture(mesh, texName);
+      if (!maybe_tex.has_value()) {
         // If it's still null, just use the default texture
-        t = GetTexture(mesh, "Assets/Default.png");
+        maybe_tex = GetTexture(mesh, "Assets/Default.png");
       }
     }
 
-    mesh.textures.emplace_back(t);
+    if (maybe_tex.has_value())
+      mesh.textures.emplace_back(maybe_tex.value());
   }
 
   Value &scaleJSON = document["scale"];
