@@ -299,7 +299,7 @@ bool init() {
 
   printf("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
-  surface = new Surface(ScreenWidth, ScreenHeight, nullptr, ScreenWidth);
+  surface = new Surface(ScreenWidth, ScreenHeight);
 
   return true;
 }
@@ -314,7 +314,6 @@ int main(int argc, char **argv) {
     return 1;
 #endif
   printf("application started.\n");
-  SDL_Init(SDL_INIT_VIDEO);
 #ifdef ADVANCEDGL
 
   // Set OpenGL attributes
@@ -342,9 +341,6 @@ int main(int argc, char **argv) {
   window = SDL_CreateWindow(TemplateVersion, 100, 100, ScreenWidth,
                             ScreenHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
 #endif
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-  glEnable(GL_DEPTH_TEST);
-
   SDL_GLContext glContext = SDL_GL_CreateContext(window);
 
   init();
@@ -379,7 +375,7 @@ int main(int argc, char **argv) {
   while (!exitapp) {
 #ifdef ADVANCEDGL
     swap();
-    surface->SetBuffer((Pixel *)framedata);
+
 #else
     void *target = nullptr;
     int pitch;

@@ -65,7 +65,7 @@ void Game::Init() {
 }
 
 void Game::Tick(float deltaTime) {
-  // Set the clear color to sky blue
+  // Set the background color to sky blue
   glClearColor(0.5f, 0.7f, 1.0f, 1.0f);
   // Enable writing into the depth buffer
   glDepthMask(GL_TRUE);
@@ -82,7 +82,7 @@ void Game::Tick(float deltaTime) {
   // Update view-projection matrix
   Shader::setMatrixUniform(meshShader, "uViewProj", viewMat * projMat);
 
-  Shader::createLight(meshShader, viewMat);
+  Shader::setLight(meshShader, viewMat);
 
   assert(meshes.size() == bodies.size());
   for (size_t i = 0; i < meshes.size(); i++) {

@@ -123,7 +123,7 @@ void setVec3Uniform(Shader &shader, const char *name, const float values[3]) {
   glUniform3fv(loc, 1, values);
 }
 
-void createLight(Shader &shader, Tmpl8::mat4 &view) {
+void setLight(Shader &shader, Tmpl8::mat4 &view) {
   Tmpl8::mat4 camera_pos = view;
   // Camera position is from inverted view
   view.invert();

@@ -140,7 +140,7 @@ void Physics::Update(Body &body, float t, float dt,
     // SOURCE: "Game Physics Engine Development" by Ian Millington (section 7.2)
     auto impulses = normals | transform([&](const vec3 normal) {
                       const float sepVel = prev_v.dot(normal);
-                      return normal * (-sepVel * restitution - sepVel);
+                      return normal * -sepVel * (restitution + 1);
                     });
 
     auto rebound = std::accumulate(ALL(impulses), vec3::zero) *
