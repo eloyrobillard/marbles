@@ -100,6 +100,7 @@ pair<vec3, int> processCollisions(const vector<TriangleCollider> &colls,
                                   size_t end, const vec3 &velocity) {
   vec3 collisions = vec3::zero;
   int num_collisions = 0;
+
   for (size_t i = start; i < end; i++) {
     auto maybe_normal = intersectsTriangle(colls[i], collider);
 

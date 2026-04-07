@@ -65,11 +65,11 @@ void Game::Init() {
 }
 
 void Game::Tick(float deltaTime) {
-  // Set the background color to sky blue
-  glClearColor(0.5f, 0.7f, 1.0f, 1.0f);
+  // Set the clear color to sky blue
+  glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
   // Enable writing into the depth buffer
   glDepthMask(GL_TRUE);
-  // Clear the color buffer
+  // Clear the color/depth buffer
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Draw meshes
