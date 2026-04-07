@@ -7,28 +7,37 @@ vec3 ClosestPtvec3Triangle(vec3 p, vec3 a, vec3 b, vec3 c) {
   vec3 ab = b - a;
   vec3 ac = c - a;
   vec3 bc = c - b;
+  vec3 ap = p - a;
+  vec3 bp = p - b;
+  vec3 cp = p - c;
+  vec3 ba = -ab;
+  vec3 ca = -ac;
+  vec3 cb = -bc;
+  vec3 pa = -ap;
+  vec3 pb = -bp;
+  vec3 pc = -cp;
 
   // Compute parametric position s for projection P’ of P on AB,
   // P’ = A + s*AB, s = snom/(snom+sdenom)
-  float snom = (p - a).dot(ab), sdenom = (p - b).dot(a - b);
+  float snom = ap.dot(ab), sdenom = bp.dot(ba);
 
   // Compute parametric position t for projection P’ of P on AC,
   // P’ = A + t*AC, s = tnom/(tnom+tdenom)
-  float tnom = (p - a).dot(ac), tdenom = (p - c).dot(a - c);
+  float tnom = ap.dot(ac), tdenom = cp.dot(ca);
   if (snom <= 0.0f && tnom <= 0.0f)
     return a; // Vertex region early out
 
   // Compute parametric position u for projection P’ of P on BC,
   // P’ = B + u*BC, u = unom/(unom+udenom)
-  float unom = (p - b).dot(bc), udenom = (p - c).dot(b - c);
+  float unom = bp.dot(bc), udenom = cp.dot(cb);
   if (sdenom <= 0.0f && unom <= 0.0f)
     return b; // Vertex region early out
   if (tdenom <= 0.0f && udenom <= 0.0f)
     return c; // Vertex region early out
 
   // P is outside (or on) AB if the triple scalar product [N PA PB] <= 0
-  vec3 n = (b - a).cross(c - a);
-  float vc = n.dot((a - p).cross(b - p));
+  vec3 n = (ab).cross(ac);
+  float vc = n.dot((pa).cross(pb));
 
   // If P outside AB and within feature region of AB,
   // return projection of P onto AB
@@ -36,14 +45,14 @@ vec3 ClosestPtvec3Triangle(vec3 p, vec3 a, vec3 b, vec3 c) {
     return a + snom / (snom + sdenom) * ab;
 
   // P is outside (or on) BC if the triple scalar product [N PB PC] <= 0
-  float va = n.dot((b - p).cross(c - p));
+  float va = n.dot((pb).cross(pc));
   // If P outside BC and within feature region of BC,
   // return projection of P onto BC
   if (va <= 0.0f && unom >= 0.0f && udenom >= 0.0f)
     return b + unom / (unom + udenom) * bc;
 
   // P is outside (or on) CA if the triple scalar product [N PC PA] <= 0
-  float vb = n.dot((c - p).cross(a - p));
+  float vb = n.dot((pc).cross(pa));
   // If P outside CA and within feature region of CA,
   // return projection of P onto CA
   if (vb <= 0.0f && tnom >= 0.0f && tdenom >= 0.0f)
