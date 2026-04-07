@@ -147,13 +147,13 @@ void Physics::Update(Body &body, float t, float dt,
 
   if (normals.size() > 0) {
     // SOURCE: "Game Physics Engine Development" by Ian Millington (section 7.2)
-    auto impulses = normals | transform([&](const vec3 normal) {
-                      const float sepVel = prev_v.dot(normal);
-                      return normal * -sepVel * (restitution + 1);
-                    });
+    vec3 rebound = vec3::zero;
+    for (const auto &normal : normals) {
+      const float sepVel = prev_v.dot(normal);
+      rebound += normal * (-sepVel * (restitution + 1));
+    }
 
-    auto rebound = std::accumulate(ALL(impulses), vec3::zero) *
-                   (1.0f / static_cast<float>(normals.size()));
+    rebound *= (1.0f / static_cast<float>(normals.size()));
 
     body.velocity = prev_v + rebound + dt / 1024.0f * grav_force;
     body.position = prev_p + dt / 1024.0f * body.velocity;
