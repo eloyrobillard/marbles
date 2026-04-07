@@ -278,6 +278,12 @@ void draw(Shader::Shader &shader, Mesh &mesh, Body &body) {
 
   // Draw triangles
   glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+
+  GLenum err_code = glGetError();
+  while (GL_NO_ERROR != err_code) {
+    printf("OpenGL Error @ %s: %i", "drawing loop", err_code);
+    err_code = glGetError();
+  }
 }
 
 void deleteVertexArray(GLuint vertexBuffer, GLuint indexBuffer,
