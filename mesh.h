@@ -14,6 +14,8 @@ namespace Mesh {
 typedef struct {
   vector<float> verts;
   vector<unsigned int> indices;
+  GLuint vertexBuffer;
+  GLuint indexBuffer;
   GLuint vertexArray;
   vector<Texture::Texture *> textures;
   vector<vec3> vert_coord;

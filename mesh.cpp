@@ -12,8 +12,9 @@ using Tmpl8::vec4;
 
 namespace Mesh {
 
-GLuint createVertexArray(const float *verts, uint numVerts, const uint *indices,
-                         uint numIndices, size_t vertSize) {
+tuple<GLuint, GLuint, GLuint>
+createVertexArray(const float *verts, uint numVerts, const uint *indices,
+                  uint numIndices, size_t vertSize) {
 
   GLuint vertexArray;
   glGenVertexArrays(1, &vertexArray);
@@ -49,7 +50,7 @@ GLuint createVertexArray(const float *verts, uint numVerts, const uint *indices,
       2, 2, GL_FLOAT, GL_FALSE, vertSize * sizeof(float),
       reinterpret_cast<void *>(sizeof(float) * (vertSize - 2)));
 
-  return vertexArray;
+  return {vertexBuffer, indexBuffer, vertexArray};
 }
 
 optional<Texture::Texture *> GetTexture(Mesh &mesh,
@@ -233,12 +234,14 @@ optional<pair<Mesh, Body>> load(const std::string &filename) {
     idx_triplets.emplace_back(a, b, c);
   }
 
-  GLuint vertexArray =
+  auto [vertexBuffer, indexBuffer, vertexArray] =
       createVertexArray(verts.data(), verts.size() / vertSize, indices.data(),
                         indices.size(), vertSize);
 
   mesh.verts = verts;
   mesh.indices = indices;
+  mesh.vertexBuffer = vertexBuffer;
+  mesh.indexBuffer = indexBuffer;
   mesh.vertexArray = vertexArray;
   mesh.vert_coord = vert_coord;
   mesh.vert_normal = vert_norm;
