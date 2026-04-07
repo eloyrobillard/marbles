@@ -249,11 +249,11 @@ optional<pair<Mesh, Body>> load(const std::string &filename) {
 
 void setVerticesActive(GLuint vertexArray) { glBindVertexArray(vertexArray); }
 
-Texture::Texture *lookTextureUp(Mesh &mesh, size_t index) {
+optional<Texture::Texture *> lookTextureUp(Mesh &mesh, size_t index) {
   if (index < mesh.textures.size())
-    return mesh.textures[index];
+    return {mesh.textures[index]};
   else
-    return nullptr;
+    return {};
 }
 
 mat4 getWorldTransform(const Body &body) {
@@ -270,9 +270,9 @@ void draw(Shader::Shader &shader, Mesh &mesh, Body &body) {
 
   Shader::setMatrixUniform(shader, "uWorldTransform", worldTransform);
 
-  Texture::Texture *tex = lookTextureUp(mesh, 0);
-  if (tex)
-    Texture::SetActive(tex->textureID);
+  auto maybe_tex = lookTextureUp(mesh, 0);
+  if (maybe_tex.has_value())
+    Texture::SetActive(maybe_tex.value()->textureID);
 
   setVerticesActive(mesh.vertexArray);
 
