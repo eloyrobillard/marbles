@@ -94,28 +94,41 @@ optional<vec3> intersectsSphere(const SphereCollider &s1,
   return {(c1 - c2).normalized()};
 }
 
-void processCollisions(vector<vec3> &collisions,
-                       const vector<TriangleCollider> &colls,
-                       const SphereCollider &collider, size_t start,
-                       size_t end) {
+const float restitution = 0.3f;
+pair<vec3, int> processCollisions(const vector<TriangleCollider> &colls,
+                                  const SphereCollider &collider, size_t start,
+                                  size_t end, const vec3 &velocity) {
+  vec3 collisions = vec3::zero;
+  int num_collisions = 0;
   for (size_t i = start; i < end; i++) {
     auto maybe_normal = intersectsTriangle(colls[i], collider);
 
     if (!maybe_normal.has_value())
       continue;
 
-    collisions.emplace_back(maybe_normal.value());
+    // SOURCE: "Game Physics Engine Development" by Ian Millington (section 7.2)
+    const vec3 normal = maybe_normal.value();
+    const float sepVel = velocity.dot(normal);
+    collisions += normal * (-sepVel * (restitution + 1));
+    num_collisions++;
   }
+
+  return {collisions, num_collisions};
 }
 
-vector<vec3>
-getCollisionNormals(const vector<vector<TriangleCollider>> &allStaticColliders,
-                    const vector<SphereCollider> &allDynamicColliders,
-                    SphereCollider &collider) {
-  vector<vec3> collisions{};
+vec3 getCollisionNormals(
+    const vector<vector<TriangleCollider>> &allStaticColliders,
+    const vector<SphereCollider> &allDynamicColliders, SphereCollider &collider,
+    const vec3 &velocity) {
+  int tot_collisions = 0;
+  vec3 impulse = vec3::zero;
 
   for (const auto &colls : allStaticColliders) {
-    processCollisions(collisions, colls, collider, 0, colls.size());
+    auto [collisions, num_collisions] =
+        processCollisions(colls, collider, 0, colls.size(), velocity);
+
+    impulse += collisions;
+    tot_collisions += num_collisions;
   }
 
   // for (const auto &coll : allDynamicColliders) {
@@ -130,10 +143,11 @@ getCollisionNormals(const vector<vector<TriangleCollider>> &allStaticColliders,
   //   }
   // }
 
-  return collisions;
+  if (tot_collisions > 0)
+    impulse *= (1.0f / static_cast<float>(tot_collisions));
+  return impulse;
 }
 
-const float restitution = 0.3f;
 void Physics::Update(Body &body, float t, float dt,
                      const vector<vector<TriangleCollider>> &sc,
                      const vector<SphereCollider> &dc, SphereCollider &col) {
@@ -143,21 +157,10 @@ void Physics::Update(Body &body, float t, float dt,
   body.velocity += dt / 1024.0f * grav_force;
   body.position += dt / 1024.0f * body.velocity;
 
-  vector<vec3> normals = getCollisionNormals(sc, dc, col);
+  vec3 rebound = getCollisionNormals(sc, dc, col, prev_v);
 
-  if (normals.size() > 0) {
-    // SOURCE: "Game Physics Engine Development" by Ian Millington (section 7.2)
-    vec3 rebound = vec3::zero;
-    for (const auto &normal : normals) {
-      const float sepVel = prev_v.dot(normal);
-      rebound += normal * (-sepVel * (restitution + 1));
-    }
-
-    rebound *= (1.0f / static_cast<float>(normals.size()));
-
-    body.velocity = prev_v + rebound + dt / 1024.0f * grav_force;
-    body.position = prev_p + dt / 1024.0f * body.velocity;
-  }
+  body.velocity = prev_v + rebound + dt / 1024.0f * grav_force;
+  body.position = prev_p + dt / 1024.0f * body.velocity;
 
   col.position = body.position;
 }
