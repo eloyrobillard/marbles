@@ -222,6 +222,7 @@ static bool firstframe = true;
 Surface *surface = nullptr;
 Game *game = nullptr;
 SDL_Window *window = nullptr;
+SDL_GLContext glContext = nullptr;
 
 #ifdef _MSC_VER
 bool redirectIO() {
@@ -291,6 +292,8 @@ bool createFBtexture() {
 }
 
 bool init() {
+  glContext = SDL_GL_CreateContext(window);
+
   GLenum status = glewInit();
 
   if (status != GLEW_OK) {
@@ -304,8 +307,6 @@ bool init() {
   return true;
 }
 
-void swap() { SDL_GL_SwapWindow(window); }
-
 #endif
 
 int main(int argc, char **argv) {
@@ -314,6 +315,7 @@ int main(int argc, char **argv) {
     return 1;
 #endif
   printf("application started.\n");
+  SDL_Init(SDL_INIT_VIDEO);
 #ifdef ADVANCEDGL
 
   // Set OpenGL attributes
@@ -341,7 +343,6 @@ int main(int argc, char **argv) {
   window = SDL_CreateWindow(TemplateVersion, 100, 100, ScreenWidth,
                             ScreenHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
 #endif
-  SDL_GLContext glContext = SDL_GL_CreateContext(window);
 
   init();
   ShowCursor(false);
@@ -374,8 +375,6 @@ int main(int argc, char **argv) {
 
   while (!exitapp) {
 #ifdef ADVANCEDGL
-    swap();
-
 #else
     void *target = nullptr;
     int pitch;
@@ -424,6 +423,8 @@ int main(int argc, char **argv) {
 
     game->Tick(elapsedTime);
 
+    SDL_GL_SwapWindow(window);
+
     // event loop
     SDL_Event event;
 
@@ -458,6 +459,7 @@ int main(int argc, char **argv) {
   }
 
   game->Shutdown();
+  SDL_GL_DeleteContext(glContext);
   SDL_DestroyWindow(window);
   SDL_Quit();
   return 0;
