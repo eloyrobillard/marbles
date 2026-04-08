@@ -97,7 +97,7 @@ Shader load(const std::string &vertName, const std::string &fragName) {
   return shader;
 }
 
-void unload(Shader &shader) {
+void Unload(Shader &shader) {
   glDeleteProgram(shader.program);
   glDeleteShader(shader.vertexShader);
   glDeleteShader(shader.fragmentShader);

@@ -98,7 +98,7 @@ void Game::PhysicsTick(float time, float dt) {
 }
 
 void Game::Shutdown() {
-  Shader::unload(meshShader);
+  Shader::Unload(meshShader);
 
   for (auto &tex : Texture::gAllTextures) {
     Texture::Unload(tex.second->textureID);
