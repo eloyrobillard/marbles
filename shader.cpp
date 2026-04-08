@@ -126,7 +126,7 @@ void setVec3Uniform(Shader &shader, const char *name, const float values[3]) {
 void setLight(Shader &shader, Tmpl8::mat4 &view) {
   Tmpl8::mat4 camera_pos = view;
   // Camera position is from inverted view
-  view.invert();
+  camera_pos.invert();
 
   setVec3Uniform(shader, "uCameraPos", view.getTranslation());
 

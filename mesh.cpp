@@ -284,7 +284,7 @@ void draw(Shader::Shader &shader, Mesh &mesh, Body &body) {
 
   GLenum err_code = glGetError();
   while (GL_NO_ERROR != err_code) {
-    printf("OpenGL Error @ %s: %i", "drawing loop", err_code);
+    printf("OpenGL Error @ %s: %i", "mesh draw", err_code);
     err_code = glGetError();
   }
 }
