@@ -26,7 +26,7 @@ enum class BodyType { Dynamic, Static };
 
 void Game::Init() {
   vector<std::pair<string, BodyType>> meshNames{
-      {"assets/cone.gpmesh", BodyType::Static},
+      {"assets/twist.gpmesh", BodyType::Static},
       {"assets/sphere.gpmesh", BodyType::Dynamic}};
 
   for (const auto &[meshName, btype] : meshNames) {
@@ -57,7 +57,7 @@ void Game::Init() {
 
   Shader::setActive(meshShader);
 
-  viewMat = mat4::CreateLookAt(vec3::zero, vec3::forward, vec3::up);
+  viewMat = mat4::CreateLookAt(vec3(0, 0, 3), vec3(5, 0, 0), vec3::up);
 
   float fovy = 30.0f / 180.0f * PI;
   projMat = mat4::CreatePerspectiveFOV(fovy, screen->GetWidth(),
