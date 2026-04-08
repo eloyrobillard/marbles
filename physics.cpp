@@ -124,7 +124,7 @@ pair<vec3, int> processCollisions(const vector<TriangleCollider> &colls,
   return {collisions, num_collisions};
 }
 
-vec3 getCollisionNormals(
+vec3 computeCollisionRebound(
     const vector<vector<TriangleCollider>> &allStaticColliders,
     const vector<SphereCollider> &allDynamicColliders, SphereCollider &collider,
     const vec3 &velocity) {
@@ -165,7 +165,7 @@ void Physics::Update(Body &body, float t, float dt,
   body.velocity += dt / 1024.0f * grav_force;
   body.position += dt / 1024.0f * body.velocity;
 
-  vec3 rebound = getCollisionNormals(sc, dc, col, prev_v);
+  vec3 rebound = computeCollisionRebound(sc, dc, col, prev_v);
 
   body.velocity = prev_v + rebound + dt / 1024.0f * grav_force;
   body.position = prev_p + dt / 1024.0f * body.velocity;
