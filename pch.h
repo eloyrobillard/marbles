@@ -41,6 +41,7 @@ using std::pair;
 using std::string;
 using std::thread;
 using std::tuple;
+using std::unique_ptr;
 using std::vector;
 
 #define v(T) vector<T>

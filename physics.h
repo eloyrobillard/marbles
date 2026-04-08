@@ -57,10 +57,62 @@ struct Body {
   vector<Collider> colliders;
 };
 
+class SpacePartition {
+public:
+  float mMax_x;
+  float mMin_x;
+
+  SpacePartition(float min_x, float max_x) : mMin_x(min_x), mMax_x(max_x) {}
+  virtual ~SpacePartition() = default;
+
+  virtual void populate(const TriangleCollider &tc, float min_x,
+                        float max_x) = 0;
+  virtual void populate(const vector<TriangleCollider> &v) = 0;
+  [[nodiscard]] virtual vector<TriangleCollider>
+  get_partition(const SphereCollider &s, float min_x, float max_x) const = 0;
+};
+
+class SPNode : public SpacePartition {
+  vector<unique_ptr<SpacePartition>> mChildren;
+
+public:
+  using SpacePartition::SpacePartition;
+  SPNode(float min_x, float max_x, int depth, int num_children);
+  ~SPNode() override = default;
+
+  void populate(const TriangleCollider &tc, float min_x, float max_x) override;
+  void populate(const vector<TriangleCollider> &v) override;
+  [[nodiscard]] vector<TriangleCollider>
+  get_partition(const SphereCollider &s, float min_x,
+                float max_x) const override;
+};
+
+class SPLeaf : public SpacePartition {
+  vector<TriangleCollider> mPartition;
+
+public:
+  using SpacePartition::SpacePartition;
+  SPLeaf(float min_x, float max_x)
+      : mPartition(vector<TriangleCollider>()),
+        SpacePartition::SpacePartition(min_x, max_x) {}
+  ~SPLeaf() override = default;
+
+  void populate(const vector<TriangleCollider> &v) override {
+    mPartition.append_range(v);
+  };
+  void populate(const TriangleCollider &tc, float min_x, float max_x) override {
+    mPartition.emplace_back(tc);
+  }
+  [[nodiscard]] vector<TriangleCollider>
+  get_partition(const SphereCollider &s, float min_x,
+                float max_x) const override {
+    return mPartition;
+  };
+};
+
 namespace Physics {
-void Update(Body &body, float t, float dt,
-            const vector<vector<TriangleCollider>> &sc,
-            const vector<SphereCollider> &dc, SphereCollider &col);
+void Update(Body &body, float t, float dt, const vector<SphereCollider> &dc,
+            SphereCollider &col, const SpacePartition &sp);
 } // namespace Physics
 
 #endif // _PHYSICS_H

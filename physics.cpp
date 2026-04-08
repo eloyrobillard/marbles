@@ -2,6 +2,53 @@
 #include "pch.h"
 #include "template.h"
 
+SPNode::SPNode(float min_x, float max_x, int depth, int num_children)
+    : mChildren(vector<unique_ptr<SpacePartition>>()),
+      SpacePartition::SpacePartition(min_x, max_x) {
+  float step = (max_x - min_x) / static_cast<float>(num_children);
+
+  if (depth > 0) {
+    for (float i = min_x; i <= max_x; i += step) {
+      mChildren.emplace_back(new SPNode(i, i + step, depth - 1, num_children));
+    }
+  }
+
+  for (float i = min_x; i <= max_x; i += step) {
+    mChildren.emplace_back(new SPLeaf(i, i + step));
+  }
+}
+
+void SPNode::populate(const vector<TriangleCollider> &v) {
+  for (const auto &tc : v) {
+    float min_x = fmin(fmin(tc.a.x, tc.b.x), tc.c.x);
+    float max_x = fmax(fmax(tc.a.x, tc.b.x), tc.c.x);
+
+    populate(tc, min_x, max_x);
+  }
+}
+
+void SPNode::populate(const TriangleCollider &tc, float min_x, float max_x) {
+  for (auto &child : mChildren) {
+    if (max_x < child->mMin_x || min_x > child->mMax_x)
+      continue;
+
+    child->populate(tc, min_x, max_x);
+  }
+}
+
+vector<TriangleCollider> SPNode::get_partition(const SphereCollider &s,
+                                               float min_x, float max_x) const {
+  vector<TriangleCollider> result{};
+  for (const auto &child : mChildren) {
+    if (max_x < child->mMin_x || min_x > child->mMax_x)
+      continue;
+
+    result.append_range(child->get_partition(s, min_x, max_x));
+  }
+
+  return result;
+};
+
 // SOURCE: "Real-Time Collision Detection" by Christer Ericson
 vec3 ClosestPtvec3Triangle(vec3 p, vec3 a, vec3 b, vec3 c) {
   vec3 ab = b - a;
@@ -96,20 +143,20 @@ optional<vec3> intersectsSphere(const SphereCollider &s1,
 
 const float restitution = 0.3f;
 pair<vec3, int> processCollisions(const vector<TriangleCollider> &colls,
-                                  const SphereCollider &collider, size_t start,
-                                  size_t end, const vec3 &velocity) {
+                                  const SphereCollider &collider,
+                                  const vec3 &velocity) {
   vec3 collisions = vec3::zero;
   int num_collisions = 0;
 
-  for (size_t i = start; i < end; i++) {
-    const float max_x = fmax(fmax(colls[i].a.x, colls[i].b.x), colls[i].c.x);
-    const float min_x = fmin(fmin(colls[i].a.x, colls[i].b.x), colls[i].c.x);
+  for (const auto &coll : colls) {
+    const float max_x = fmax(fmax(coll.a.x, coll.b.x), coll.c.x);
+    const float min_x = fmin(fmin(coll.a.x, coll.b.x), coll.c.x);
 
     if (abs(max_x - collider.position.x) > collider.radius &&
         abs(min_x - collider.position.x) > collider.radius)
       continue;
 
-    auto maybe_normal = intersectsTriangle(colls[i], collider);
+    auto maybe_normal = intersectsTriangle(coll, collider);
 
     if (!maybe_normal.has_value())
       continue;
@@ -124,20 +171,21 @@ pair<vec3, int> processCollisions(const vector<TriangleCollider> &colls,
   return {collisions, num_collisions};
 }
 
-vec3 computeCollisionRebound(
-    const vector<vector<TriangleCollider>> &allStaticColliders,
-    const vector<SphereCollider> &allDynamicColliders, SphereCollider &collider,
-    const vec3 &velocity) {
+vec3 computeCollisionRebound(const SpacePartition &sp,
+                             const vector<SphereCollider> &allDynamicColliders,
+                             const SphereCollider &collider,
+                             const vec3 &velocity) {
   int tot_collisions = 0;
   vec3 impulse = vec3::zero;
 
-  for (const auto &colls : allStaticColliders) {
-    auto [collisions, num_collisions] =
-        processCollisions(colls, collider, 0, colls.size(), velocity);
+  float min_x = collider.position.x - collider.radius;
+  float max_x = collider.position.x + collider.radius;
 
-    impulse += collisions;
-    tot_collisions += num_collisions;
-  }
+  auto [collisions, num_collisions] = processCollisions(
+      sp.get_partition(collider, min_x, max_x), collider, velocity);
+
+  impulse += collisions;
+  tot_collisions += num_collisions;
 
   // for (const auto &coll : allDynamicColliders) {
   //   // Pointer comparison
@@ -157,15 +205,15 @@ vec3 computeCollisionRebound(
 }
 
 void Physics::Update(Body &body, float t, float dt,
-                     const vector<vector<TriangleCollider>> &sc,
-                     const vector<SphereCollider> &dc, SphereCollider &col) {
+                     const vector<SphereCollider> &dc, SphereCollider &col,
+                     const SpacePartition &sp) {
   const vec3 prev_v = body.velocity;
   const vec3 prev_p = body.position;
 
   body.velocity += dt / 1024.0f * grav_force;
   body.position += dt / 1024.0f * body.velocity;
 
-  vec3 rebound = computeCollisionRebound(sc, dc, col, prev_v);
+  vec3 rebound = computeCollisionRebound(sp, dc, col, prev_v);
 
   body.velocity = prev_v + rebound + dt / 1024.0f * grav_force;
   body.position = prev_p + dt / 1024.0f * body.velocity;
