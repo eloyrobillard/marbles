@@ -102,6 +102,13 @@ pair<vec3, int> processCollisions(const vector<TriangleCollider> &colls,
   int num_collisions = 0;
 
   for (size_t i = start; i < end; i++) {
+    const float max_x = fmax(fmax(colls[i].a.x, colls[i].b.x), colls[i].c.x);
+    const float min_x = fmin(fmin(colls[i].a.x, colls[i].b.x), colls[i].c.x);
+
+    if (abs(max_x - collider.position.x) > collider.radius &&
+        abs(min_x - collider.position.x) > collider.radius)
+      continue;
+
     auto maybe_normal = intersectsTriangle(colls[i], collider);
 
     if (!maybe_normal.has_value())
