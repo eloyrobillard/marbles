@@ -57,11 +57,11 @@ void Game::Init() {
 
   Shader::setActive(meshShader);
 
-  viewMat = mat4::CreateLookAt(vec3(0, 0, 3), vec3(5, 0, 0), vec3::up);
+  viewMat = mat4::CreateLookAt(vec3(2, 0, 3), vec3(7, 0, 0), vec3::up);
 
   float fovy = 30.0f / 180.0f * PI;
   projMat = mat4::CreatePerspectiveFOV(fovy, screen->GetWidth(),
-                                       screen->GetHeight(), 5.0f, 10000.0f);
+                                       screen->GetHeight(), 1.0f, 10000.0f);
 }
 
 void Game::Tick(float deltaTime) {
