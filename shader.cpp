@@ -133,7 +133,7 @@ void setLight(Shader &shader, Tmpl8::mat4 &view) {
   float ambient[3] = {0.1f, 0.1f, 0.1f};
   setVec3Uniform(shader, "uAmbientLight", ambient);
 
-  float direction[3] = {1.0f, 1.0f, -1.0f};
+  float direction[3] = {0.0f, 0.0f, -1.0f};
   setVec3Uniform(shader, "uDirLight.direction", direction);
 
   float diffuse[3] = {1.0f, 1.0f, 1.0f};
