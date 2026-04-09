@@ -141,7 +141,7 @@ optional<vec3> intersectsTriangle(const TriangleCollider &t,
     return {};
   }
 
-  return {(center - closest_point).normalized()};
+  return {t.normal.normalized()};
 }
 
 optional<vec3> intersectsSphere(const SphereCollider &s1,
@@ -180,8 +180,11 @@ pair<vec3, int> processCollisions(const vector<TriangleCollider> &colls,
     // SOURCE: "Game Physics Engine Development" by Ian Millington (section 7.2)
     const vec3 normal = maybe_normal.value();
     const float sepVel = velocity.dot(normal);
-    collisions += normal * (-sepVel * (restitution + 1));
-    num_collisions++;
+
+    if (sepVel < 0) {
+      collisions += normal * (-sepVel * (restitution + 1));
+      num_collisions++;
+    }
   }
 
   return {collisions, num_collisions};
