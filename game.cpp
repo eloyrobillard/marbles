@@ -66,7 +66,8 @@ void Game::Init() {
 
   Shader::setActive(meshShader);
 
-  viewMat = mat4::CreateLookAt(camera->eye, camera->target, camera->up);
+  viewMat =
+      mat4::CreateLookAt(camera->mActualPosition, camera->mTarget, camera->mUp);
 
   float fovy = 30.0f / 180.0f * PI;
   projMat = mat4::CreatePerspectiveFOV(fovy, screen->GetWidth(),
@@ -89,8 +90,9 @@ void Game::Tick(float deltaTime) {
   Shader::setActive(meshShader);
 
   // Update view-projection matrix
-  camera->update(bodies[num_static_bodies]);
-  viewMat = mat4::CreateLookAt(camera->eye, camera->target, camera->up);
+  camera->update(bodies[num_static_bodies], deltaTime);
+  viewMat =
+      mat4::CreateLookAt(camera->mActualPosition, camera->mTarget, camera->mUp);
 
   Shader::setMatrixUniform(meshShader, "uViewProj", viewMat * projMat);
 
