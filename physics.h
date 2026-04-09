@@ -70,6 +70,13 @@ public:
   virtual void populate(const vector<TriangleCollider> &v) = 0;
   [[nodiscard]] virtual vector<TriangleCollider>
   get_partition(const SphereCollider &s, float min_x, float max_x) const = 0;
+
+  virtual void print(ostream &os) const = 0;
+
+  friend ostream &operator<<(ostream &os, const SpacePartition &n) {
+    n.print(os);
+    return os;
+  }
 };
 
 class SPNode : public SpacePartition {
@@ -85,6 +92,7 @@ public:
   [[nodiscard]] vector<TriangleCollider>
   get_partition(const SphereCollider &s, float min_x,
                 float max_x) const override;
+  void print(ostream &os) const override;
 };
 
 class SPLeaf : public SpacePartition {
@@ -108,6 +116,7 @@ public:
                 float max_x) const override {
     return mPartition;
   };
+  void print(ostream &os) const override;
 };
 
 namespace Physics {

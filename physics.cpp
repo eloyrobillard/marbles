@@ -2,18 +2,34 @@
 #include "pch.h"
 #include "template.h"
 
+void SPNode::print(ostream &os) const {
+  os << "{\n\tFrom " << mMin_x << " to " << mMax_x << ": ";
+  for (const auto &child : mChildren) {
+    child->print(os);
+    os << ", ";
+  }
+  os << "\n}";
+}
+
+void SPLeaf::print(ostream &os) const {
+  os << "{\n\tFrom " << mMin_x << " to " << mMax_x << ": ";
+  for (const auto &coll : mPartition)
+    os << coll << ", ";
+  os << "\n}";
+}
+
 SPNode::SPNode(float min_x, float max_x, int depth, int num_children)
     : mChildren(vector<unique_ptr<SpacePartition>>()),
       SpacePartition::SpacePartition(min_x, max_x) {
   float step = (max_x - min_x) / static_cast<float>(num_children);
 
-  if (depth > 0) {
-    for (float i = min_x; i <= max_x; i += step) {
+  if (depth > 1) {
+    for (float i = min_x; i < max_x; i += step) {
       mChildren.emplace_back(new SPNode(i, i + step, depth - 1, num_children));
     }
   }
 
-  for (float i = min_x; i <= max_x; i += step) {
+  for (float i = min_x; i < max_x; i += step) {
     mChildren.emplace_back(new SPLeaf(i, i + step));
   }
 }

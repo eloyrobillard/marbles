@@ -12,7 +12,8 @@
 
 namespace Tmpl8 {
 
-SPNode sp = SPNode(1.0f, 30.0f, 6, 4);
+// Used for spatial partitioning of static colliders
+SPNode sp = SPNode(5.0f, 25.0f, 1, 16);
 Shader::Shader meshShader;
 std::deque<Mesh::Mesh> meshes;
 std::deque<Body> bodies;
