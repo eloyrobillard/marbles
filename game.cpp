@@ -1,4 +1,5 @@
 #include "game.h"
+#include "camera.h"
 #include "mesh.h"
 #include "pch.h"
 #include "physics.h"
@@ -12,6 +13,7 @@
 
 namespace Tmpl8 {
 
+unique_ptr<FollowCamera> camera;
 // Used for spatial partitioning of static colliders
 SPNode sp = SPNode(5.0f, 25.0f, 1, 16);
 Shader::Shader meshShader;
@@ -27,6 +29,9 @@ mat4 projMat;
 enum class BodyType { Dynamic, Static };
 
 void Game::Init() {
+  camera =
+      std::make_unique<FollowCamera>(vec3(0, 0, 10), vec3(7, 0, 0), vec3::up);
+
   vector<std::pair<string, BodyType>> meshNames{
       {"assets/twist.gpmesh", BodyType::Static},
       {"assets/sphere.gpmesh", BodyType::Dynamic}};
@@ -61,7 +66,7 @@ void Game::Init() {
 
   Shader::setActive(meshShader);
 
-  viewMat = mat4::CreateLookAt(vec3(0, 0, 10), vec3(7, 0, 0), vec3::up);
+  viewMat = mat4::CreateLookAt(camera->eye, camera->target, camera->up);
 
   float fovy = 30.0f / 180.0f * PI;
   projMat = mat4::CreatePerspectiveFOV(fovy, screen->GetWidth(),
@@ -84,6 +89,9 @@ void Game::Tick(float deltaTime) {
   Shader::setActive(meshShader);
 
   // Update view-projection matrix
+  camera->update(bodies[num_static_bodies]);
+  viewMat = mat4::CreateLookAt(camera->eye, camera->target, camera->up);
+
   Shader::setMatrixUniform(meshShader, "uViewProj", viewMat * projMat);
 
   Shader::setLight(meshShader, viewMat);
