@@ -57,7 +57,13 @@ void timer::reset() { start = get(); }
 void timer::init() {
   LARGE_INTEGER f;
   QueryPerformanceFrequency(&f);
-  inv_freq = 1000. / double(f.QuadPart);
+  // NOTE: changed this from 1000. / double(...)
+  // Multiplying by 1000 here led to delta times above 1 sec for 240 frames a
+  // second (anyway, logging would show like 242 when less then a second had
+  // passed)
+  // This also fixes massive performance issues with the physics update, which
+  // was called way too many times a second (6000?) as a result
+  inv_freq = 1. / double(f.QuadPart);
 }
 
 // Math Stuff
