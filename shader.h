@@ -12,7 +12,7 @@ typedef struct {
 } Shader;
 
 // NOTE: From "Game Programming in C++" by Sanjay Madhav
-Shader load(const std::string &vertName, const std::string &fragName);
+Shader Load(const std::string &vertName, const std::string &fragName);
 void Unload(Shader &shader);
 void setActive(Shader &shader);
 void setMatrixUniform(Shader &shader, const char *name,

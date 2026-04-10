@@ -53,6 +53,40 @@ createVertexArray(const float *verts, uint numVerts, const uint *indices,
   return {vertexBuffer, indexBuffer, vertexArray};
 }
 
+tuple<GLuint, GLuint, GLuint> createVertexArrayVertsOnly(const float *verts,
+                                                         uint numVerts,
+                                                         const uint *indices,
+                                                         uint numIndices,
+                                                         size_t vertSize) {
+
+  GLuint vertexArray;
+  glGenVertexArrays(1, &vertexArray);
+  glBindVertexArray(vertexArray);
+
+  // Create vertex buffer
+  GLuint vertexBuffer = 0;
+  glGenBuffers(1, &vertexBuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+  glBufferData(GL_ARRAY_BUFFER, numVerts * vertSize * sizeof(float), verts,
+               GL_STATIC_DRAW);
+
+  // Create index buffer
+  GLuint indexBuffer = 0;
+  glGenBuffers(1, &indexBuffer);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint), indices,
+               GL_STATIC_DRAW);
+
+  // Specify the vertex attributes
+  // (For now, assume one vertex format)
+  // Position is 3 floats
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertSize * sizeof(float),
+                        nullptr);
+
+  return {vertexBuffer, indexBuffer, vertexArray};
+}
+
 optional<Texture::Texture *> GetTexture(Mesh &mesh,
                                         const std::string &fileName) {
   auto iter = Texture::gAllTextures.find(fileName);
@@ -250,8 +284,6 @@ optional<pair<Mesh, Body>> load(const std::string &filename) {
   return {{mesh, body}};
 }
 
-void setVerticesActive(GLuint vertexArray) { glBindVertexArray(vertexArray); }
-
 optional<Texture::Texture *> lookTextureUp(Mesh &mesh, size_t index) {
   if (index < mesh.textures.size())
     return {mesh.textures[index]};
@@ -316,7 +348,15 @@ vector<TriangleCollider> generateTriangleCollidersFromMesh(Mesh &mesh,
     average_normal =
         vec4(average_normal, 1.0f) * mat4::CreateFromQuaternion(body.rotation);
 
-    triangles.emplace_back(TriangleCollider(average_normal, a, b, c));
+    float verts[9] = {a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z};
+    uint indices[3] = {0, 1, 2};
+
+    auto [vertexBuffer, indexBuffer, vertexArray] =
+        createVertexArrayVertsOnly(verts, 3, indices, 3, 3 /* Position only */);
+
+    // NOTE: leaving constructor so clangd reports type errors
+    triangles.emplace_back(TriangleCollider(
+        average_normal, a, b, c, vertexBuffer, indexBuffer, vertexArray));
   }
 
   return triangles;

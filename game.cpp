@@ -17,6 +17,7 @@ unique_ptr<FollowCamera> camera;
 // Used for spatial partitioning of static colliders
 SPNode sp = SPNode(5.0f, 25.0f, 1, 16);
 Shader::Shader meshShader;
+Shader::Shader colliderShader;
 std::deque<Mesh::Mesh> meshes;
 std::deque<Body> bodies;
 vector<SphereCollider> dynamicColliders;
@@ -58,13 +59,22 @@ void Game::Init() {
     }
   }
 
-  meshShader = Shader::load("shaders/basic.vert", "shaders/basic.frag");
+  meshShader = Shader::Load("shaders/basic.vert", "shaders/basic.frag");
 
   if (!meshShader.isValid) {
     SDL_Log("Failed to load mesh shader");
   }
 
   Shader::setActive(meshShader);
+
+  colliderShader =
+      Shader::Load("shaders/wireframe.vert", "shaders/wireframe.frag");
+
+  if (!colliderShader.isValid) {
+    SDL_Log("Failed to load collider shader");
+  }
+
+  Shader::setActive(colliderShader);
 
   viewMat =
       mat4::CreateLookAt(camera->mActualPosition, camera->mTarget, camera->mUp);
@@ -102,6 +112,27 @@ void Game::Tick(float deltaTime) {
   for (size_t i = 0; i < meshes.size(); i++) {
     Mesh::draw(meshShader, meshes[i], bodies[i]);
   }
+
+#ifdef _DEBUG
+  Shader::setActive(colliderShader);
+
+  Shader::setMatrixUniform(colliderShader, "uViewProj", viewMat * projMat);
+
+  // Turn on wireframe mode
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+  for (const auto &v : staticColliders) {
+    for (const auto &triangle : v) {
+      Mesh::setVerticesActive(triangle.vertexArray);
+
+      // Draw triangles
+      glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+    }
+  }
+
+  // Turn off wireframe mode
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+#endif // _DEBUG
 }
 
 void Game::PhysicsTick(float time, float dt) {

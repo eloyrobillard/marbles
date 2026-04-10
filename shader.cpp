@@ -74,7 +74,7 @@ void set_shader_program_active(GLuint shaderProgram) {
   glUseProgram(shaderProgram);
 }
 
-Shader load(const std::string &vertName, const std::string &fragName) {
+Shader Load(const std::string &vertName, const std::string &fragName) {
   Shader shader;
 
   // Compile vertex and fragment shaders
