@@ -226,7 +226,6 @@ vec3 computeCollisionRebound(const SpacePartition &sp,
 void Physics::Update(Body &body, float t, float dt,
                      const vector<SphereCollider> &dc, SphereCollider &col,
                      const SpacePartition &sp) {
-  const vec3 prev_v = body.velocity;
   const vec3 prev_p = body.position;
 
   body.velocity += dt * grav_force;
@@ -234,7 +233,7 @@ void Physics::Update(Body &body, float t, float dt,
 
   vec3 rebound = computeCollisionRebound(sp, dc, col, body.velocity);
 
-  body.velocity = prev_v + rebound + dt * grav_force;
+  body.velocity += rebound;
   body.position = prev_p + dt * body.velocity;
 
   col.position = body.position;
