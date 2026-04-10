@@ -206,18 +206,6 @@ bool computeCollisionRebound(const SpacePartition &sp,
   current_partition = sp.get_partition(collider, min_x, max_x);
 
   return processCollisions(current_partition, collider, velocity);
-
-  // for (const auto &coll : allDynamicColliders) {
-  //   // Pointer comparison
-  //   if (&coll != &collider) {
-  //     auto maybe_collision = intersectsSphere(coll, collider);
-  //
-  //     if (!maybe_collision.has_value())
-  //       continue;
-  //
-  //     collisions.emplace_back(maybe_collision.value());
-  //   }
-  // }
 }
 
 void Physics::Update(Body &body, float t, float dt,
