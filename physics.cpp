@@ -231,10 +231,15 @@ void Physics::Update(Body &body, float t, float dt,
   body.velocity += dt * grav_force;
   body.position += dt * body.velocity;
 
+  // Test collisions at new body position
+  col.position = body.position;
+
   vec3 rebound = computeCollisionRebound(sp, dc, col, body.velocity);
 
+  // Adjust position based on collisions if any
   body.velocity += rebound;
   body.position = prev_p + dt * body.velocity;
 
+  // Match body's position with collider's
   col.position = body.position;
 }
