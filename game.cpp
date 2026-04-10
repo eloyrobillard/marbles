@@ -138,13 +138,12 @@ void Game::Tick(float deltaTime) {
   // Turn on wireframe mode
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-  for (const auto &v : staticColliders) {
-    for (const auto &triangle : v) {
-      Mesh::setVerticesActive(triangle.vertexArray);
+  // Only show triangles currently tested against
+  for (const auto &triangle : current_partition) {
+    Mesh::setVerticesActive(triangle.vertexArray);
 
-      // Draw triangles
-      glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
-    }
+    // Draw triangles
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
   }
 
   // Turn off wireframe mode

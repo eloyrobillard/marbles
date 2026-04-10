@@ -25,12 +25,13 @@ SPNode::SPNode(float min_x, float max_x, int depth, int num_children)
 
   if (depth > 1) {
     for (float i = min_x; i < max_x; i += step) {
-      mChildren.emplace_back(new SPNode(i, i + step, depth - 1, num_children));
+      mChildren.emplace_back(
+          new SPNode(i, i + step - 0.0001, depth - 1, num_children));
     }
   }
 
   for (float i = min_x; i < max_x; i += step) {
-    mChildren.emplace_back(new SPLeaf(i, i + step));
+    mChildren.emplace_back(new SPLeaf(i, i + step - 0.0001));
   }
 }
 
@@ -56,7 +57,7 @@ vector<TriangleCollider> SPNode::get_partition(const SphereCollider &s,
                                                float min_x, float max_x) const {
   vector<TriangleCollider> result{};
   for (const auto &child : mChildren) {
-    if (max_x < child->mMin_x || min_x > child->mMax_x)
+    if (max_x <= child->mMin_x || min_x >= child->mMax_x)
       continue;
 
     result.append_range(child->get_partition(s, min_x, max_x));
@@ -202,8 +203,9 @@ bool computeCollisionRebound(const SpacePartition &sp,
   float min_x = collider.position.x - collider.radius;
   float max_x = collider.position.x + collider.radius;
 
-  return processCollisions(sp.get_partition(collider, min_x, max_x), collider,
-                           velocity);
+  current_partition = sp.get_partition(collider, min_x, max_x);
+
+  return processCollisions(current_partition, collider, velocity);
 
   // for (const auto &coll : allDynamicColliders) {
   //   // Pointer comparison

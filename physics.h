@@ -123,6 +123,7 @@ public:
 };
 
 inline stack<GLuint> to_render_as_collided;
+inline vector<TriangleCollider> current_partition;
 
 namespace Physics {
 void Update(Body &body, float t, float dt, const vector<SphereCollider> &dc,
