@@ -23,6 +23,7 @@
 #include <ranges>
 #include <rapidjson/document.h>
 #include <sstream>
+#include <stack>
 #include <string>
 #include <thread>
 #include <unordered_map>
@@ -38,6 +39,7 @@ using std::optional;
 using std::ostream;
 using std::ostream_iterator;
 using std::pair;
+using std::stack;
 using std::string;
 using std::thread;
 using std::tuple;

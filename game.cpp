@@ -16,8 +16,11 @@ namespace Tmpl8 {
 unique_ptr<FollowCamera> camera;
 // Used for spatial partitioning of static colliders
 SPNode sp = SPNode(5.0f, 25.0f, 1, 16);
+
 Shader::Shader meshShader;
 Shader::Shader colliderShader;
+Shader::Shader collisionShader;
+
 std::deque<Mesh::Mesh> meshes;
 std::deque<Body> bodies;
 vector<SphereCollider> dynamicColliders;
@@ -67,6 +70,7 @@ void Game::Init() {
 
   Shader::setActive(meshShader);
 
+  // Collider shader
   colliderShader =
       Shader::Load("shaders/wireframe.vert", "shaders/wireframe.frag");
 
@@ -75,6 +79,15 @@ void Game::Init() {
   }
 
   Shader::setActive(colliderShader);
+
+  // Collision shader
+  collisionShader = Shader::Load("shaders/tint.vert", "shaders/tint.frag");
+
+  if (!collisionShader.isValid) {
+    SDL_Log("Failed to load collision shader");
+  }
+
+  Shader::setActive(collisionShader);
 
   viewMat =
       mat4::CreateLookAt(camera->mActualPosition, camera->mTarget, camera->mUp);
@@ -97,23 +110,27 @@ void Game::Tick(float deltaTime) {
   glEnable(GL_DEPTH_TEST);
   glDisable(GL_BLEND);
 
-  Shader::setActive(meshShader);
-
   // Update view-projection matrix
   camera->update(bodies[num_static_bodies], deltaTime);
   viewMat =
       mat4::CreateLookAt(camera->mActualPosition, camera->mTarget, camera->mUp);
 
-  Shader::setMatrixUniform(meshShader, "uViewProj", viewMat * projMat);
+#ifdef _DEBUG
+  // Visualize collisions
+  Shader::setActive(collisionShader);
 
-  Shader::setLight(meshShader, viewMat);
+  Shader::setMatrixUniform(collisionShader, "uViewProj", viewMat * projMat);
 
-  assert(meshes.size() == bodies.size());
-  for (size_t i = 0; i < meshes.size(); i++) {
-    Mesh::draw(meshShader, meshes[i], bodies[i]);
+  while (!to_render_as_collided.empty()) {
+    Mesh::setVerticesActive(to_render_as_collided.top());
+
+    // Draw triangles
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+
+    to_render_as_collided.pop();
   }
 
-#ifdef _DEBUG
+  // Visualize triangle colliders as a wireframe
   Shader::setActive(colliderShader);
 
   Shader::setMatrixUniform(colliderShader, "uViewProj", viewMat * projMat);
@@ -133,6 +150,17 @@ void Game::Tick(float deltaTime) {
   // Turn off wireframe mode
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 #endif // _DEBUG
+
+  Shader::setActive(meshShader);
+
+  Shader::setMatrixUniform(meshShader, "uViewProj", viewMat * projMat);
+
+  Shader::setLight(meshShader, viewMat);
+
+  assert(meshes.size() == bodies.size());
+  for (size_t i = 0; i < meshes.size(); i++) {
+    Mesh::draw(meshShader, meshes[i], bodies[i]);
+  }
 }
 
 void Game::PhysicsTick(float time, float dt) {

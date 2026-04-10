@@ -122,6 +122,8 @@ public:
   void print(ostream &os) const override;
 };
 
+inline stack<GLuint> to_render_as_collided;
+
 namespace Physics {
 void Update(Body &body, float t, float dt, const vector<SphereCollider> &dc,
             SphereCollider &col, const SpacePartition &sp);

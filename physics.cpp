@@ -158,10 +158,11 @@ optional<vec3> intersectsSphere(const SphereCollider &s1,
 }
 
 const float restitution = 0.3f;
-void processCollisions(const vector<TriangleCollider> &triangles,
+bool processCollisions(const vector<TriangleCollider> &triangles,
                        const SphereCollider &sphere, vec3 &velocity) {
   vec3 collisions = vec3::zero;
   int num_collisions = 0;
+  bool collision_happened = false;
 
   for (const auto &triangle : triangles) {
     const float max_x = fmax(fmax(triangle.a.x, triangle.b.x), triangle.c.x);
@@ -176,6 +177,12 @@ void processCollisions(const vector<TriangleCollider> &triangles,
     if (!maybe_normal.has_value())
       continue;
 
+    collision_happened = true;
+
+#ifdef _DEBUG
+    to_render_as_collided.push(triangle.vertexArray);
+#endif
+
     // SOURCE: "Game Physics Engine Development" by Ian Millington (section 7.2)
     const vec3 normal = maybe_normal.value();
     const float sepVel = velocity.dot(normal);
@@ -185,16 +192,18 @@ void processCollisions(const vector<TriangleCollider> &triangles,
       velocity += normal * (-sepVel * (restitution + 1));
     }
   }
+
+  return collision_happened;
 }
 
-void computeCollisionRebound(const SpacePartition &sp,
+bool computeCollisionRebound(const SpacePartition &sp,
                              const vector<SphereCollider> &allDynamicColliders,
                              const SphereCollider &collider, vec3 &velocity) {
   float min_x = collider.position.x - collider.radius;
   float max_x = collider.position.x + collider.radius;
 
-  processCollisions(sp.get_partition(collider, min_x, max_x), collider,
-                    velocity);
+  return processCollisions(sp.get_partition(collider, min_x, max_x), collider,
+                           velocity);
 
   // for (const auto &coll : allDynamicColliders) {
   //   // Pointer comparison
