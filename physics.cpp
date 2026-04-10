@@ -232,7 +232,7 @@ void Physics::Update(Body &body, float t, float dt,
   body.velocity += dt * grav_force;
   body.position += dt * body.velocity;
 
-  vec3 rebound = computeCollisionRebound(sp, dc, col, prev_v);
+  vec3 rebound = computeCollisionRebound(sp, dc, col, body.velocity);
 
   body.velocity = prev_v + rebound + dt * grav_force;
   body.position = prev_p + dt * body.velocity;
