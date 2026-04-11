@@ -158,7 +158,7 @@ optional<vec3> intersectsSphere(const SphereCollider &s1,
   return {(c1 - c2).normalized()};
 }
 
-const float restitution = 0.3f;
+const float restitution = 0.0f;
 bool processCollisions(const vector<TriangleCollider> &triangles,
                        const SphereCollider &sphere, vec3 &velocity) {
   vec3 collisions = vec3::zero;
