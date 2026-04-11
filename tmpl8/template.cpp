@@ -40,6 +40,7 @@ extern "C" {
 
 unique_ptr<FollowCamera> camera;
 unique_ptr<Renderer> renderer;
+unique_ptr<Entities> entities;
 
 namespace Tmpl8 {
 
@@ -381,6 +382,7 @@ int main(int argc, char **argv) {
   camera =
       std::make_unique<FollowCamera>(vec3(0, 0, 3), vec3(7, 0, 0), vec3::up);
   renderer = std::make_unique<Renderer>(camera, surface);
+  entities = std::make_unique<Entities>();
 
   timer t;
   t.reset();
@@ -427,8 +429,7 @@ int main(int argc, char **argv) {
 
     // NOTE: make sure the physics update always gets the same delta time
     while (physicsTimeAccumulator >= Physics::physicsDeltaTime) {
-      Physics::Update(tPhysics, Physics::physicsDeltaTime, gBodies,
-                      gDynamicColliders);
+      entities->Update(tPhysics, Physics::physicsDeltaTime);
       physicsTimeAccumulator -= Physics::physicsDeltaTime;
       tPhysics += Physics::physicsDeltaTime;
     }
@@ -438,8 +439,9 @@ int main(int argc, char **argv) {
     const double alpha = physicsTimeAccumulator / Physics::physicsDeltaTime;
 
     game->Tick(elapsedTime);
-    camera->update(gBodies[num_static_bodies], elapsedTime);
-    renderer->Draw3D(elapsedTime, camera);
+    camera->update(elapsedTime, entities->ProvideCameraFollow());
+    renderer->Draw3D(elapsedTime, camera, entities->GetStaticEntities(),
+                     entities->GetDynamicEntities());
 
     SDL_GL_SwapWindow(window);
 

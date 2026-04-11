@@ -8,9 +8,6 @@ Renderer::Renderer(const unique_ptr<FollowCamera> &camera, Surface *screen)
           GetShader("shaders/wireframe.vert", "shaders/wireframe.frag")),
       mCollisionShader(GetShader("shaders/tint.vert", "shaders/tint.frag")) {
 
-  GetMeshes({{"assets/twist.gpmesh", BodyType::Static},
-             {"assets/sphere.gpmesh", BodyType::Dynamic}});
-
   SetView(camera);
   SetProjection(screen);
 }
@@ -25,7 +22,9 @@ Renderer::~Renderer() {
   }
 }
 
-void Renderer::Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera) {
+void Renderer::Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera,
+                      const vector<StaticEntity> &se,
+                      const vector<DynamicEntity> &de) {
   SetView(camera);
 
   // Set the clear color to sky blue
@@ -83,9 +82,12 @@ void Renderer::Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera) {
 
   Shader::setLight(mMeshShader, mView);
 
-  assert(mMeshes.size() == gBodies.size());
-  for (size_t i = 0; i < mMeshes.size(); i++) {
-    Mesh::draw(mMeshShader, mMeshes[i], gBodies[i]);
+  for (const auto &e : se) {
+    Mesh::draw(mMeshShader, e.mesh, e.body);
+  }
+
+  for (const auto &e : de) {
+    Mesh::draw(mMeshShader, e.mesh, e.body);
   }
 }
 
@@ -98,33 +100,6 @@ void Renderer::SetProjection(Surface *screen) {
   mProjection = mat4::CreatePerspectiveFOV(
       fovy, static_cast<float>(screen->GetWidth()),
       static_cast<float>(screen->GetHeight()), 1.0f, 10000.0f);
-}
-
-void Renderer::GetMeshes(const vector<pair<string, BodyType>> &meshList) {
-  for (const auto &[meshName, btype] : meshList) {
-    auto result = Mesh::load(meshName);
-
-    if (result.has_value()) {
-      auto [mesh, body] = result.value();
-
-      if (btype == BodyType::Dynamic) {
-        // Keep dynamic objects at the back of the queue
-        mMeshes.emplace_back(mesh);
-        gBodies.emplace_back(body);
-        gDynamicColliders.emplace_back(body.position, body.scale.x);
-      } else {
-        auto triangles = Mesh::generateTriangleCollidersFromMesh(mesh, body);
-        gSP.populate(triangles);
-
-        // Store static objects at the front of the queue
-        mMeshes.emplace_front(mesh);
-        gBodies.emplace_front(body);
-
-        gStaticColliders.emplace_back(triangles);
-        num_static_bodies++;
-      }
-    }
-  }
 }
 
 Shader::Shader Renderer::GetShader(const char *vert, const char *frag) {

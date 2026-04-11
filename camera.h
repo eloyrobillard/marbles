@@ -20,7 +20,7 @@ public:
       : mActualPosition(actualPosition), mTarget(target), mUp(up),
         mVelocity(vec3::zero), mTargetDist(1.0f), mSpringConstant(10.0f) {}
 
-  void update(Body &follow, float dt) {
+  void update(float dt, Body &follow) {
     vec3 idealPosition = follow.position + vec3(-5, 0, 3);
 
     float dampening = 2.0f * sqrt(mSpringConstant);

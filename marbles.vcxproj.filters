@@ -15,6 +15,8 @@
     <ClCompile Include="texture.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="physics.cpp" />
+    <ClCompile Include="renderer.cpp" />
+    <ClCompile Include="entities.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\FreeImage\inc\FreeImage.h">
@@ -241,6 +243,8 @@
     <ClInclude Include="texture.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="physics.h" />
+    <ClInclude Include="renderer.h" />
+    <ClInclude Include="entities.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

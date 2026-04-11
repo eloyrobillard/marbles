@@ -284,7 +284,7 @@ optional<pair<Mesh, Body>> load(const std::string &filename) {
   return {{mesh, body}};
 }
 
-optional<Texture::Texture *> lookTextureUp(Mesh &mesh, size_t index) {
+optional<Texture::Texture *> lookTextureUp(const Mesh &mesh, size_t index) {
   if (index < mesh.textures.size())
     return {mesh.textures[index]};
   else
@@ -299,7 +299,7 @@ mat4 getWorldTransform(const Body &body) {
   return scale * rotation * translation;
 }
 
-void draw(Shader::Shader &shader, Mesh &mesh, Body &body) {
+void draw(Shader::Shader &shader, const Mesh &mesh, const Body &body) {
   // Set world transform
   mat4 worldTransform = getWorldTransform(body);
 

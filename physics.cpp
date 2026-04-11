@@ -1,4 +1,5 @@
 #include "physics.h"
+#include "entities.h"
 #include "pch.h"
 #include "template.h"
 
@@ -26,12 +27,12 @@ SPNode::SPNode(float min_x, float max_x, int depth, int num_children)
   if (depth > 1) {
     for (float i = min_x; i < max_x; i += step) {
       mChildren.emplace_back(
-          new SPNode(i, i + step - 0.0001, depth - 1, num_children));
+          new SPNode(i, i + step - 0.0001f, depth - 1, num_children));
     }
   }
 
   for (float i = min_x; i < max_x; i += step) {
-    mChildren.emplace_back(new SPLeaf(i, i + step - 0.0001));
+    mChildren.emplace_back(new SPLeaf(i, i + step - 0.0001f));
   }
 }
 
@@ -197,40 +198,13 @@ bool processCollisions(const vector<TriangleCollider> &triangles,
   return collision_happened;
 }
 
-bool computeCollisionRebound(const SpacePartition &sp,
-                             const SphereCollider &collider, vec3 &velocity) {
+bool Physics::computeCollisionRebound(const SpacePartition &sp,
+                                      const SphereCollider &collider,
+                                      vec3 &velocity) {
   float min_x = collider.position.x - collider.radius;
   float max_x = collider.position.x + collider.radius;
 
   gCurrent_partition = sp.get_partition(collider, min_x, max_x);
 
   return processCollisions(gCurrent_partition, collider, velocity);
-}
-
-void Physics::UpdateBody(float t, float dt, Body &body, SphereCollider &sphere,
-                         const SpacePartition &sp) {
-  const vec3 prev_p = body.position;
-
-  body.velocity += dt * grav_force;
-  body.position += dt * body.velocity;
-
-  // Test collisions at new body position
-  sphere.position = body.position;
-
-  // Instantly apply collisions to the velocity of the body
-  computeCollisionRebound(sp, sphere, body.velocity);
-
-  // Adjust position based on (possibly) updated velocity
-  body.position = prev_p + dt * body.velocity;
-
-  // Match body's position with collider's
-  sphere.position = body.position;
-}
-
-void Physics::Update(float time, float deltaTime, const deque<Body> &bodies,
-                     const vector<SphereCollider> &spheres) {
-  for (int i = num_static_bodies; i < gBodies.size(); i++) {
-    UpdateBody(time, deltaTime, gBodies[i],
-               gDynamicColliders[i - num_static_bodies], gSP);
-  }
 }

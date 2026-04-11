@@ -361,6 +361,7 @@
     </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="entities.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
@@ -444,6 +445,7 @@
     <ClInclude Include="C:\Users\eloyr\Projects\marbles\tmpl8\template.h" />
     <ClCompile Include="C:\Users\eloyr\Projects\marbles\game.cpp" />
     <ClInclude Include="C:\Users\eloyr\Projects\marbles\game.h" />
+    <ClInclude Include="entities.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="physics.h" />
