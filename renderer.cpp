@@ -38,13 +38,13 @@ void Renderer::Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera) {
 
   Shader::setMatrixUniform(mCollisionShader, "uViewProj", viewProj);
 
-  while (!to_render_as_collided.empty()) {
-    Mesh::setVerticesActive(to_render_as_collided.top());
+  while (!gTo_render_as_collided.empty()) {
+    Mesh::setVerticesActive(gTo_render_as_collided.top());
 
     // Draw triangles
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
 
-    to_render_as_collided.pop();
+    gTo_render_as_collided.pop();
   }
 
   // Visualize triangle colliders as a wireframe
@@ -56,7 +56,7 @@ void Renderer::Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera) {
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   // Only show triangles currently tested against
-  for (const auto &triangle : current_partition) {
+  for (const auto &triangle : gCurrent_partition) {
     Mesh::setVerticesActive(triangle.vertexArray);
 
     // Draw triangles
@@ -73,9 +73,9 @@ void Renderer::Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera) {
 
   Shader::setLight(mMeshShader, mView);
 
-  assert(mMeshes.size() == bodies.size());
+  assert(mMeshes.size() == gBodies.size());
   for (size_t i = 0; i < mMeshes.size(); i++) {
-    Mesh::draw(mMeshShader, mMeshes[i], bodies[i]);
+    Mesh::draw(mMeshShader, mMeshes[i], gBodies[i]);
   }
 }
 
@@ -100,17 +100,17 @@ void Renderer::GetMeshes(const vector<pair<string, BodyType>> &meshList) {
       if (btype == BodyType::Dynamic) {
         // Keep dynamic objects at the back of the queue
         mMeshes.emplace_back(mesh);
-        bodies.emplace_back(body);
-        dynamicColliders.emplace_back(body.position, body.scale.x);
+        gBodies.emplace_back(body);
+        gDynamicColliders.emplace_back(body.position, body.scale.x);
       } else {
         auto triangles = Mesh::generateTriangleCollidersFromMesh(mesh, body);
-        sp.populate(triangles);
+        gSP.populate(triangles);
 
         // Store static objects at the front of the queue
         mMeshes.emplace_front(mesh);
-        bodies.emplace_front(body);
+        gBodies.emplace_front(body);
 
-        staticColliders.emplace_back(triangles);
+        gStaticColliders.emplace_back(triangles);
         num_static_bodies++;
       }
     }

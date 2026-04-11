@@ -181,7 +181,7 @@ bool processCollisions(const vector<TriangleCollider> &triangles,
     collision_happened = true;
 
 #ifdef _DEBUG
-    to_render_as_collided.push(triangle.vertexArray);
+    gTo_render_as_collided.push(triangle.vertexArray);
 #endif
 
     // SOURCE: "Game Physics Engine Development" by Ian Millington (section 7.2)
@@ -202,9 +202,9 @@ bool computeCollisionRebound(const SpacePartition &sp,
   float min_x = collider.position.x - collider.radius;
   float max_x = collider.position.x + collider.radius;
 
-  current_partition = sp.get_partition(collider, min_x, max_x);
+  gCurrent_partition = sp.get_partition(collider, min_x, max_x);
 
-  return processCollisions(current_partition, collider, velocity);
+  return processCollisions(gCurrent_partition, collider, velocity);
 }
 
 void Physics::Update(Body &body, float t, float dt, SphereCollider &col,

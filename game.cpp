@@ -29,15 +29,18 @@ void Game::Init() {
 }
 
 void Game::Tick(float deltaTime) {
-  camera->update(bodies[num_static_bodies], deltaTime);
+  camera->update(gBodies[num_static_bodies], deltaTime);
 
   renderer->Draw3D(deltaTime, camera);
 }
 
 void Game::PhysicsTick(float time, float dt) {
-  for (int i = num_static_bodies; i < bodies.size(); i++) {
-    Physics::Update(bodies[i], time, dt,
-                    dynamicColliders[i - num_static_bodies], sp);
+  if (GetKeyPressed(SDL_SCANCODE_UP)) {
+  }
+
+  for (int i = num_static_bodies; i < gBodies.size(); i++) {
+    Physics::Update(gBodies[i], time, dt,
+                    gDynamicColliders[i - num_static_bodies], gSP);
   }
 }
 

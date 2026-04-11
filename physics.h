@@ -122,14 +122,14 @@ public:
   void print(ostream &os) const override;
 };
 
-inline stack<GLuint> to_render_as_collided;
-inline vector<TriangleCollider> current_partition;
-inline std::deque<Body> bodies;
-inline vector<SphereCollider> dynamicColliders;
-inline vector<vector<TriangleCollider>> staticColliders;
+inline stack<GLuint> gTo_render_as_collided;
+inline vector<TriangleCollider> gCurrent_partition;
+inline std::deque<Body> gBodies;
+inline vector<SphereCollider> gDynamicColliders;
+inline vector<vector<TriangleCollider>> gStaticColliders;
 inline int num_static_bodies = 0;
 // Used for spatial partitioning of static colliders
-inline SPNode sp = SPNode(5.0f, 25.0f, 1, 16);
+inline SPNode gSP = SPNode(5.0f, 25.0f, 1, 16);
 
 namespace Physics {
 void Update(Body &body, float t, float dt, SphereCollider &col,
