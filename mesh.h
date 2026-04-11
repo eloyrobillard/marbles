@@ -32,6 +32,7 @@ void deleteVertexArray(GLuint vertexBuffer, GLuint indexBuffer,
                        GLuint vertexArray);
 vector<TriangleCollider> generateTriangleCollidersFromMesh(Mesh &mesh,
                                                            Body &body);
+
 } // namespace Mesh
 
 #endif // MESH_H
