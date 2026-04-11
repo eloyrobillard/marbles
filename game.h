@@ -11,7 +11,6 @@ public:
   void Init();
   void Shutdown();
   void Tick(float deltaTime);
-  void PhysicsTick(float t, float dt);
   void MouseUp(
       int button) { /* implement if you want to detect mouse button presses */ }
   void MouseDown(
@@ -29,9 +28,6 @@ public:
     return released.test(key);
   } // returns true if the key was released since the last Tick
   void Screenshot();
-
-  double physicsTicksPerSecond = 60.0;
-  double physicsDeltaTime = 1.0 / physicsTicksPerSecond;
 
 private:
   Surface *screen;

@@ -207,22 +207,30 @@ bool computeCollisionRebound(const SpacePartition &sp,
   return processCollisions(gCurrent_partition, collider, velocity);
 }
 
-void Physics::Update(Body &body, float t, float dt, SphereCollider &col,
-                     const SpacePartition &sp) {
+void Physics::UpdateBody(float t, float dt, Body &body, SphereCollider &sphere,
+                         const SpacePartition &sp) {
   const vec3 prev_p = body.position;
 
   body.velocity += dt * grav_force;
   body.position += dt * body.velocity;
 
   // Test collisions at new body position
-  col.position = body.position;
+  sphere.position = body.position;
 
   // Instantly apply collisions to the velocity of the body
-  computeCollisionRebound(sp, col, body.velocity);
+  computeCollisionRebound(sp, sphere, body.velocity);
 
   // Adjust position based on (possibly) updated velocity
   body.position = prev_p + dt * body.velocity;
 
   // Match body's position with collider's
-  col.position = body.position;
+  sphere.position = body.position;
+}
+
+void Physics::Update(float time, float deltaTime, const deque<Body> &bodies,
+                     const vector<SphereCollider> &spheres) {
+  for (int i = num_static_bodies; i < gBodies.size(); i++) {
+    UpdateBody(time, deltaTime, gBodies[i],
+               gDynamicColliders[i - num_static_bodies], gSP);
+  }
 }

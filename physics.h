@@ -124,7 +124,7 @@ public:
 
 inline stack<GLuint> gTo_render_as_collided;
 inline vector<TriangleCollider> gCurrent_partition;
-inline std::deque<Body> gBodies;
+inline deque<Body> gBodies;
 inline vector<SphereCollider> gDynamicColliders;
 inline vector<vector<TriangleCollider>> gStaticColliders;
 inline int num_static_bodies = 0;
@@ -132,8 +132,13 @@ inline int num_static_bodies = 0;
 inline SPNode gSP = SPNode(5.0f, 25.0f, 1, 16);
 
 namespace Physics {
-void Update(Body &body, float t, float dt, SphereCollider &col,
-            const SpacePartition &sp);
+void UpdateBody(float t, float dt, Body &body, SphereCollider &sphere,
+                const SpacePartition &sp);
+void Update(float time, float deltaTime, const deque<Body> &bodies,
+            const vector<SphereCollider> &spheres);
+
+inline float physicsTicksPerSecond = 60.0;
+inline float physicsDeltaTime = 1.0f / physicsTicksPerSecond;
 } // namespace Physics
 
 #endif // _PHYSICS_H

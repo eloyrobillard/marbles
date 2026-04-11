@@ -5,7 +5,6 @@
 // this version of the template uses SDL2 for all frame buffer interaction
 // see: https://www.libsdl.org
 
-#include "SDL_video.h"
 #ifdef _MSC_VER
 #pragma warning(disable : 4530) // complaint about exception handler
 #pragma warning(disable : 4311) // pointer truncation from HANDLE to long
@@ -14,10 +13,13 @@
 // #define FULLSCREEN
 #define ADVANCEDGL
 
-#include "game.h"
-
-#include "surface.h"
 #include "template.h"
+#include "SDL_video.h"
+#include "camera.h"
+#include "game.h"
+#include "physics.h"
+#include "renderer.h"
+#include "surface.h"
 #include <SDL.h>
 #include <corecrt_math.h>
 #include <cstdio>
@@ -35,6 +37,9 @@ extern "C" {
 #include "gl.h"
 #include "wglext.h"
 #endif
+
+unique_ptr<FollowCamera> camera;
+unique_ptr<Renderer> renderer;
 
 namespace Tmpl8 {
 
@@ -373,11 +378,15 @@ int main(int argc, char **argv) {
   game = new Game();
   game->SetTarget(surface);
 
+  camera =
+      std::make_unique<FollowCamera>(vec3(0, 0, 3), vec3(7, 0, 0), vec3::up);
+  renderer = std::make_unique<Renderer>(camera, surface);
+
   timer t;
   t.reset();
 
-  double tPhysics = 0.0;
-  double physicsTimeAccumulator = 0.0;
+  float tPhysics = 0.0;
+  float physicsTimeAccumulator = 0.0;
 
   while (!exitapp) {
 #ifdef ADVANCEDGL
@@ -417,17 +426,20 @@ int main(int argc, char **argv) {
     physicsTimeAccumulator += elapsedTime;
 
     // NOTE: make sure the physics update always gets the same delta time
-    while (physicsTimeAccumulator >= game->physicsDeltaTime) {
-      game->PhysicsTick(tPhysics, game->physicsDeltaTime);
-      physicsTimeAccumulator -= game->physicsDeltaTime;
-      tPhysics += game->physicsDeltaTime;
+    while (physicsTimeAccumulator >= Physics::physicsDeltaTime) {
+      Physics::Update(tPhysics, Physics::physicsDeltaTime, gBodies,
+                      gDynamicColliders);
+      physicsTimeAccumulator -= Physics::physicsDeltaTime;
+      tPhysics += Physics::physicsDeltaTime;
     }
 
     // NOTE: use to lerp between previous and next physics state
     // See: https://www.gafferongames.com/post/fix_your_timestep/
-    const double alpha = physicsTimeAccumulator / game->physicsDeltaTime;
+    const double alpha = physicsTimeAccumulator / Physics::physicsDeltaTime;
 
     game->Tick(elapsedTime);
+    camera->update(gBodies[num_static_bodies], elapsedTime);
+    renderer->Draw3D(elapsedTime, camera);
 
     SDL_GL_SwapWindow(window);
 
@@ -465,6 +477,7 @@ int main(int argc, char **argv) {
   }
 
   game->Shutdown();
+
   SDL_GL_DeleteContext(glContext);
   SDL_DestroyWindow(window);
   SDL_Quit();

@@ -15,6 +15,16 @@ Renderer::Renderer(const unique_ptr<FollowCamera> &camera, Surface *screen)
   SetProjection(screen);
 }
 
+Renderer::~Renderer() {
+  Shader::Unload(mMeshShader);
+  Shader::Unload(mColliderShader);
+  Shader::Unload(mCollisionShader);
+
+  for (auto &tex : Texture::gAllTextures) {
+    Texture::Unload(tex.second->textureID);
+  }
+}
+
 void Renderer::Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera) {
   SetView(camera);
 
