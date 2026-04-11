@@ -18,7 +18,7 @@ public:
 
   FollowCamera(const vec3 &actualPosition, const vec3 &target, const vec3 &up)
       : mActualPosition(actualPosition), mTarget(target), mUp(up),
-        mVelocity(vec3::zero), mTargetDist(1.0f), mSpringConstant(1.0f) {}
+        mVelocity(vec3::zero), mTargetDist(1.0f), mSpringConstant(10.0f) {}
 
   void update(Body &follow, float dt) {
     vec3 idealPosition = follow.position + vec3(-5, 0, 3);

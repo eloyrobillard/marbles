@@ -34,7 +34,7 @@ enum class BodyType { Dynamic, Static };
 
 void Game::Init() {
   camera =
-      std::make_unique<FollowCamera>(vec3(0, 0, 10), vec3(7, 0, 0), vec3::up);
+      std::make_unique<FollowCamera>(vec3(0, 0, 3), vec3(7, 0, 0), vec3::up);
 
   vector<std::pair<string, BodyType>> meshNames{
       {"assets/twist.gpmesh", BodyType::Static},
