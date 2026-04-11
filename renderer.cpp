@@ -98,6 +98,7 @@ void Renderer::GetMeshes(const vector<pair<string, BodyType>> &meshList) {
       auto [mesh, body] = result.value();
 
       if (btype == BodyType::Dynamic) {
+        // Keep dynamic objects at the back of the queue
         mMeshes.emplace_back(mesh);
         bodies.emplace_back(body);
         dynamicColliders.emplace_back(body.position, body.scale.x);
@@ -105,8 +106,10 @@ void Renderer::GetMeshes(const vector<pair<string, BodyType>> &meshList) {
         auto triangles = Mesh::generateTriangleCollidersFromMesh(mesh, body);
         sp.populate(triangles);
 
+        // Store static objects at the front of the queue
         mMeshes.emplace_front(mesh);
         bodies.emplace_front(body);
+
         staticColliders.emplace_back(triangles);
         num_static_bodies++;
       }
