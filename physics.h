@@ -132,8 +132,8 @@ inline int num_static_bodies = 0;
 inline SPNode sp = SPNode(5.0f, 25.0f, 1, 16);
 
 namespace Physics {
-void Update(Body &body, float t, float dt, const vector<SphereCollider> &dc,
-            SphereCollider &col, const SpacePartition &sp);
+void Update(Body &body, float t, float dt, SphereCollider &col,
+            const SpacePartition &sp);
 } // namespace Physics
 
 #endif // _PHYSICS_H

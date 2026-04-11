@@ -198,7 +198,6 @@ bool processCollisions(const vector<TriangleCollider> &triangles,
 }
 
 bool computeCollisionRebound(const SpacePartition &sp,
-                             const vector<SphereCollider> &allDynamicColliders,
                              const SphereCollider &collider, vec3 &velocity) {
   float min_x = collider.position.x - collider.radius;
   float max_x = collider.position.x + collider.radius;
@@ -208,8 +207,7 @@ bool computeCollisionRebound(const SpacePartition &sp,
   return processCollisions(current_partition, collider, velocity);
 }
 
-void Physics::Update(Body &body, float t, float dt,
-                     const vector<SphereCollider> &dc, SphereCollider &col,
+void Physics::Update(Body &body, float t, float dt, SphereCollider &col,
                      const SpacePartition &sp) {
   const vec3 prev_p = body.position;
 
@@ -220,7 +218,7 @@ void Physics::Update(Body &body, float t, float dt,
   col.position = body.position;
 
   // Instantly apply collisions to the velocity of the body
-  computeCollisionRebound(sp, dc, col, body.velocity);
+  computeCollisionRebound(sp, col, body.velocity);
 
   // Adjust position based on (possibly) updated velocity
   body.position = prev_p + dt * body.velocity;
