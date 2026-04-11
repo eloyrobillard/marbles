@@ -66,7 +66,7 @@ vector<TriangleCollider> SPNode::get_partition(const SphereCollider &s,
   return result;
 };
 
-// SOURCE: "Real-Time Collision Detection" by Christer Ericson
+// SOURCE: "Real-Time Collision Detection" by Christer Ericson (5.1.5 & 5.2.7)
 vec3 ClosestPtvec3Triangle(vec3 p, vec3 a, vec3 b, vec3 c) {
   vec3 ab = b - a;
   vec3 ac = c - a;
