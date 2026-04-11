@@ -169,8 +169,8 @@ bool processCollisions(const vector<TriangleCollider> &triangles,
     const float max_x = fmax(fmax(triangle.a.x, triangle.b.x), triangle.c.x);
     const float min_x = fmin(fmin(triangle.a.x, triangle.b.x), triangle.c.x);
 
-    if (abs(max_x - sphere.position.x) > sphere.radius &&
-        abs(min_x - sphere.position.x) > sphere.radius)
+    if (sphere.position.x - sphere.radius > max_x ||
+        sphere.position.x + sphere.radius < min_x)
       continue;
 
     auto maybe_normal = intersectsTriangle(triangle, sphere);
