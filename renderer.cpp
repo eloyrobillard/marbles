@@ -2,14 +2,57 @@
 #include "camera.h"
 #include "shader.h"
 
-Renderer::Renderer(const unique_ptr<FollowCamera> &camera, Surface *screen)
-    : mMeshShader(GetShader("shaders/basic.vert", "shaders/basic.frag")),
-      mColliderShader(
-          GetShader("shaders/wireframe.vert", "shaders/wireframe.frag")),
-      mCollisionShader(GetShader("shaders/tint.vert", "shaders/tint.frag")) {
+Renderer::Renderer(const unique_ptr<FollowCamera> &camera,
+                   const shared_ptr<Surface> &screen)
+    : mScreen(screen) {
 
   SetView(camera);
   SetProjection(screen);
+
+  printf("application started.\n");
+  SDL_Init(SDL_INIT_VIDEO);
+
+  // Set OpenGL attributes
+  // Use the core OpenGL profile
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+  // Specify version 3.3
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+  // Request a color buffer with 8-bits per RGBA channel
+  SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+  // Enable double buffering
+  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+  // Force OpenGL to use hardware acceleration
+  SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+
+#ifdef FULLSCREEN
+  mWindow =
+      SDL_CreateWindow(TemplateVersion, 100, 100, ScreenWidth, ScreenHeight,
+                       SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL);
+#else
+  mWindow =
+      SDL_CreateWindow(TemplateVersion, 100, 100, ScreenWidth, ScreenHeight,
+                       SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+#endif
+
+  mGlContext = SDL_GL_CreateContext(mWindow);
+
+  GLenum status = glewInit();
+
+  if (status != GLEW_OK) {
+    fprintf(stderr, "Error: %s\n", glewGetErrorString(status));
+  }
+
+  printf("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+
+  mMeshShader = GetShader("shaders/basic.vert", "shaders/basic.frag");
+  mColliderShader =
+      GetShader("shaders/wireframe.vert", "shaders/wireframe.frag");
+  mCollisionShader = GetShader("shaders/tint.vert", "shaders/tint.frag");
 }
 
 Renderer::~Renderer() {
@@ -20,6 +63,10 @@ Renderer::~Renderer() {
   for (auto &tex : Texture::gAllTextures) {
     Texture::Unload(tex.second->textureID);
   }
+
+  SDL_GL_DeleteContext(mGlContext);
+  SDL_DestroyWindow(mWindow);
+  SDL_Quit();
 }
 
 void Renderer::Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera,
@@ -89,6 +136,8 @@ void Renderer::Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera,
   for (const auto &e : de) {
     Mesh::draw(mMeshShader, e.mesh, e.body);
   }
+
+  SDL_GL_SwapWindow(mWindow);
 }
 
 void Renderer::SetView(const unique_ptr<FollowCamera> &camera) {
@@ -96,7 +145,7 @@ void Renderer::SetView(const unique_ptr<FollowCamera> &camera) {
       mat4::CreateLookAt(camera->mActualPosition, camera->mTarget, camera->mUp);
 }
 
-void Renderer::SetProjection(Surface *screen) {
+void Renderer::SetProjection(const shared_ptr<Surface> &screen) {
   mProjection = mat4::CreatePerspectiveFOV(
       fovy, static_cast<float>(screen->GetWidth()),
       static_cast<float>(screen->GetHeight()), 1.0f, 10000.0f);
@@ -113,4 +162,39 @@ Shader::Shader Renderer::GetShader(const char *vert, const char *frag) {
   Shader::setActive(shader);
 
   return shader;
+}
+
+bool Renderer::createFBtexture() {
+  glGenTextures(2, framebufferTexID);
+  if (glGetError())
+    return false;
+  for (unsigned int texID : framebufferTexID) {
+    glBindTexture(GL_TEXTURE_2D, texID);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ScreenWidth, ScreenHeight, 0,
+                 GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    if (glGetError())
+      return false;
+  }
+  const int sizeMemory = 4 * ScreenWidth * ScreenHeight;
+  glGenBuffers(2, fbPBO);
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, fbPBO[0]);
+  glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, sizeMemory, nullptr,
+               GL_STREAM_DRAW_ARB);
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, fbPBO[1]);
+  glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, sizeMemory, nullptr,
+               GL_STREAM_DRAW_ARB);
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
+  glBindTexture(GL_TEXTURE_2D, framebufferTexID[0]);
+  glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, fbPBO[0]);
+  framedata = (unsigned const char *)glMapBuffer(GL_PIXEL_UNPACK_BUFFER_ARB,
+                                                 GL_WRITE_ONLY_ARB);
+  if (!framedata)
+    return false;
+  memset((void *)framedata, 0, ScreenWidth * ScreenHeight * 4);
+  return (glGetError() == 0);
 }

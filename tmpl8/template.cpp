@@ -11,16 +11,13 @@
 #endif
 
 // #define FULLSCREEN
-#define ADVANCEDGL
 
 #include "template.h"
-#include "SDL_video.h"
 #include "camera.h"
 #include "game.h"
 #include "physics.h"
 #include "renderer.h"
 #include "surface.h"
-#include <SDL.h>
 #include <corecrt_math.h>
 #include <cstdio>
 #include <fcntl.h>
@@ -28,19 +25,6 @@
 #include <iostream>
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
-
-#ifdef ADVANCEDGL
-#define GLEW_BUILD
-extern "C" {
-#include "glew.h"
-}
-#include "gl.h"
-#include "wglext.h"
-#endif
-
-unique_ptr<FollowCamera> camera;
-unique_ptr<Renderer> renderer;
-unique_ptr<Entities> entities;
 
 namespace Tmpl8 {
 
@@ -213,28 +197,10 @@ void NotifyUser(const char *s) {
 using namespace Tmpl8;
 using namespace std;
 
-#ifdef ADVANCEDGL
-
-PFNGLGENBUFFERSPROC glGenBuffers = nullptr;
-PFNGLBINDBUFFERPROC glBindBuffer = nullptr;
-PFNGLBUFFERDATAPROC glBufferData = nullptr;
-PFNGLMAPBUFFERPROC glMapBuffer = nullptr;
-PFNGLUNMAPBUFFERPROC glUnmapBuffer = nullptr;
-typedef BOOL(APIENTRY *PFNWGLSWAPINTERVALFARPROC)(int);
-PFNWGLSWAPINTERVALFARPROC wglSwapIntervalEXT = nullptr;
-unsigned int framebufferTexID[2];
-GLuint fbPBO[2];
-unsigned const char *framedata = nullptr;
-
-#endif
-
 int ACTWIDTH, ACTHEIGHT;
 static bool firstframe = true;
 
-Surface *surface = nullptr;
 Game *game = nullptr;
-SDL_Window *window = nullptr;
-SDL_GLContext glContext = nullptr;
 
 #ifdef _MSC_VER
 bool redirectIO() {
@@ -266,123 +232,25 @@ bool redirectIO() {
 }
 #endif
 
-#ifdef ADVANCEDGL
-
-bool createFBtexture() {
-  glGenTextures(2, framebufferTexID);
-  if (glGetError())
-    return false;
-  for (unsigned int texID : framebufferTexID) {
-    glBindTexture(GL_TEXTURE_2D, texID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ScreenWidth, ScreenHeight, 0,
-                 GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    if (glGetError())
-      return false;
-  }
-  const int sizeMemory = 4 * ScreenWidth * ScreenHeight;
-  glGenBuffers(2, fbPBO);
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, fbPBO[0]);
-  glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, sizeMemory, NULL,
-               GL_STREAM_DRAW_ARB);
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, fbPBO[1]);
-  glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, sizeMemory, NULL,
-               GL_STREAM_DRAW_ARB);
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
-  glBindTexture(GL_TEXTURE_2D, framebufferTexID[0]);
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, fbPBO[0]);
-  framedata = (unsigned const char *)glMapBuffer(GL_PIXEL_UNPACK_BUFFER_ARB,
-                                                 GL_WRITE_ONLY_ARB);
-  if (!framedata)
-    return false;
-  memset((void *)framedata, 0, ScreenWidth * ScreenHeight * 4);
-  return (glGetError() == 0);
-}
-
-bool init() {
-  glContext = SDL_GL_CreateContext(window);
-
-  GLenum status = glewInit();
-
-  if (status != GLEW_OK) {
-    fprintf(stderr, "Error: %s\n", glewGetErrorString(status));
-  }
-
-  printf("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
-
-  surface = new Surface(ScreenWidth, ScreenHeight);
-
-  return true;
-}
-
-#endif
-
 int main(int argc, char **argv) {
 #ifdef _MSC_VER
   if (!redirectIO())
     return 1;
 #endif
-  printf("application started.\n");
-  SDL_Init(SDL_INIT_VIDEO);
-#ifdef ADVANCEDGL
-
-  // Set OpenGL attributes
-  // Use the core OpenGL profile
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-  // Specify version 3.3
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-  // Request a color buffer with 8-bits per RGBA channel
-  SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
-  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
-  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
-  SDL_GL_SetAttribute(SDL_GL_ALPHA_SIZE, 8);
-  SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-  // Enable double buffering
-  SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-  // Force OpenGL to use hardware acceleration
-  SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
-
-#ifdef FULLSCREEN
-  window =
-      SDL_CreateWindow(TemplateVersion, 100, 100, ScreenWidth, ScreenHeight,
-                       SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL);
-#else
-  window = SDL_CreateWindow(TemplateVersion, 100, 100, ScreenWidth,
-                            ScreenHeight, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
-#endif
-
-  init();
-  ShowCursor(false);
-#else
-#ifdef FULLSCREEN
-  window = SDL_CreateWindow(TemplateVersion, 100, 100, ScreenWidth,
-                            ScreenHeight, SDL_WINDOW_FULLSCREEN);
-#else
-  window = SDL_CreateWindow(TemplateVersion, 100, 100, ScreenWidth,
-                            ScreenHeight, SDL_WINDOW_SHOWN);
-#endif
-  surface = new Surface(ScreenWidth, ScreenHeight);
-  surface->Clear(0);
-
-  SDL_Renderer *renderer = SDL_CreateRenderer(
-      window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-  SDL_Texture *frameBuffer =
-      SDL_CreateTexture(renderer, SDL_PIXELFORMAT_ARGB8888,
-                        SDL_TEXTUREACCESS_STREAMING, ScreenWidth, ScreenHeight);
-#endif
   int exitapp = 0;
+
+  shared_ptr<Surface> surface =
+      std::make_shared<Surface>(ScreenWidth, ScreenHeight);
+
+  unique_ptr<FollowCamera> camera =
+      std::make_unique<FollowCamera>(vec3(0, 0, 3), vec3(7, 0, 0), vec3::up);
+  unique_ptr<Renderer> renderer = std::make_unique<Renderer>(camera, surface);
+  unique_ptr<Entities> entities = std::make_unique<Entities>();
+
   game = new Game();
   game->SetTarget(surface);
 
-  camera =
-      std::make_unique<FollowCamera>(vec3(0, 0, 3), vec3(7, 0, 0), vec3::up);
-  renderer = std::make_unique<Renderer>(camera, surface);
-  entities = std::make_unique<Entities>();
+  ShowCursor(false);
 
   timer t;
   t.reset();
@@ -391,27 +259,6 @@ int main(int argc, char **argv) {
   float physicsTimeAccumulator = 0.0;
 
   while (!exitapp) {
-#ifdef ADVANCEDGL
-#else
-    void *target = nullptr;
-    int pitch;
-    SDL_LockTexture(frameBuffer, nullptr, &target, &pitch);
-
-    if (pitch == (surface->GetWidth() * 4)) {
-      memcpy(target, surface->GetBuffer(), ScreenWidth * ScreenHeight * 4);
-    } else {
-      auto *t = (unsigned char *)target;
-      for (int i = 0; i < ScreenHeight; i++) {
-        memcpy(t, surface->GetBuffer() + i * ScreenWidth, ScreenWidth * 4);
-        t += pitch;
-      }
-    }
-
-    SDL_UnlockTexture(frameBuffer);
-    SDL_RenderCopy(renderer, frameBuffer, nullptr, nullptr);
-    SDL_RenderPresent(renderer);
-#endif
-
     if (firstframe) {
       game->Init();
       firstframe = false;
@@ -442,8 +289,6 @@ int main(int argc, char **argv) {
     camera->update(elapsedTime, entities->ProvideCameraFollow());
     renderer->Draw3D(elapsedTime, camera, entities->GetStaticEntities(),
                      entities->GetDynamicEntities());
-
-    SDL_GL_SwapWindow(window);
 
     // event loop
     SDL_Event event;
@@ -480,8 +325,5 @@ int main(int argc, char **argv) {
 
   game->Shutdown();
 
-  SDL_GL_DeleteContext(glContext);
-  SDL_DestroyWindow(window);
-  SDL_Quit();
   return 0;
 }

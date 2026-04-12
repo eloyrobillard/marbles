@@ -1,7 +1,9 @@
 #pragma once
 
+#include <SDL.h>
 #include <SDL_log.h>
 #include <SDL_scancode.h>
+#include <SDL_video.h>
 #include <SOIL/include/SOIL.h>
 #include <algorithm>
 #include <bitset>
@@ -40,6 +42,7 @@ using std::optional;
 using std::ostream;
 using std::ostream_iterator;
 using std::pair;
+using std::shared_ptr;
 using std::stack;
 using std::string;
 using std::thread;
