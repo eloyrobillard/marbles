@@ -53,6 +53,9 @@ Renderer::Renderer(const unique_ptr<FollowCamera> &camera,
   mColliderShader =
       GetShader("shaders/wireframe.vert", "shaders/wireframe.frag");
   mCollisionShader = GetShader("shaders/tint.vert", "shaders/tint.frag");
+  mPostShader = GetShader("shaders/post.vert", "shaders/post.frag");
+
+  setupFramebuffers();
 }
 
 Renderer::~Renderer() {
@@ -69,6 +72,82 @@ Renderer::~Renderer() {
   SDL_Quit();
 }
 
+// SOURCE: https://learnopengl.com/Advanced-OpenGL/Anti-Aliasing
+bool Renderer::setupFramebuffers() {
+  // vertex attributes for a quad that fills the entire screen in Normalized
+  // Device Coordinates. (positions, texCoords)
+  float quadVertices[] = {-1.0f, 1.0f, 0.0f, 1.0f,  -1.0f, -1.0f,
+                          0.0f,  0.0f, 1.0f, -1.0f, 1.0f,  0.0f,
+
+                          -1.0f, 1.0f, 0.0f, 1.0f,  1.0f,  -1.0f,
+                          1.0f,  0.0f, 1.0f, 1.0f,  1.0f,  1.0f};
+
+  // setup screen VAO
+  glGenVertexArrays(1, &quadVAO);
+  glGenBuffers(1, &quadVBO);
+  glBindVertexArray(quadVAO);
+  glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices,
+               GL_STATIC_DRAW);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
+                        (void *)(2 * sizeof(float)));
+
+  // configure MSAA framebuffer
+  // --------------------------
+  glGenFramebuffers(1, &framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+  // create a multisampled color attachment texture
+  unsigned int textureColorBufferMultiSampled;
+  glGenTextures(1, &textureColorBufferMultiSampled);
+  glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled);
+  glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB,
+                          mScreen->GetWidth(), mScreen->GetHeight(), GL_TRUE);
+  glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                         GL_TEXTURE_2D_MULTISAMPLE,
+                         textureColorBufferMultiSampled, 0);
+
+  // create a (also multisampled) renderbuffer object for depth and stencil
+  // attachments
+  glGenRenderbuffers(1, &rbo);
+  glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+  glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8,
+                                   mScreen->GetWidth(), mScreen->GetHeight());
+  glBindRenderbuffer(GL_RENDERBUFFER, 0);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+                            GL_RENDERBUFFER, rbo);
+
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+
+  // configure second post-processing framebuffer
+  glGenFramebuffers(1, &intermediateFBO);
+  glBindFramebuffer(GL_FRAMEBUFFER, intermediateFBO);
+
+  // create a color attachment texture
+  glGenTextures(1, &screenTexture);
+  glBindTexture(GL_TEXTURE_2D, screenTexture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mScreen->GetWidth(),
+               mScreen->GetHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                         screenTexture, 0); // we only need a color buffer
+
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    cout << "ERROR::FRAMEBUFFER:: Intermediate framebuffer is not complete!\n";
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  // post-processing shader config
+  Shader::setActive(mPostShader);
+  Shader::setIntUniform(mPostShader, "screenTexture", 0);
+
+  return (glGetError() == 0);
+}
+
 void Renderer::Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera,
                       const vector<StaticEntity> &se,
                       const vector<DynamicEntity> &de) {
@@ -81,10 +160,11 @@ void Renderer::Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera,
   // Clear the color/depth buffer
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  // Draw meshes
-  // Enable depth buffering/disable alpha blend
+  // 1. draw scene as normal in multisampled buffers
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+  glClearColor(0.5f, 0.7f, 1.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
-  glDisable(GL_BLEND);
 
   mat4 viewProj = mView * mProjection;
 
@@ -137,6 +217,28 @@ void Renderer::Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera,
     Mesh::draw(mMeshShader, e.mesh, e.body);
   }
 
+  // 2. now blit multisampled buffer(s) to normal colorbuffer of intermediate
+  // FBO. Image is stored in screenTexture
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateFBO);
+  glBlitFramebuffer(0, 0, mScreen->GetWidth(), mScreen->GetHeight(), 0, 0,
+                    mScreen->GetWidth(), mScreen->GetHeight(),
+                    GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+  // 3. now render quad with scene's visuals as its texture image
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
+  glDisable(GL_DEPTH_TEST);
+
+  // draw Screen quad
+  Shader::setActive(mPostShader);
+  glBindVertexArray(quadVAO);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, screenTexture);
+  // use the now resolved color attachment as the quad's texture
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+
   SDL_GL_SwapWindow(mWindow);
 }
 
@@ -162,39 +264,4 @@ Shader::Shader Renderer::GetShader(const char *vert, const char *frag) {
   Shader::setActive(shader);
 
   return shader;
-}
-
-bool Renderer::createFBtexture() {
-  glGenTextures(2, framebufferTexID);
-  if (glGetError())
-    return false;
-  for (unsigned int texID : framebufferTexID) {
-    glBindTexture(GL_TEXTURE_2D, texID);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ScreenWidth, ScreenHeight, 0,
-                 GL_BGRA, GL_UNSIGNED_BYTE, nullptr);
-    glBindTexture(GL_TEXTURE_2D, 0);
-    if (glGetError())
-      return false;
-  }
-  const int sizeMemory = 4 * ScreenWidth * ScreenHeight;
-  glGenBuffers(2, fbPBO);
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, fbPBO[0]);
-  glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, sizeMemory, nullptr,
-               GL_STREAM_DRAW_ARB);
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, fbPBO[1]);
-  glBufferData(GL_PIXEL_UNPACK_BUFFER_ARB, sizeMemory, nullptr,
-               GL_STREAM_DRAW_ARB);
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, 0);
-  glBindTexture(GL_TEXTURE_2D, framebufferTexID[0]);
-  glBindBuffer(GL_PIXEL_UNPACK_BUFFER_ARB, fbPBO[0]);
-  framedata = (unsigned const char *)glMapBuffer(GL_PIXEL_UNPACK_BUFFER_ARB,
-                                                 GL_WRITE_ONLY_ARB);
-  if (!framedata)
-    return false;
-  memset((void *)framedata, 0, ScreenWidth * ScreenHeight * 4);
-  return (glGetError() == 0);
 }

@@ -113,6 +113,11 @@ void setMatrixUniform(Shader &shader, const char *name,
   glUniformMatrix4fv(loc, 1, GL_TRUE, matrix.cell);
 }
 
+void setIntUniform(Shader &shader, const char *name, int value) {
+  GLuint loc = glGetUniformLocation(shader.program, name);
+  glUniform1i(loc, value);
+}
+
 void setFloatUniform(Shader &shader, const char *name, const float value) {
   GLuint loc = glGetUniformLocation(shader.program, name);
   glUniform1f(loc, value);

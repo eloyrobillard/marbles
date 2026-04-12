@@ -28,22 +28,18 @@ class Renderer {
   SDL_Window *mWindow;
   SDL_GLContext mGlContext;
   shared_ptr<Surface> mScreen;
-
-  PFNGLGENBUFFERSPROC glGenBuffers;
-  PFNGLBINDBUFFERPROC glBindBuffer;
-  PFNGLBUFFERDATAPROC glBufferData;
-  PFNGLMAPBUFFERPROC glMapBuffer;
-  PFNGLUNMAPBUFFERPROC glUnmapBuffer;
-  PFNWGLSWAPINTERVALFARPROC wglSwapIntervalEXT = nullptr;
-  unsigned int framebufferTexID[2];
-  GLuint fbPBO[2];
-  unsigned const char *framedata = nullptr;
+  GLuint framebuffer;
+  GLuint rbo;
+  GLuint intermediateFBO;
+  GLuint screenTexture;
+  GLuint quadVAO, quadVBO;
 
   Shader::Shader mMeshShader;
   Shader::Shader mColliderShader;
   Shader::Shader mCollisionShader;
+  Shader::Shader mPostShader;
 
-  bool createFBtexture();
+  bool setupFramebuffers();
 
 public:
   Renderer(const unique_ptr<FollowCamera> &camera,
