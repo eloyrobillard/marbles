@@ -243,7 +243,7 @@ int main(int argc, char **argv) {
       std::make_shared<Surface>(ScreenWidth, ScreenHeight);
 
   unique_ptr<FollowCamera> camera =
-      std::make_unique<FollowCamera>(vec3(0, 0, 3), vec3(7, 0, 0), vec3::up);
+      std::make_unique<FollowCamera>(vec3(0, 0, 2), vec3(7, 0, 0), vec3::up);
   unique_ptr<Renderer> renderer = std::make_unique<Renderer>(camera, surface);
   unique_ptr<Entities> entities = std::make_unique<Entities>();
 

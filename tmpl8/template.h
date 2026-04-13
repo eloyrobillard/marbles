@@ -646,7 +646,24 @@ public:
                         {xaxis.y, yaxis.y, zaxis.y, 0.0f},
                         {xaxis.z, yaxis.z, zaxis.z, 0.0f},
                         {trans.x, trans.y, trans.z, 1.0f}};
-    return mat4(temp);
+    return {temp};
+  }
+
+  static mat4 CreateLookAtSkybox(const vec3 &eye, const vec3 &target,
+                                 const vec3 &up) {
+    vec3 zaxis = vec3::normalize(target - eye);
+    vec3 xaxis = vec3::normalize(up.cross(zaxis));
+    vec3 yaxis = vec3::normalize(zaxis.cross(xaxis));
+    vec3 trans;
+    trans.x = -xaxis.dot(eye);
+    trans.y = -yaxis.dot(eye);
+    trans.z = -zaxis.dot(eye);
+
+    float temp[4][4] = {{xaxis.y, yaxis.y, zaxis.y, 0.0f},
+                        {xaxis.z, yaxis.z, zaxis.z, 0.0f},
+                        {xaxis.x, yaxis.x, zaxis.x, 0.0f},
+                        {0.0f, 0.0f, 0.0f, 1.0f}};
+    return {temp};
   }
 
   friend mat4 operator*(const mat4 &a, const mat4 &b) {

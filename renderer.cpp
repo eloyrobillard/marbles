@@ -83,25 +83,52 @@ Renderer::~Renderer() {
 }
 
 bool Renderer::setupSkyboxVAO() {
+  // clang-format off
   float skyboxVertices[] = {
-      // positions
-      -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f,
-      1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f,
+      // positions          
+      -1.0f,  1.0f, -1.0f,
+      -1.0f, -1.0f, -1.0f,
+       1.0f, -1.0f, -1.0f,
+       1.0f, -1.0f, -1.0f,
+       1.0f,  1.0f, -1.0f,
+      -1.0f,  1.0f, -1.0f,
 
-      -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f,
-      -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,
+      -1.0f, -1.0f,  1.0f,
+      -1.0f, -1.0f, -1.0f,
+      -1.0f,  1.0f, -1.0f,
+      -1.0f,  1.0f, -1.0f,
+      -1.0f,  1.0f,  1.0f,
+      -1.0f, -1.0f,  1.0f,
 
-      1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,
-      1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f,
+       1.0f, -1.0f, -1.0f,
+       1.0f, -1.0f,  1.0f,
+       1.0f,  1.0f,  1.0f,
+       1.0f,  1.0f,  1.0f,
+       1.0f,  1.0f, -1.0f,
+       1.0f, -1.0f, -1.0f,
 
-      -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,  1.0f,
-      1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,
+      -1.0f, -1.0f,  1.0f,
+      -1.0f,  1.0f,  1.0f,
+       1.0f,  1.0f,  1.0f,
+       1.0f,  1.0f,  1.0f,
+       1.0f, -1.0f,  1.0f,
+      -1.0f, -1.0f,  1.0f,
 
-      -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,
-      1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f,
+      -1.0f,  1.0f, -1.0f,
+       1.0f,  1.0f, -1.0f,
+       1.0f,  1.0f,  1.0f,
+       1.0f,  1.0f,  1.0f,
+      -1.0f,  1.0f,  1.0f,
+      -1.0f,  1.0f, -1.0f,
 
-      -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f,
-      1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f};
+      -1.0f, -1.0f, -1.0f,
+      -1.0f, -1.0f,  1.0f,
+       1.0f, -1.0f, -1.0f,
+       1.0f, -1.0f, -1.0f,
+      -1.0f, -1.0f,  1.0f,
+       1.0f, -1.0f,  1.0f
+  };
+  // clang-format on
 
   glGenVertexArrays(1, &skyboxVAO);
   glGenBuffers(1, &skyboxVBO);
@@ -208,8 +235,8 @@ void Renderer::Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera,
 
   // 1. draw scene as normal in multisampled buffers
   glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-  // Set the clear color to sky blue
-  glClearColor(0.5f, 0.7f, 1.0f, 1.0f);
+  // Set the clear color
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
 
@@ -269,7 +296,9 @@ void Renderer::Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera,
                           // values are equal to depth buffer's content
   Shader::setActive(mSkyboxShader);
   Shader::setMatrixUniform(mSkyboxShader, "view",
-                           mat4::RemoveTranslation(mView));
+                           mat4::CreateLookAtSkybox(camera->mActualPosition,
+                                                    camera->mTarget,
+                                                    camera->mUp));
   Shader::setMatrixUniform(mSkyboxShader, "projection", mProjection);
 
   // skybox cube
