@@ -22,7 +22,7 @@ typedef struct {
 inline void setVerticesActive(GLuint vertexArray) {
   glBindVertexArray(vertexArray);
 }
-optional<pair<Mesh, Body>> load(const std::string &filename);
+optional<pair<Mesh, Body>> Load(const std::string &filename);
 void draw(Shader::Shader &shader, const Mesh &mesh, const Body &body);
 void deleteVertexArray(GLuint vertexBuffer, GLuint indexBuffer,
                        GLuint vertexArray);

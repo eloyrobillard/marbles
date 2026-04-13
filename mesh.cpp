@@ -94,7 +94,7 @@ optional<Texture::Texture *> GetTexture(Mesh &mesh,
   if (iter != Texture::gAllTextures.end()) {
     return {iter->second};
   } else {
-    auto maybe_tex = Texture::load(fileName);
+    auto maybe_tex = Texture::Load(fileName);
 
     if (maybe_tex.has_value()) {
       Texture::gAllTextures.emplace(fileName, maybe_tex.value());
@@ -104,7 +104,7 @@ optional<Texture::Texture *> GetTexture(Mesh &mesh,
   }
 }
 
-optional<pair<Mesh, Body>> load(const std::string &filename) {
+optional<pair<Mesh, Body>> Load(const std::string &filename) {
   Mesh mesh{};
   Body body{};
 

@@ -34,7 +34,7 @@ void Entities::UpdateBody(float t, float dt, DynamicEntity &e,
 void Entities::RegisterEntities(
     const vector<pair<string, BodyType>> &entityList) {
   for (const auto &[meshName, btype] : entityList) {
-    auto maybe = Mesh::load(meshName);
+    auto maybe = Mesh::Load(meshName);
 
     if (maybe.has_value()) {
       auto [mesh, body] = maybe.value();

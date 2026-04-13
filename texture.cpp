@@ -5,7 +5,7 @@ namespace Texture {
 
 Texture::Texture(const string &fileName) : filename(fileName) {}
 
-optional<Texture *> load(const std::string &filename) {
+optional<Texture *> Load(const std::string &filename) {
   auto *tex = new Texture(filename);
   int channels = 0;
 
