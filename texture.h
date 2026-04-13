@@ -16,7 +16,8 @@ public:
 
 static std::unordered_map<std::string, Texture *> gAllTextures;
 
-optional<Texture *> Load(const std::string &filename);
+optional<Texture *> Load(const string &filename);
+uint LoadCubemap(vector<string> faces);
 void SetActive(GLuint textureID);
 void Unload(GLuint textureID);
 

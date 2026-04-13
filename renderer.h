@@ -28,6 +28,9 @@ class Renderer {
   SDL_Window *mWindow;
   SDL_GLContext mGlContext;
   shared_ptr<Surface> mScreen;
+
+  GLuint skyboxTexture;
+  GLuint skyboxVAO, skyboxVBO;
   GLuint framebuffer;
   GLuint rbo;
   GLuint intermediateFBO;
@@ -37,9 +40,11 @@ class Renderer {
   Shader::Shader mMeshShader;
   Shader::Shader mColliderShader;
   Shader::Shader mCollisionShader;
+  Shader::Shader mSkyboxShader;
   Shader::Shader mPostShader;
 
   bool setupFramebuffers();
+  bool setupSkyboxVAO();
 
 public:
   Renderer(const unique_ptr<FollowCamera> &camera,

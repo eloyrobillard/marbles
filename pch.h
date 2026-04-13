@@ -31,6 +31,12 @@
 #include <unordered_map>
 #include <vector>
 
+typedef unsigned char uchar;
+typedef unsigned char byte;
+typedef __int64 int64;
+typedef unsigned __int64 uint64;
+typedef unsigned int uint;
+
 using namespace std::views;
 
 using rapidjson::Value;

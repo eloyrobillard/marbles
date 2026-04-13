@@ -33,12 +33,6 @@ int filesize(FILE *f);
 #define MALLOC64(x) _aligned_malloc(x, 64)
 #define FREE64(x) _aligned_free(x)
 
-typedef unsigned char uchar;
-typedef unsigned char byte;
-typedef __int64 int64;
-typedef unsigned __int64 uint64;
-typedef unsigned int uint;
-
 namespace Tmpl8 {
 
 template <typename T> constexpr T Min(T a, T b) { return (a > b) ? b : a; }
@@ -606,6 +600,13 @@ public:
                         {0.0f, 0.0f, 1.0f, 0.0f},
                         {trans.x, trans.y, trans.z, 1.0f}};
     return {temp};
+  }
+
+  static mat4 RemoveTranslation(const mat4 &m) {
+    mat4 mm{m};
+    mm.mat[0][3] = mm.mat[1][3] = mm.mat[2][3] = mm.mat[3][0] = mm.mat[3][1] =
+        mm.mat[3][2] = 0.0f;
+    return mm;
   }
 
   static mat4 CreateScale(float xScale, float yScale, float zScale) {

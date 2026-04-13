@@ -54,7 +54,17 @@ Renderer::Renderer(const unique_ptr<FollowCamera> &camera,
       GetShader("shaders/wireframe.vert", "shaders/wireframe.frag");
   mCollisionShader = GetShader("shaders/tint.vert", "shaders/tint.frag");
   mPostShader = GetShader("shaders/post.vert", "shaders/post.frag");
+  mSkyboxShader = GetShader("shaders/skybox.vert", "shaders/skybox.frag");
 
+  // Load skybox
+  vector<std::string> faces{
+      "assets/skybox/right.jpg", "assets/skybox/left.jpg",
+      "assets/skybox/top.jpg",   "assets/skybox/bottom.jpg",
+      "assets/skybox/front.jpg", "assets/skybox/back.jpg"};
+  skyboxTexture = Texture::LoadCubemap(faces);
+  setupSkyboxVAO();
+
+  // Setup AA and depth framebuffers
   setupFramebuffers();
 }
 
@@ -70,6 +80,43 @@ Renderer::~Renderer() {
   SDL_GL_DeleteContext(mGlContext);
   SDL_DestroyWindow(mWindow);
   SDL_Quit();
+}
+
+bool Renderer::setupSkyboxVAO() {
+  float skyboxVertices[] = {
+      // positions
+      -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f,
+      1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f,
+
+      -1.0f, -1.0f, 1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  -1.0f,
+      -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f, 1.0f,
+
+      1.0f,  -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,
+      1.0f,  1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f,
+
+      -1.0f, -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,  1.0f,  1.0f,
+      1.0f,  1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f, -1.0f, 1.0f,
+
+      -1.0f, 1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  1.0f,
+      1.0f,  1.0f,  1.0f,  -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f,  -1.0f,
+
+      -1.0f, -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, -1.0f,
+      1.0f,  -1.0f, -1.0f, -1.0f, -1.0f, 1.0f,  1.0f,  -1.0f, 1.0f};
+
+  glGenVertexArrays(1, &skyboxVAO);
+  glGenBuffers(1, &skyboxVBO);
+  glBindVertexArray(skyboxVAO);
+  glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices,
+               GL_STATIC_DRAW);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
+                        (void *)nullptr);
+
+  Shader::setActive(mSkyboxShader);
+  Shader::setIntUniform(mSkyboxShader, "skybox", 0);
+
+  return (glGetError() == 0);
 }
 
 // SOURCE: https://learnopengl.com/Advanced-OpenGL/Anti-Aliasing
@@ -90,7 +137,8 @@ bool Renderer::setupFramebuffers() {
   glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices,
                GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
+                        (void *)nullptr);
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
                         (void *)(2 * sizeof(float)));
@@ -153,8 +201,6 @@ void Renderer::Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera,
                       const vector<DynamicEntity> &de) {
   SetView(camera);
 
-  // Set the clear color to sky blue
-  glClearColor(0.5f, 0.7f, 1.0f, 1.0f);
   // Enable writing into the depth buffer
   glDepthMask(GL_TRUE);
   // Clear the color/depth buffer
@@ -162,6 +208,7 @@ void Renderer::Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera,
 
   // 1. draw scene as normal in multisampled buffers
   glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+  // Set the clear color to sky blue
   glClearColor(0.5f, 0.7f, 1.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glEnable(GL_DEPTH_TEST);
@@ -216,6 +263,22 @@ void Renderer::Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera,
   for (const auto &e : de) {
     Mesh::draw(mMeshShader, e.mesh, e.body);
   }
+
+  // draw skybox as last
+  glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when
+                          // values are equal to depth buffer's content
+  Shader::setActive(mSkyboxShader);
+  Shader::setMatrixUniform(mSkyboxShader, "view",
+                           mat4::RemoveTranslation(mView));
+  Shader::setMatrixUniform(mSkyboxShader, "projection", mProjection);
+
+  // skybox cube
+  glBindVertexArray(skyboxVAO);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+  glDrawArrays(GL_TRIANGLES, 0, 36);
+  glBindVertexArray(0);
+  glDepthFunc(GL_LESS); // set depth function back to default
 
   // 2. now blit multisampled buffer(s) to normal colorbuffer of intermediate
   // FBO. Image is stored in screenTexture
