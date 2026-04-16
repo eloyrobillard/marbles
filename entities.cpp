@@ -46,7 +46,6 @@ void Entities::RegisterEntities(
         auto triangles = Mesh::generateTriangleCollidersFromMesh(mesh, body);
         gSP.populate(triangles);
 
-        // Store static objects at the front of the queue
         mStaticEntities.emplace_back(mesh, body);
         mStaticColliders.emplace_back(triangles);
       }

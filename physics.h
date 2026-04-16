@@ -123,7 +123,7 @@ public:
 };
 
 // Used for spatial partitioning of static colliders
-inline SPNode gSP = SPNode(5.0f, 25.0f, 1, 16);
+inline SPNode gSP = SPNode(5.0f, 100.0f, 2, 16);
 
 namespace Physics {
 bool computeCollisionRebound(const SpacePartition &sp,

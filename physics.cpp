@@ -22,17 +22,18 @@ void SPLeaf::print(ostream &os) const {
 SPNode::SPNode(float min_x, float max_x, int depth, int num_children)
     : mChildren(vector<unique_ptr<SpacePartition>>()),
       SpacePartition::SpacePartition(min_x, max_x) {
-  float step = (max_x - min_x) / static_cast<float>(num_children);
+  float step =
+      static_cast<float>(max_x - min_x) / static_cast<float>(num_children);
 
   if (depth > 1) {
     for (float i = min_x; i < max_x; i += step) {
       mChildren.emplace_back(
           new SPNode(i, i + step - 0.0001f, depth - 1, num_children));
     }
-  }
-
-  for (float i = min_x; i < max_x; i += step) {
-    mChildren.emplace_back(new SPLeaf(i, i + step - 0.0001f));
+  } else {
+    for (float i = min_x; i < max_x; i += step) {
+      mChildren.emplace_back(new SPLeaf(i, i + step - 0.0001f));
+    }
   }
 }
 
