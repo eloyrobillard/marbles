@@ -2,6 +2,7 @@
 
 Entities::Entities() {
   RegisterEntities({{"assets/twist.gpmesh", BodyType::Static},
+                    {"assets/twist2.gpmesh", BodyType::Static},
                     {"assets/sphere.gpmesh", BodyType::Dynamic}});
 }
 
