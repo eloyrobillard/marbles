@@ -126,8 +126,8 @@ public:
 inline SPNode gSP = SPNode(5.0f, 100.0f, 2, 16);
 
 namespace Physics {
-bool computeCollisionRebound(const SpacePartition &sp,
-                             const SphereCollider &collider, vec3 &velocity);
+bool getCollisionImpulse(const SpacePartition &sp,
+                         const SphereCollider &collider, vec3 &velocity);
 
 inline float physicsTicksPerSecond = 60.0;
 inline float physicsDeltaTime = 1.0f / physicsTicksPerSecond;

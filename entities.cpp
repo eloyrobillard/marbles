@@ -1,8 +1,7 @@
 #include "entities.h"
 
 Entities::Entities() {
-  RegisterEntities({{"assets/twist.gpmesh", BodyType::Static},
-                    {"assets/twist2.gpmesh", BodyType::Static},
+  RegisterEntities({{"assets/basic_ramp.gpmesh", BodyType::Static},
                     {"assets/sphere.gpmesh", BodyType::Dynamic}});
 }
 
@@ -23,7 +22,7 @@ void Entities::UpdateBody(float t, float dt, DynamicEntity &e,
   e.collider.position = e.body.position;
 
   // Instantly apply collisions to the velocity of the e.body
-  Physics::computeCollisionRebound(sp, e.collider, e.body.velocity);
+  Physics::getCollisionImpulse(sp, e.collider, e.body.velocity);
 
   // Adjust position based on (possibly) updated velocity
   e.body.position = prev_p + dt * e.body.velocity;

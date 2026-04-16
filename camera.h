@@ -5,7 +5,9 @@
 #include "physics.h"
 #include "template.h"
 
+using Tmpl8::mat4;
 using Tmpl8::vec3;
+using Tmpl8::vec4;
 
 class FollowCamera {
 public:
@@ -18,10 +20,11 @@ public:
 
   FollowCamera(const vec3 &actualPosition, const vec3 &target, const vec3 &up)
       : mActualPosition(actualPosition), mTarget(target), mUp(up),
-        mVelocity(vec3::zero), mTargetDist(1.0f), mSpringConstant(10.0f) {}
+        mVelocity(vec3::zero), mTargetDist(1.0f), mSpringConstant(2.0f) {}
 
   void update(float dt, Body &follow) {
-    vec3 idealPosition = follow.position + vec3(-5, 0, 2);
+    vec3 idealOffset = vec3(-3.0f, 0.0f, 3.0f);
+    vec3 idealPosition = follow.position + idealOffset;
 
     float dampening = 2.0f * sqrt(mSpringConstant);
 

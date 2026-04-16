@@ -199,9 +199,9 @@ bool processCollisions(const vector<TriangleCollider> &triangles,
   return collision_happened;
 }
 
-bool Physics::computeCollisionRebound(const SpacePartition &sp,
-                                      const SphereCollider &collider,
-                                      vec3 &velocity) {
+bool Physics::getCollisionImpulse(const SpacePartition &sp,
+                                  const SphereCollider &collider,
+                                  vec3 &velocity) {
   float min_x = collider.position.x - collider.radius;
   float max_x = collider.position.x + collider.radius;
 
