@@ -179,14 +179,28 @@ public:
   [[nodiscard]] float length() const { return sqrtf(x * x + y * y + z * z); }
   [[nodiscard]] float sqrLentgh() const { return x * x + y * y + z * z; }
   [[nodiscard]] vec3 normalized() const {
-    float r = 1.0f / length();
-    return {x * r, y * r, z * r};
+    float len = length();
+
+    if (len != 0.0f) {
+      float r = 1.0f / len;
+      return {x * r, y * r, z * r};
+    }
+
+    return vec3::zero;
   }
   void normalize() {
-    float r = 1.0f / length();
-    x *= r;
-    y *= r;
-    z *= r;
+    float len = length();
+
+    if (len != 0.0f) {
+      float r = 1.0f / length();
+      x *= r;
+      y *= r;
+      z *= r;
+    } else {
+      x = 0.0f;
+      y = 0.0f;
+      z = 0.0f;
+    }
   }
 
   static vec3 normalize(const vec3 v) { return v.normalized(); }
