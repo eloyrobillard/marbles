@@ -8,7 +8,11 @@ namespace Tmpl8 {
 
 void Game::Init() {}
 
-void Game::Tick(float deltaTime) {}
+void Game::Tick(float deltaTime) {
+  if (GetKeyReleased(SDL_SCANCODE_E)) {
+    entities->RegisterPlayerForward();
+  }
+}
 
 void Game::Shutdown() {}
 } // namespace Tmpl8

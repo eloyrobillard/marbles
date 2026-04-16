@@ -39,6 +39,7 @@ public:
   Body &ProvideCameraFollow();
   const vector<StaticEntity> &GetStaticEntities() { return mStaticEntities; }
   const vector<DynamicEntity> &GetDynamicEntities() { return mDynamicEntities; }
+  void RegisterPlayerForward();
 };
 
 #endif // ENTITIES_H

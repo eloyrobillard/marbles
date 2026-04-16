@@ -54,3 +54,7 @@ void Entities::RegisterEntities(
 }
 
 Body &Entities::ProvideCameraFollow() { return mDynamicEntities[0].body; }
+
+void Entities::RegisterPlayerForward() {
+  mDynamicEntities[0].body.velocity *= 1.001f;
+}

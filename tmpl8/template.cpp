@@ -245,10 +245,11 @@ int main(int argc, char **argv) {
   unique_ptr<FollowCamera> camera =
       std::make_unique<FollowCamera>(vec3(0, 0, 2), vec3(7, 0, 0), vec3::up);
   unique_ptr<Renderer> renderer = std::make_unique<Renderer>(camera, surface);
-  unique_ptr<Entities> entities = std::make_unique<Entities>();
+  shared_ptr<Entities> entities = std::make_shared<Entities>();
 
   game = new Game();
   game->SetTarget(surface);
+  game->SetEntities(entities);
 
   ShowCursor(false);
 
@@ -289,6 +290,8 @@ int main(int argc, char **argv) {
     camera->update(elapsedTime, entities->ProvideCameraFollow());
     renderer->Draw3D(elapsedTime, camera, entities->GetStaticEntities(),
                      entities->GetDynamicEntities());
+
+    game->SetupKeys();
 
     // event loop
     SDL_Event event;
