@@ -40,6 +40,8 @@ public:
   const vector<StaticEntity> &GetStaticEntities() { return mStaticEntities; }
   const vector<DynamicEntity> &GetDynamicEntities() { return mDynamicEntities; }
   void RegisterPlayerForward();
+  void RegisterPlayerLeft();
+  void RegisterPlayerRight();
 };
 
 #endif // ENTITIES_H

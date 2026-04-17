@@ -58,3 +58,13 @@ Body &Entities::ProvideCameraFollow() { return mDynamicEntities[0].body; }
 void Entities::RegisterPlayerForward() {
   mDynamicEntities[0].body.velocity *= 1.001f;
 }
+
+void Entities::RegisterPlayerLeft() {
+  vec3 left = mDynamicEntities[0].body.velocity.cross(vec3::up).normalized();
+  mDynamicEntities[0].body.velocity += left * 0.3f;
+}
+
+void Entities::RegisterPlayerRight() {
+  vec3 right = vec3::up.cross(mDynamicEntities[0].body.velocity).normalized();
+  mDynamicEntities[0].body.velocity += right * 0.3f;
+}
