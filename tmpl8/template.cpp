@@ -57,7 +57,7 @@ void timer::reset() { start = get(); }
 void timer::init() {
   LARGE_INTEGER f;
   QueryPerformanceFrequency(&f);
-  inv_freq = 1000. / double(f.QuadPart);
+  inv_freq = 1. / double(f.QuadPart);
 }
 
 // Math Stuff

@@ -174,8 +174,8 @@ void Physics::Update(Body &body, float t, float dt,
   const vec3 prev_v = body.velocity;
   const vec3 prev_p = body.position;
 
-  body.velocity += dt / 1024.0f * grav_force;
-  body.position += dt / 1024.0f * body.velocity;
+  body.velocity += dt * grav_force;
+  body.position += dt * body.velocity;
 
   vector<vec3> normals = getCollisionNormals(sc, dc, col);
 
@@ -188,8 +188,8 @@ void Physics::Update(Body &body, float t, float dt,
                 });
 
   body.velocity = std::accumulate(ALL(forces), body.velocity);
-  body.position = prev_p + dt / 1024.0f * body.velocity;
+  body.position = prev_p + dt * body.velocity;
 
-  std::println(stdout, "{} {} {}, collisions: {}", body.position.x,
-               body.position.y, body.position.z, normals.size());
+  // std::println(stdout, "{} {} {}, collisions: {}", body.position.x,
+  //              body.position.y, body.position.z, normals.size());
 }
