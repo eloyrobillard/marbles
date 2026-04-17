@@ -40,9 +40,9 @@ public:
   vec3 &ProvideCameraFollow();
   const vector<StaticEntity> &GetStaticEntities() { return mStaticEntities; }
   const vector<DynamicEntity> &GetDynamicEntities() { return mDynamicEntities; }
-  void RegisterPlayerForward();
-  void RegisterPlayerLeft();
-  void RegisterPlayerRight();
+  void RegisterPlayerForward(float dt);
+  void RegisterPlayerLeft(float dt);
+  void RegisterPlayerRight(float dt);
   void Restart();
 };
 

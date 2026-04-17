@@ -9,15 +9,15 @@ namespace Tmpl8 {
 void Game::Init() {}
 
 void Game::Tick(float deltaTime) {
-  if (GetKeyReleased(SDL_SCANCODE_RIGHT)) {
-    entities->RegisterPlayerRight();
+  if (GetKey(SDL_SCANCODE_RIGHT)) {
+    entities->RegisterPlayerRight(deltaTime);
   }
 
-  if (GetKeyReleased(SDL_SCANCODE_LEFT)) {
-    entities->RegisterPlayerLeft();
+  if (GetKey(SDL_SCANCODE_LEFT)) {
+    entities->RegisterPlayerLeft(deltaTime);
   }
 
-  if (GetKeyReleased(SDL_SCANCODE_SPACE)) {
+  if (GetKeyPressed(SDL_SCANCODE_SPACE)) {
     Restart();
   }
 }

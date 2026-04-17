@@ -19,16 +19,16 @@ void Entities::UpdateBody(float t, float dt, DynamicEntity &e,
   e.body.velocity += dt * grav_force;
   e.body.position += dt * e.body.velocity;
 
-  // Test collisions at new e.body position
+  // Test collisions at new body position
   e.collider.position = e.body.position;
 
-  // Instantly apply collisions to the velocity of the e.body
+  // Instantly apply collisions to the velocity of the body
   Physics::getCollisionImpulse(sp, e.collider, e.body.velocity);
 
   // Adjust position based on (possibly) updated velocity
   e.body.position = prev_p + dt * e.body.velocity;
 
-  // Match e.body's position with collider's
+  // Match body's position with collider's
   e.collider.position = e.body.position;
 }
 
@@ -60,18 +60,18 @@ vec3 &Entities::ProvideCameraFollow() {
   return mDynamicEntities[0].body.position;
 }
 
-void Entities::RegisterPlayerForward() {
-  mDynamicEntities[0].body.velocity *= 1.001f;
+void Entities::RegisterPlayerForward(float dt) {
+  mDynamicEntities[0].body.velocity *= 1.0f + dt;
 }
 
-void Entities::RegisterPlayerLeft() {
+void Entities::RegisterPlayerLeft(float dt) {
   vec3 left = mDynamicEntities[0].body.velocity.cross(vec3::up).normalized();
-  mDynamicEntities[0].body.velocity += left * 0.3f;
+  mDynamicEntities[0].body.velocity += left * 4.0f * dt;
 }
 
-void Entities::RegisterPlayerRight() {
+void Entities::RegisterPlayerRight(float dt) {
   vec3 right = vec3::up.cross(mDynamicEntities[0].body.velocity).normalized();
-  mDynamicEntities[0].body.velocity += right * 0.3f;
+  mDynamicEntities[0].body.velocity += right * 4.0f * dt;
 }
 
 void Entities::Restart() {
