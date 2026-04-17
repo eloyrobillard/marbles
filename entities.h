@@ -29,6 +29,7 @@ class Entities {
   vector<StaticEntity> mStaticEntities;
   vector<vector<TriangleCollider>> mStaticColliders;
   vector<DynamicEntity> mDynamicEntities;
+  vector<DynamicEntity> mDynamicEntitiesStartingState;
 
 public:
   Entities();
@@ -36,12 +37,13 @@ public:
                          const SpacePartition &sp);
   void Update(float time, float deltaTime);
   void RegisterEntities(const vector<pair<string, BodyType>> &entityList);
-  Body &ProvideCameraFollow();
+  vec3 &ProvideCameraFollow();
   const vector<StaticEntity> &GetStaticEntities() { return mStaticEntities; }
   const vector<DynamicEntity> &GetDynamicEntities() { return mDynamicEntities; }
   void RegisterPlayerForward();
   void RegisterPlayerLeft();
   void RegisterPlayerRight();
+  void Restart();
 };
 
 #endif // ENTITIES_H

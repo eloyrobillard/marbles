@@ -10,6 +10,8 @@ using Tmpl8::vec3;
 using Tmpl8::vec4;
 
 class FollowCamera {
+  vec3 mStartingPosition;
+
 public:
   vec3 mActualPosition;
   vec3 mTarget;
@@ -19,12 +21,13 @@ public:
   float mSpringConstant;
 
   FollowCamera(const vec3 &actualPosition, const vec3 &target, const vec3 &up)
-      : mActualPosition(actualPosition), mTarget(target), mUp(up),
-        mVelocity(vec3::zero), mTargetDist(1.0f), mSpringConstant(2.0f) {}
+      : mActualPosition(actualPosition), mStartingPosition(actualPosition),
+        mTarget(target), mUp(up), mVelocity(vec3::zero), mTargetDist(1.0f),
+        mSpringConstant(2.0f) {}
 
-  void update(float dt, Body &follow) {
+  void update(float dt, const vec3 &follow) {
     vec3 idealOffset = vec3(-3.0f, 0.0f, 3.0f);
-    vec3 idealPosition = follow.position + idealOffset;
+    vec3 idealPosition = follow + idealOffset;
 
     float dampening = 2.0f * sqrt(mSpringConstant);
 
@@ -34,7 +37,13 @@ public:
     mVelocity += accel * dt;
     mActualPosition += mVelocity * dt;
 
-    mTarget = follow.position + vec3::forward * mTargetDist;
+    mTarget = follow + vec3::forward * mTargetDist;
+  }
+
+  void Restart(const vec3 &target) {
+    mActualPosition = mStartingPosition;
+    mVelocity = vec3::zero;
+    mTarget = target;
   }
 };
 

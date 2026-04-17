@@ -2,7 +2,7 @@
 #include "camera.h"
 #include "shader.h"
 
-Renderer::Renderer(const unique_ptr<FollowCamera> &camera,
+Renderer::Renderer(const shared_ptr<FollowCamera> &camera,
                    const shared_ptr<Surface> &screen)
     : mScreen(screen) {
 
@@ -223,7 +223,7 @@ bool Renderer::setupFramebuffers() {
   return (glGetError() == 0);
 }
 
-void Renderer::Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera,
+void Renderer::Draw3D(float deltaTime, const shared_ptr<FollowCamera> &camera,
                       const vector<StaticEntity> &se,
                       const vector<DynamicEntity> &de) {
   SetView(camera);
@@ -334,7 +334,7 @@ void Renderer::Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera,
   SDL_GL_SwapWindow(mWindow);
 }
 
-void Renderer::SetView(const unique_ptr<FollowCamera> &camera) {
+void Renderer::SetView(const shared_ptr<FollowCamera> &camera) {
   mView =
       mat4::CreateLookAt(camera->mActualPosition, camera->mTarget, camera->mUp);
 }

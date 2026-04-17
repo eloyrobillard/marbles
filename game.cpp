@@ -16,7 +16,16 @@ void Game::Tick(float deltaTime) {
   if (GetKeyReleased(SDL_SCANCODE_LEFT)) {
     entities->RegisterPlayerLeft();
   }
+
+  if (GetKeyReleased(SDL_SCANCODE_SPACE)) {
+    Restart();
+  }
 }
 
 void Game::Shutdown() {}
+
+void Game::Restart() {
+  entities->Restart();
+  camera->Restart(entities->ProvideCameraFollow());
+}
 } // namespace Tmpl8

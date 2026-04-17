@@ -47,12 +47,12 @@ class Renderer {
   bool setupSkyboxVAO();
 
 public:
-  Renderer(const unique_ptr<FollowCamera> &camera,
+  Renderer(const shared_ptr<FollowCamera> &camera,
            const shared_ptr<Surface> &screen);
   ~Renderer();
-  void Draw3D(float deltaTime, const unique_ptr<FollowCamera> &camera,
+  void Draw3D(float deltaTime, const shared_ptr<FollowCamera> &camera,
               const vector<StaticEntity> &se, const vector<DynamicEntity> &de);
-  void SetView(const unique_ptr<FollowCamera> &camera);
+  void SetView(const shared_ptr<FollowCamera> &camera);
   void SetProjection(const shared_ptr<Surface> &screen);
   void GetMeshes(const vector<pair<string, BodyType>> &meshList);
   static Shader::Shader GetShader(const char *vert, const char *frag);

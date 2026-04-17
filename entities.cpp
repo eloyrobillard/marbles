@@ -40,8 +40,10 @@ void Entities::RegisterEntities(
       auto [mesh, body] = maybe.value();
 
       if (btype == BodyType::Dynamic) {
-        mDynamicEntities.emplace_back(
-            mesh, body, SphereCollider(body.position, body.scale.x));
+        DynamicEntity de(mesh, body,
+                         SphereCollider(body.position, body.scale.x));
+        mDynamicEntities.emplace_back(de);
+        mDynamicEntitiesStartingState.emplace_back(de);
       } else {
         auto triangles = Mesh::generateTriangleCollidersFromMesh(mesh, body);
         gSP.populate(triangles);
@@ -53,7 +55,9 @@ void Entities::RegisterEntities(
   }
 }
 
-Body &Entities::ProvideCameraFollow() { return mDynamicEntities[0].body; }
+vec3 &Entities::ProvideCameraFollow() {
+  return mDynamicEntities[0].body.position;
+}
 
 void Entities::RegisterPlayerForward() {
   mDynamicEntities[0].body.velocity *= 1.001f;
@@ -67,4 +71,10 @@ void Entities::RegisterPlayerLeft() {
 void Entities::RegisterPlayerRight() {
   vec3 right = vec3::up.cross(mDynamicEntities[0].body.velocity).normalized();
   mDynamicEntities[0].body.velocity += right * 0.3f;
+}
+
+void Entities::Restart() {
+  for (int i = 0; i < mDynamicEntities.size(); i++) {
+    mDynamicEntities[i] = mDynamicEntitiesStartingState[i];
+  }
 }

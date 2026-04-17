@@ -1,5 +1,6 @@
 #pragma once
 
+#include "camera.h"
 #include "entities.h"
 #include "pch.h"
 
@@ -29,6 +30,7 @@ public:
     return released.test(key);
   } // returns true if the key was released since the last Tick
   void Screenshot();
+  void SetCamera(shared_ptr<FollowCamera> &c) { camera = c; }
   void SetEntities(shared_ptr<Entities> &e) { entities = e; }
   void SetupKeys() {
     // Remember any newly pressed key while keeping the old ones
@@ -38,6 +40,7 @@ public:
     pressed.reset();
     released.reset();
   }
+  void Restart();
 
 private:
   shared_ptr<Surface> screen;
@@ -51,6 +54,7 @@ private:
       released; // store key release events here (set to true on key up, reset
                 // to false after processing in Tick)
   int mousex, mousey;
+  shared_ptr<FollowCamera> camera;
   shared_ptr<Entities> entities;
 };
 

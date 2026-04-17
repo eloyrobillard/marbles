@@ -242,13 +242,14 @@ int main(int argc, char **argv) {
   shared_ptr<Surface> surface =
       std::make_shared<Surface>(ScreenWidth, ScreenHeight);
 
-  unique_ptr<FollowCamera> camera =
-      std::make_unique<FollowCamera>(vec3(0, 0, 2), vec3(7, 0, 0), vec3::up);
+  shared_ptr<FollowCamera> camera =
+      std::make_shared<FollowCamera>(vec3(0, 0, 2), vec3(7, 0, 0), vec3::up);
   unique_ptr<Renderer> renderer = std::make_unique<Renderer>(camera, surface);
   shared_ptr<Entities> entities = std::make_shared<Entities>();
 
   game = new Game();
   game->SetTarget(surface);
+  game->SetCamera(camera);
   game->SetEntities(entities);
 
   ShowCursor(false);
