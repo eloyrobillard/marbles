@@ -1,8 +1,12 @@
 #include "entities.h"
 
 Entities::Entities() {
-  RegisterEntities({{"assets/basic_ramp.gpmesh", BodyType::Static},
+  RegisterEntities({{"assets/ramp1.gpmesh", BodyType::Static},
                     {"assets/snake1.gpmesh", BodyType::Static},
+                    {"assets/plane1.gpmesh", BodyType::Static},
+                    {"assets/plane2.gpmesh", BodyType::Static},
+                    {"assets/plane3.gpmesh", BodyType::Static},
+                    {"assets/plane4.gpmesh", BodyType::Static},
                     {"assets/sphere.gpmesh", BodyType::Dynamic}});
 }
 
