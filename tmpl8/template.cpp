@@ -241,11 +241,14 @@ int main(int argc, char **argv) {
 
   shared_ptr<Surface> surface =
       std::make_shared<Surface>(ScreenWidth, ScreenHeight);
+  unique_ptr<Renderer> renderer = std::make_unique<Renderer>(surface);
 
-  shared_ptr<FollowCamera> camera =
-      std::make_shared<FollowCamera>(vec3(0, 0, 2), vec3(7, 0, 0), vec3::up);
-  unique_ptr<Renderer> renderer = std::make_unique<Renderer>(camera, surface);
   shared_ptr<Entities> entities = std::make_shared<Entities>();
+  shared_ptr<FollowCamera> camera = std::make_shared<FollowCamera>(
+      entities->ProvideCameraFollow(), vec3(-3.0f, 0.0f, 3.0f), vec3(5, 0, 0),
+      vec3::up);
+
+  renderer->SetCamera(camera);
 
   game = new Game();
   game->SetTarget(surface);
@@ -289,7 +292,7 @@ int main(int argc, char **argv) {
 
     game->Tick(elapsedTime);
     camera->update(elapsedTime, entities->ProvideCameraFollow());
-    renderer->Draw3D(elapsedTime, camera, entities->GetStaticEntities(),
+    renderer->Draw3D(elapsedTime, entities->GetStaticEntities(),
                      entities->GetDynamicEntities());
 
     game->SetupKeys();

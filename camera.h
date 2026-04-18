@@ -19,15 +19,17 @@ public:
   vec3 mVelocity;
   float mTargetDist;
   float mSpringConstant;
+  vec3 mIdealOffset;
 
-  FollowCamera(const vec3 &actualPosition, const vec3 &target, const vec3 &up)
-      : mActualPosition(actualPosition), mStartingPosition(actualPosition),
-        mTarget(target), mUp(up), mVelocity(vec3::zero), mTargetDist(1.0f),
+  FollowCamera(const vec3 &startingFollowPosition, const vec3 &offset,
+               const vec3 &target, const vec3 &up)
+      : mIdealOffset(offset), mActualPosition(startingFollowPosition + offset),
+        mStartingPosition(startingFollowPosition + offset), mTarget(target),
+        mUp(up), mVelocity(vec3::zero), mTargetDist(1.0f),
         mSpringConstant(2.0f) {}
 
   void update(float dt, const vec3 &follow) {
-    vec3 idealOffset = vec3(-3.0f, 0.0f, 3.0f);
-    vec3 idealPosition = follow + idealOffset;
+    vec3 idealPosition = follow + mIdealOffset;
 
     float dampening = 2.0f * sqrt(mSpringConstant);
 

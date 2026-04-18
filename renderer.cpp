@@ -2,11 +2,7 @@
 #include "camera.h"
 #include "shader.h"
 
-Renderer::Renderer(const shared_ptr<FollowCamera> &camera,
-                   const shared_ptr<Surface> &screen)
-    : mScreen(screen) {
-
-  SetView(camera);
+Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
   SetProjection(screen);
 
   printf("application started.\n");
@@ -66,6 +62,11 @@ Renderer::Renderer(const shared_ptr<FollowCamera> &camera,
 
   // Setup AA and depth framebuffers
   setupFramebuffers();
+}
+
+void Renderer::SetCamera(const shared_ptr<FollowCamera> &camera) {
+  mCamera = camera;
+  SetView(camera);
 }
 
 Renderer::~Renderer() {
@@ -223,10 +224,9 @@ bool Renderer::setupFramebuffers() {
   return (glGetError() == 0);
 }
 
-void Renderer::Draw3D(float deltaTime, const shared_ptr<FollowCamera> &camera,
-                      const vector<StaticEntity> &se,
+void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
                       const vector<DynamicEntity> &de) {
-  SetView(camera);
+  SetView(mCamera);
 
   // Enable writing into the depth buffer
   glDepthMask(GL_TRUE);
@@ -296,9 +296,9 @@ void Renderer::Draw3D(float deltaTime, const shared_ptr<FollowCamera> &camera,
                           // values are equal to depth buffer's content
   Shader::setActive(mSkyboxShader);
   Shader::setMatrixUniform(mSkyboxShader, "view",
-                           mat4::CreateLookAtSkybox(camera->mActualPosition,
-                                                    camera->mTarget,
-                                                    camera->mUp));
+                           mat4::CreateLookAtSkybox(mCamera->mActualPosition,
+                                                    mCamera->mTarget,
+                                                    mCamera->mUp));
   Shader::setMatrixUniform(mSkyboxShader, "projection", mProjection);
 
   // skybox cube

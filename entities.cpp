@@ -9,7 +9,9 @@ Entities::Entities() {
                     {"assets/plane4.gpmesh", BodyType::Static},
                     {"assets/plane5.gpmesh", BodyType::Static},
                     {"assets/plane6.gpmesh", BodyType::Static},
+                    {"assets/plane7.gpmesh", BodyType::Static},
                     {"assets/big_ramp1.gpmesh", BodyType::Static},
+                    {"assets/canon1.gpmesh", BodyType::Static},
                     {"assets/sphere.gpmesh", BodyType::Dynamic}});
 }
 

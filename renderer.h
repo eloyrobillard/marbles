@@ -28,6 +28,7 @@ class Renderer {
   SDL_Window *mWindow;
   SDL_GLContext mGlContext;
   shared_ptr<Surface> mScreen;
+  shared_ptr<FollowCamera> mCamera;
 
   GLuint skyboxTexture;
   GLuint skyboxVAO, skyboxVBO;
@@ -47,15 +48,15 @@ class Renderer {
   bool setupSkyboxVAO();
 
 public:
-  Renderer(const shared_ptr<FollowCamera> &camera,
-           const shared_ptr<Surface> &screen);
+  Renderer(const shared_ptr<Surface> &screen);
   ~Renderer();
-  void Draw3D(float deltaTime, const shared_ptr<FollowCamera> &camera,
-              const vector<StaticEntity> &se, const vector<DynamicEntity> &de);
+  void Draw3D(float deltaTime, const vector<StaticEntity> &se,
+              const vector<DynamicEntity> &de);
   void SetView(const shared_ptr<FollowCamera> &camera);
   void SetProjection(const shared_ptr<Surface> &screen);
   void GetMeshes(const vector<pair<string, BodyType>> &meshList);
   static Shader::Shader GetShader(const char *vert, const char *frag);
+  void SetCamera(const shared_ptr<FollowCamera> &camera);
 };
 
 #endif
