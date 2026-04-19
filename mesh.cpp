@@ -133,28 +133,27 @@ optional<pair<Mesh, Body>> Load(const std::string &filename) {
   // Load textures
   const Value &textures = document["textures"];
   if (!textures.IsArray() || textures.Size() < 1) {
-    SDL_Log("Mesh %s has no textures, there should be at least one",
-            filename.c_str());
+    SDL_Log("Mesh %s has no textures, using the default one", filename.c_str());
 
-    return {};
-  }
+    mesh.textures.emplace_back(GetTexture(mesh, "Assets/Default.png").value());
+  } else {
+    for (rapidjson::SizeType i = 0; i < textures.Size(); i++) {
+      // Is this texture already loaded?
+      std::string texName = textures[i].GetString();
 
-  for (rapidjson::SizeType i = 0; i < textures.Size(); i++) {
-    // Is this texture already loaded?
-    std::string texName = textures[i].GetString();
-
-    optional<Texture::Texture *> maybe_tex = GetTexture(mesh, texName);
-    if (!maybe_tex.has_value()) {
-      // Try loading the texture
-      maybe_tex = GetTexture(mesh, texName);
+      optional<Texture::Texture *> maybe_tex = GetTexture(mesh, texName);
       if (!maybe_tex.has_value()) {
-        // If it's still null, just use the default texture
-        maybe_tex = GetTexture(mesh, "Assets/Default.png");
+        // Try loading the texture
+        maybe_tex = GetTexture(mesh, texName);
+        if (!maybe_tex.has_value()) {
+          // If it's still null, just use the default texture
+          maybe_tex = GetTexture(mesh, "Assets/Default.png");
+        }
       }
-    }
 
-    if (maybe_tex.has_value())
-      mesh.textures.emplace_back(maybe_tex.value());
+      if (maybe_tex.has_value())
+        mesh.textures.emplace_back(maybe_tex.value());
+    }
   }
 
   Value &scaleJSON = document["scale"];
