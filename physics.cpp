@@ -140,24 +140,12 @@ optional<vec3> intersectsTriangle(const TriangleCollider &t,
   // Sphere and triangle intersect if the (squared) distance from sphere
   // center to point p is less than the (squared) sphere radius
   vec3 v = closest_point - center;
-  if (v.dot(v) > s.radius * s.radius) {
+  float v2 = v.dot(v);
+  if (isnan(v2) || v2 > s.radius * s.radius) {
     return {};
   }
 
   return {t.normal.normalized()};
-}
-
-optional<vec3> intersectsSphere(const SphereCollider &s1,
-                                const SphereCollider &s2) {
-  const vec3 &c1 = s1.position;
-  const vec3 &c2 = s2.position;
-
-  if (c1.distance(c2) > s1.radius + s2.radius)
-    return {};
-
-  // Return the direction away from c1
-  // Using a unit vector is needed to compute the strength of the rebound
-  return {(c1 - c2).normalized()};
 }
 
 const float restitution = 0.0f;
