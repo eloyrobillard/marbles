@@ -245,8 +245,8 @@ int main(int argc, char **argv) {
 
   shared_ptr<Entities> entities = std::make_shared<Entities>();
   shared_ptr<FollowCamera> camera = std::make_shared<FollowCamera>(
-      entities->ProvideCameraFollow(), vec3(-3.0f, 0.0f, 3.0f), vec3(5, 0, 0),
-      vec3::up);
+      entities->ProvideCameraFollow(), vec3(-30.0f, -10.0f, -30.0f),
+      vec3(0, 0, 0.0f), vec3::up, 20.0f);
 
   renderer->SetCamera(camera);
 
@@ -291,7 +291,7 @@ int main(int argc, char **argv) {
     const double alpha = physicsTimeAccumulator / Physics::physicsDeltaTime;
 
     game->Tick(elapsedTime);
-    camera->update(elapsedTime, entities->ProvideCameraFollow());
+    camera->Update(elapsedTime, entities->ProvideCameraFollow());
     renderer->Draw3D(elapsedTime, entities->GetStaticEntities(),
                      entities->GetDynamicEntities());
 

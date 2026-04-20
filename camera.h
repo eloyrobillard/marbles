@@ -22,13 +22,13 @@ public:
   vec3 mIdealOffset;
 
   FollowCamera(const vec3 &startingFollowPosition, const vec3 &offset,
-               const vec3 &target, const vec3 &up)
+               const vec3 &target, const vec3 &up, const float spring)
       : mIdealOffset(offset), mActualPosition(startingFollowPosition + offset),
         mStartingPosition(startingFollowPosition + offset), mTarget(target),
         mUp(up), mVelocity(vec3::zero), mTargetDist(1.0f),
-        mSpringConstant(2.0f) {}
+        mSpringConstant(spring) {}
 
-  void update(float dt, const vec3 &follow) {
+  void Update(float dt, const vec3 &follow) {
     vec3 idealPosition = follow + mIdealOffset;
 
     float dampening = 2.0f * sqrt(mSpringConstant);
