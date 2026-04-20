@@ -298,7 +298,7 @@ mat4 getWorldTransform(const Body &body) {
   return scale * rotation * translation;
 }
 
-void draw(Shader::Shader &shader, const Mesh &mesh, const Body &body) {
+void Draw(Shader::Shader &shader, const Mesh &mesh, const Body &body) {
   // Set world transform
   mat4 worldTransform = getWorldTransform(body);
 

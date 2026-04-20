@@ -284,11 +284,11 @@ void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
   Shader::setLight(mMeshShader, mView);
 
   for (const auto &e : se) {
-    Mesh::draw(mMeshShader, e.mesh, e.body);
+    Mesh::Draw(mMeshShader, e.mesh, e.body);
   }
 
   for (const auto &e : de) {
-    Mesh::draw(mMeshShader, e.mesh, e.body);
+    Mesh::Draw(mMeshShader, e.mesh, e.body);
   }
 
   // draw skybox as last
