@@ -327,8 +327,10 @@ void deleteVertexArray(GLuint vertexBuffer, GLuint indexBuffer,
   glDeleteBuffers(1, &vertexArray);
 }
 
-vector<TriangleCollider> generateTriangleCollidersFromMesh(Mesh &mesh,
-                                                           Body &body) {
+vector<TriangleCollider>
+generateTriangleCollidersFromMesh(Mesh &mesh, Body &body, float accel,
+                                  bool override_impulse,
+                                  vec3 impulse_override) {
   vector<TriangleCollider> triangles;
   triangles.reserve(mesh.idx_triplets.size());
 
@@ -343,9 +345,12 @@ vector<TriangleCollider> generateTriangleCollidersFromMesh(Mesh &mesh,
     auto n1 = mesh.vert_normal[i1];
     auto n2 = mesh.vert_normal[i2];
 
+    mat4 rot = mat4::CreateFromQuaternion(body.rotation);
+
     vec3 average_normal = (n0 + n1 + n2) * (1.0f / 3.0f);
-    average_normal =
-        vec4(average_normal, 1.0f) * mat4::CreateFromQuaternion(body.rotation);
+    average_normal = vec4(average_normal, 1.0f) * rot;
+
+    vec3 impov = vec4(impulse_override, 1.0f) * rot;
 
     float verts[9] = {a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z};
     uint indices[3] = {0, 1, 2};
@@ -354,8 +359,9 @@ vector<TriangleCollider> generateTriangleCollidersFromMesh(Mesh &mesh,
         createVertexArrayVertsOnly(verts, 3, indices, 3, 3 /* Position only */);
 
     // NOTE: leaving constructor so clangd reports type errors
-    triangles.emplace_back(TriangleCollider(
-        average_normal, a, b, c, vertexBuffer, indexBuffer, vertexArray));
+    triangles.emplace_back(
+        TriangleCollider(average_normal, a, b, c, accel, override_impulse,
+                         impov, vertexBuffer, indexBuffer, vertexArray));
   }
 
   return triangles;

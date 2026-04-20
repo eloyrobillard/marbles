@@ -1,18 +1,19 @@
 #include "entities.h"
 
 Entities::Entities() {
-  RegisterEntities({{"assets/ramp1.gpmesh", BodyType::Static},
-                    {"assets/snake1.gpmesh", BodyType::Static},
-                    {"assets/plane1.gpmesh", BodyType::Static},
-                    {"assets/plane2.gpmesh", BodyType::Static},
-                    {"assets/plane3.gpmesh", BodyType::Static},
-                    {"assets/plane4.gpmesh", BodyType::Static},
-                    {"assets/plane5.gpmesh", BodyType::Static},
-                    {"assets/plane6.gpmesh", BodyType::Static},
-                    {"assets/plane7.gpmesh", BodyType::Static},
-                    {"assets/big_ramp1.gpmesh", BodyType::Static},
-                    {"assets/canon1.gpmesh", BodyType::Static},
-                    {"assets/sphere.gpmesh", BodyType::Dynamic}});
+  RegisterEntities(
+      {{"assets/ramp1.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
+       {"assets/snake1.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
+       {"assets/plane1.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
+       {"assets/plane2.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
+       {"assets/plane3.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
+       {"assets/plane4.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
+       {"assets/plane5.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
+       {"assets/plane6.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
+       {"assets/plane7.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
+       {"assets/big_ramp1.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
+       {"assets/canon1.gpmesh", BodyType::Static, 1.03f, true, vec3::up},
+       {"assets/sphere.gpmesh", BodyType::Dynamic, 1.0f, false, vec3::zero}});
 }
 
 void Entities::Update(float time, float deltaTime) {
@@ -42,8 +43,9 @@ void Entities::UpdateBody(float t, float dt, DynamicEntity &e,
 }
 
 void Entities::RegisterEntities(
-    const vector<pair<string, BodyType>> &entityList) {
-  for (const auto &[meshName, btype] : entityList) {
+    const vector<tuple<string, BodyType, float, bool, vec3>> &entityList) {
+  for (const auto &[meshName, btype, accel, override_impulse,
+                    impulse_override] : entityList) {
     auto maybe = Mesh::Load(meshName);
 
     if (maybe.has_value()) {
@@ -55,7 +57,8 @@ void Entities::RegisterEntities(
         mDynamicEntities.emplace_back(de);
         mDynamicEntitiesStartingState.emplace_back(de);
       } else {
-        auto triangles = Mesh::generateTriangleCollidersFromMesh(mesh, body);
+        auto triangles = Mesh::generateTriangleCollidersFromMesh(
+            mesh, body, accel, override_impulse, impulse_override);
         gSP.populate(triangles);
 
         mStaticEntities.emplace_back(mesh, body);

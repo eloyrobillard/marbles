@@ -23,11 +23,12 @@ inline void setVerticesActive(GLuint vertexArray) {
   glBindVertexArray(vertexArray);
 }
 optional<pair<Mesh, Body>> Load(const std::string &filename);
-void draw(Shader::Shader &shader, const Mesh &mesh, const Body &body);
+void Draw(Shader::Shader &shader, const Mesh &mesh, const Body &body);
 void deleteVertexArray(GLuint vertexBuffer, GLuint indexBuffer,
                        GLuint vertexArray);
-vector<TriangleCollider> generateTriangleCollidersFromMesh(Mesh &mesh,
-                                                           Body &body);
+vector<TriangleCollider>
+generateTriangleCollidersFromMesh(Mesh &mesh, Body &body, float accel,
+                                  bool override_impulse, vec3 impulse_override);
 
 } // namespace Mesh
 

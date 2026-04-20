@@ -36,7 +36,8 @@ public:
   static void UpdateBody(float t, float dt, DynamicEntity &e,
                          const SpacePartition &sp);
   void Update(float time, float deltaTime);
-  void RegisterEntities(const vector<pair<string, BodyType>> &entityList);
+  void RegisterEntities(
+      const vector<tuple<string, BodyType, float, bool, vec3>> &entityList);
   vec3 &ProvideCameraFollow();
   const vector<StaticEntity> &GetStaticEntities() { return mStaticEntities; }
   const vector<DynamicEntity> &GetDynamicEntities() { return mDynamicEntities; }

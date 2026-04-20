@@ -22,14 +22,20 @@ struct SphereCollider : Collider {
 
 // For static objects
 struct TriangleCollider : Collider {
-  TriangleCollider(vec3 normal, vec3 a, vec3 b, vec3 c, GLuint vertexBuffer,
-                   GLuint indexBuffer, GLuint vertexArray)
-      : normal(normal), a(a), b(b), c(c), vertexBuffer(vertexBuffer),
-        indexBuffer(indexBuffer), vertexArray(vertexArray) {}
+  TriangleCollider(vec3 normal, vec3 a, vec3 b, vec3 c, float accel,
+                   bool overrideImpulse, vec3 impulseOverride,
+                   GLuint vertexBuffer, GLuint indexBuffer, GLuint vertexArray)
+      : normal(normal), a(a), b(b), c(c), accel(accel),
+        overrideImpulse(overrideImpulse), impulseOverride(impulseOverride),
+        vertexBuffer(vertexBuffer), indexBuffer(indexBuffer),
+        vertexArray(vertexArray) {}
 
   vec3 a;
   vec3 b;
   vec3 c;
+  float accel;
+  bool overrideImpulse;
+  vec3 impulseOverride;
   vec3 normal;
   GLuint vertexBuffer;
   GLuint indexBuffer;

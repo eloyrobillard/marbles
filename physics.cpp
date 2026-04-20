@@ -180,7 +180,12 @@ bool processCollisions(const vector<TriangleCollider> &triangles,
 
     if (sepVel < 0) {
       // Apply impulse instantly
-      velocity += normal * (-sepVel * (restitution + 1));
+      if (triangle.overrideImpulse) {
+        velocity =
+            triangle.impulseOverride * velocity.length() * triangle.accel;
+      } else {
+        velocity += normal * (-sepVel * (restitution + 1)) * triangle.accel;
+      }
     }
   }
 
