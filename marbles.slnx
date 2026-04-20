@@ -7,6 +7,5 @@
 		<BuildType Name="RelWithDebInfo" />
 		<Platform Name="x64" />
 	</Configurations>
-	<Folder Name="/CMakePredefinedTargets/" />
 	<Project Path="marbles.vcxproj" Id="39dcb00c-e60c-3bfe-b195-8fdc17a91538" />
 </Solution>
