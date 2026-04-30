@@ -145,7 +145,13 @@ optional<vec3> intersectsTriangle(const TriangleCollider &t,
     return {};
   }
 
-  return {t.normal.normalized()};
+  vec3 normal = t.normal.normalized();
+
+  if (t.normal.dot(v) > 0) {
+    return {-normal};
+  }
+
+  return {normal};
 }
 
 const float restitution = 0.0f;
