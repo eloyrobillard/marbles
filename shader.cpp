@@ -135,7 +135,7 @@ void setLight(Shader &shader, Tmpl8::mat4 &view) {
 
   setVec3Uniform(shader, "uCameraPos", view.getTranslation());
 
-  float ambient[3] = {0.1f, 0.1f, 0.1f};
+  float ambient[3] = {0.2f, 0.2f, 0.2f};
   setVec3Uniform(shader, "uAmbientLight", ambient);
 
   float direction[3] = {0.0f, 0.0f, -1.0f};
