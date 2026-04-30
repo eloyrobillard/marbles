@@ -2,7 +2,9 @@
   "version": 1,
   "vertexformat": "PosNormSkinTex",
   "shader": "Skinned",
-  "textures": [],
+  "textures": [
+    "Assets/white.png"
+  ],
   "specularPower": 100.0,
   "rotationEuler": [
     -0.0,
@@ -21,9 +23,9 @@
     18.56159210205078
   ],
   "translation": [
-    104.52429962158203,
+    108.96395111083984,
     14.010497093200684,
-    -93.38848114013672
+    -35.71691131591797
   ],
   "vertices": [
     [

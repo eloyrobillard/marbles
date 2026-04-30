@@ -3,6 +3,8 @@
 Entities::Entities() {
   RegisterEntities(
       {{"assets/ramp1.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
+       {"assets/ramp2.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
+       {"assets/ramp3.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
        {"assets/snake1.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
        {"assets/plane1.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
        {"assets/plane2.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
@@ -11,7 +13,7 @@ Entities::Entities() {
        {"assets/plane5.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
        {"assets/plane6.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
        {"assets/plane7.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
-       {"assets/big_ramp1.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
+       {"assets/plane8.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
        {"assets/canon1.gpmesh", BodyType::Static, 1.03f, true, vec3::up},
        {"assets/sphere.gpmesh", BodyType::Dynamic, 1.0f, false, vec3::zero}});
 }
