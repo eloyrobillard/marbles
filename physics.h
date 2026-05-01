@@ -135,7 +135,7 @@ namespace Physics {
 bool getCollisionImpulse(const SpacePartition &sp,
                          const SphereCollider &collider, vec3 &velocity);
 
-inline float physicsTicksPerSecond = 60.0;
+inline float physicsTicksPerSecond = 120.0;
 inline float physicsDeltaTime = 1.0f / physicsTicksPerSecond;
 } // namespace Physics
 
