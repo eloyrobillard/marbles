@@ -12,12 +12,12 @@
 
 // #define FULLSCREEN
 
-#include "template.h"
 #include "camera.h"
 #include "game.h"
 #include "physics.h"
 #include "renderer.h"
 #include "surface.h"
+#include "template.h"
 #include <corecrt_math.h>
 #include <cstdio>
 #include <fcntl.h>
@@ -302,26 +302,26 @@ int main(int argc, char **argv) {
 
     while (SDL_PollEvent(&event)) {
       switch (event.type) {
-      case SDL_QUIT:
+      case SDL_EVENT_QUIT:
         exitapp = 1;
         break;
-      case SDL_KEYDOWN:
-        if (event.key.keysym.sym == SDLK_ESCAPE) {
+      case SDL_EVENT_KEY_DOWN:
+        if (event.key.key == SDLK_ESCAPE) {
           exitapp = 1;
           // find other keys here: http://sdl.beuc.net/sdl.wiki/SDLKey
         }
-        game->KeyDown(event.key.keysym.scancode);
+        game->KeyDown(event.key.scancode);
         break;
-      case SDL_KEYUP:
-        game->KeyUp(event.key.keysym.scancode);
+      case SDL_EVENT_KEY_UP:
+        game->KeyUp(event.key.scancode);
         break;
-      case SDL_MOUSEMOTION:
+      case SDL_EVENT_MOUSE_MOTION:
         game->MouseMove(event.motion.x, event.motion.y);
         break;
-      case SDL_MOUSEBUTTONUP:
+      case SDL_EVENT_MOUSE_BUTTON_UP:
         game->MouseUp(event.button.button);
         break;
-      case SDL_MOUSEBUTTONDOWN:
+      case SDL_EVENT_MOUSE_BUTTON_DOWN:
         game->MouseDown(event.button.button);
         break;
       default:

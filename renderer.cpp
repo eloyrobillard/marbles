@@ -26,13 +26,11 @@ Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
   SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
 #ifdef FULLSCREEN
-  mWindow =
-      SDL_CreateWindow(TemplateVersion, 100, 100, ScreenWidth, ScreenHeight,
-                       SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL);
+  mWindow = SDL_CreateWindow("Marbles", 100, 100, ScreenWidth, ScreenHeight,
+                             SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL);
 #else
   mWindow =
-      SDL_CreateWindow(TemplateVersion, 100, 100, ScreenWidth, ScreenHeight,
-                       SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL);
+      SDL_CreateWindow("Marbles", ScreenWidth, ScreenHeight, SDL_WINDOW_OPENGL);
 #endif
 
   mGlContext = SDL_GL_CreateContext(mWindow);
@@ -78,7 +76,7 @@ Renderer::~Renderer() {
     Texture::Unload(tex.second->textureID);
   }
 
-  SDL_GL_DeleteContext(mGlContext);
+  SDL_GL_DestroyContext(mGlContext);
   SDL_DestroyWindow(mWindow);
   SDL_Quit();
 }

@@ -44,13 +44,13 @@ public:
 
 private:
   shared_ptr<Surface> screen;
-  std::bitset<SDL_NUM_SCANCODES> keys; // store key states here
-  std::bitset<SDL_NUM_SCANCODES>
+  std::bitset<SDL_SCANCODE_COUNT> keys; // store key states here
+  std::bitset<SDL_SCANCODE_COUNT>
       held; // store key states from the previous tick here
-  std::bitset<SDL_NUM_SCANCODES>
+  std::bitset<SDL_SCANCODE_COUNT>
       pressed; // store key press events here (set to true on key down, reset to
                // false after processing in Tick)
-  std::bitset<SDL_NUM_SCANCODES>
+  std::bitset<SDL_SCANCODE_COUNT>
       released; // store key release events here (set to true on key up, reset
                 // to false after processing in Tick)
   int mousex, mousey;

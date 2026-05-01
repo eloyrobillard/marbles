@@ -1,5 +1,4 @@
 #include "texture.h"
-#include "pch.h"
 
 namespace Texture {
 
