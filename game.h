@@ -55,6 +55,7 @@ private:
                 // to false after processing in Tick)
   int mousex, mousey;
   shared_ptr<FollowCamera> camera;
+  shared_ptr<Renderer> renderer;
   shared_ptr<Entities> entities;
 };
 

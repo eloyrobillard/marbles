@@ -12,12 +12,12 @@
 
 // #define FULLSCREEN
 
+#include "template.h"
 #include "camera.h"
 #include "game.h"
 #include "physics.h"
 #include "renderer.h"
 #include "surface.h"
-#include "template.h"
 #include <corecrt_math.h>
 #include <cstdio>
 #include <fcntl.h>
@@ -241,7 +241,7 @@ int main(int argc, char **argv) {
 
   shared_ptr<Surface> surface =
       std::make_shared<Surface>(ScreenWidth, ScreenHeight);
-  unique_ptr<Renderer> renderer = std::make_unique<Renderer>(surface);
+  shared_ptr<Renderer> renderer = std::make_shared<Renderer>(surface);
 
   shared_ptr<Entities> entities = std::make_shared<Entities>();
   shared_ptr<FollowCamera> camera = std::make_shared<FollowCamera>(
@@ -253,6 +253,7 @@ int main(int argc, char **argv) {
   game = new Game();
   game->SetTarget(surface);
   game->SetCamera(camera);
+  game->SetRenderer(renderer);
   game->SetEntities(entities);
 
   ShowCursor(false);

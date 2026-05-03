@@ -2,10 +2,83 @@
 #include "camera.h"
 #include "shader.h"
 
+// SOURCE: https://lackeyccg.com/glfont.c
+void SDL_GL_Enter2DMode() {
+  glDisable(GL_DEPTH_TEST);
+  glDisable(GL_CULL_FACE);
+  glEnable(GL_TEXTURE_2D);
+
+  /* This allows alpha blending of 2D textures with the scene */
+  glEnable(GL_BLEND);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+}
+
+void SDL_GL_Leave2DMode() {
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
+  glDisable(GL_TEXTURE_2D);
+
+  /* This allows alpha blending of 2D textures with the scene */
+  glDisable(GL_BLEND);
+}
+
+// SOURCE: https://lackeyccg.com/glfont.c
+GLuint SDL_GL_LoadTexture(SDL_Surface *surface, shared_ptr<Surface> &screen,
+                          SDL_FlipMode flip_mode) {
+  int w = screen->GetWidth();
+  int h = screen->GetHeight();
+
+  SDL_Surface *image = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_ARGB32);
+
+  if (image == nullptr) {
+    return 0;
+  }
+
+  /* Save the alpha blending attributes */
+  Uint8 saved_alpha;
+  SDL_BlendMode saved_mode;
+  SDL_GetSurfaceAlphaMod(surface, &saved_alpha);
+  SDL_SetSurfaceAlphaMod(surface, 0xFF);
+  SDL_GetSurfaceBlendMode(surface, &saved_mode);
+  SDL_SetSurfaceBlendMode(surface, SDL_BLENDMODE_NONE);
+
+  /* Copy the surface into the GL texture image */
+  SDL_Rect src;
+  src.x = 0;
+  src.y = 0;
+  src.w = surface->w;
+  src.h = surface->h;
+
+  SDL_Rect dst;
+  dst.x = 0;
+  dst.y = 0;
+  dst.w = surface->w;
+  dst.h = surface->h;
+
+  SDL_BlitSurface(surface, &src, image, &dst);
+  SDL_FlipSurface(image, flip_mode);
+
+  /* Restore the alpha blending attributes */
+  SDL_SetSurfaceAlphaMod(surface, saved_alpha);
+  SDL_SetSurfaceBlendMode(surface, saved_mode);
+
+  /* Create an OpenGL texture for the image */
+  GLuint texture;
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+               image->pixels);
+
+  SDL_DestroySurface(image); /* No longer needed */
+
+  return texture;
+}
+
 Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
   SetProjection(screen);
 
-  printf("application started.\n");
   SDL_Init(SDL_INIT_VIDEO);
 
   // Set OpenGL attributes
@@ -26,7 +99,7 @@ Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
   SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
 #ifdef FULLSCREEN
-  mWindow = SDL_CreateWindow("Marbles", 100, 100, ScreenWidth, ScreenHeight,
+  mWindow = SDL_CreateWindow("Marbles", ScreenWidth, ScreenHeight,
                              SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL);
 #else
   mWindow =
@@ -43,6 +116,7 @@ Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
 
   printf("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
+  mTextShader = GetShader("shaders/text.vert", "shaders/text.frag");
   mMeshShader = GetShader("shaders/basic.vert", "shaders/basic.frag");
   mColliderShader =
       GetShader("shaders/wireframe.vert", "shaders/wireframe.frag");
@@ -76,6 +150,7 @@ Renderer::~Renderer() {
     Texture::Unload(tex.second->textureID);
   }
 
+  TTF_Quit();
   SDL_GL_DestroyContext(mGlContext);
   SDL_DestroyWindow(mWindow);
   SDL_Quit();
@@ -155,6 +230,20 @@ bool Renderer::setupFramebuffers() {
                           -1.0f, 1.0f, 0.0f, 1.0f,  1.0f,  -1.0f,
                           1.0f,  0.0f, 1.0f, 1.0f,  1.0f,  1.0f};
 
+  // setup hud VAO
+  glGenVertexArrays(1, &hudVAO);
+  glGenBuffers(1, &hudVBO);
+  glBindVertexArray(hudVAO);
+  glBindBuffer(GL_ARRAY_BUFFER, hudVBO);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices,
+               GL_STATIC_DRAW);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
+                        (void *)nullptr);
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
+                        (void *)(2 * sizeof(float)));
+
   // setup screen VAO
   glGenVertexArrays(1, &quadVAO);
   glGenBuffers(1, &quadVBO);
@@ -212,12 +301,40 @@ bool Renderer::setupFramebuffers() {
                          screenTexture, 0); // we only need a color buffer
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    cout << "ERROR::FRAMEBUFFER:: Intermediate framebuffer is not complete!\n";
+    cout
+        << "ERROR::FRAMEBUFFER:: Intermediate framebuffer is not complete !\n ";
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // post-processing shader config
   Shader::setActive(mPostShader);
   Shader::setIntUniform(mPostShader, "screenTexture", 0);
+
+  if (!TTF_Init()) {
+    SDL_Log("TTF_Init error: %s\n", SDL_GetError());
+  }
+
+  TTF_Font *font = TTF_OpenFont("assets/fonts/NotoSansCJKjp-VF.ttf", 30);
+
+  if (!font) {
+    SDL_Log("TTF_OpenFont: %s\n", SDL_GetError());
+  }
+
+  TTF_SetFontStyle(font, TTF_STYLE_BOLD);
+
+  // Length can be zero for null-terminated text
+  SDL_Surface *surface = TTF_RenderText_Blended_Wrapped(
+      font, "Left/Right arrows to turn\nSpace to restart", 0,
+      {255, 255, 255, 255}, 0);
+
+  GLuint hudTexture = SDL_GL_LoadTexture(surface, mScreen, SDL_FLIP_VERTICAL);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  SetHUD(hudTexture);
+
+  SDL_DestroySurface(surface);
+  TTF_CloseFont(font);
 
   return (glGetError() == 0);
 }
@@ -226,8 +343,6 @@ void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
                       const vector<DynamicEntity> &de) {
   SetView(mCamera);
 
-  // Enable writing into the depth buffer
-  glDepthMask(GL_TRUE);
   // Clear the color/depth buffer
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -236,6 +351,7 @@ void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
   // Set the clear color
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
   glEnable(GL_DEPTH_TEST);
 
   mat4 viewProj = mView * mProjection;
@@ -289,7 +405,7 @@ void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
     Mesh::Draw(mMeshShader, e.mesh, e.body);
   }
 
-  // draw skybox as last
+  // draw skybox behind scene
   glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when
                           // values are equal to depth buffer's content
   Shader::setActive(mSkyboxShader);
@@ -307,6 +423,18 @@ void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
   glBindVertexArray(0);
   glDepthFunc(GL_LESS); // set depth function back to default
 
+  // finally, draw HUD elements
+  SDL_GL_Enter2DMode();
+  Shader::setActive(mTextShader);
+  glUniform3f(glGetUniformLocation(mTextShader.program, "textColor"), 1.0, 1.0,
+              1.0);
+  glBindVertexArray(hudVAO);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, hudTextures[0]);
+  glDrawArrays(GL_TRIANGLES, 0, 6);
+  glBindVertexArray(0);
+  SDL_GL_Leave2DMode();
+
   // 2. now blit multisampled buffer(s) to normal colorbuffer of intermediate
   // FBO. Image is stored in screenTexture
   glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
@@ -317,9 +445,8 @@ void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
 
   // 3. now render quad with scene's visuals as its texture image
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
-  glDisable(GL_DEPTH_TEST);
 
   // draw Screen quad
   Shader::setActive(mPostShader);

@@ -30,6 +30,8 @@ class Renderer {
   shared_ptr<Surface> mScreen;
   shared_ptr<FollowCamera> mCamera;
 
+  vector<GLuint> hudTextures;
+
   GLuint skyboxTexture;
   GLuint skyboxVAO, skyboxVBO;
   GLuint framebuffer;
@@ -37,7 +39,9 @@ class Renderer {
   GLuint intermediateFBO;
   GLuint screenTexture;
   GLuint quadVAO, quadVBO;
+  GLuint hudVAO, hudVBO;
 
+  Shader::Shader mTextShader;
   Shader::Shader mMeshShader;
   Shader::Shader mColliderShader;
   Shader::Shader mCollisionShader;
@@ -50,6 +54,7 @@ class Renderer {
 public:
   Renderer(const shared_ptr<Surface> &screen);
   ~Renderer();
+  void SetHUD(GLuint texture) { hudTextures.push_back(texture); }
   void Draw3D(float deltaTime, const vector<StaticEntity> &se,
               const vector<DynamicEntity> &de);
   void SetView(const shared_ptr<FollowCamera> &camera);

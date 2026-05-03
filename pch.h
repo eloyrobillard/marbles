@@ -4,6 +4,7 @@
 #include <SDL3/SDL_log.h>
 #include <SDL3/SDL_scancode.h>
 #include <SDL3/SDL_video.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <SOIL/include/SOIL.h>
 #include <algorithm>
 #include <bitset>
