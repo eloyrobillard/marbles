@@ -220,6 +220,19 @@ bool Renderer::setupSkyboxVAO() {
   return (glGetError() == 0);
 }
 
+TTF_Font *TTF_GetFont(const char *fontName, float ptsize,
+                      TTF_FontStyleFlags fontStyleFlags) {
+  TTF_Font *font = TTF_OpenFont(fontName, ptsize);
+
+  if (!font) {
+    SDL_Log("TTF_OpenFont: %s\n", SDL_GetError());
+  }
+
+  TTF_SetFontStyle(font, fontStyleFlags);
+
+  return font;
+}
+
 // SOURCE: https://learnopengl.com/Advanced-OpenGL/Anti-Aliasing
 bool Renderer::setupFramebuffers() {
   // vertex attributes for a quad that fills the entire screen in Normalized
@@ -313,28 +326,24 @@ bool Renderer::setupFramebuffers() {
     SDL_Log("TTF_Init error: %s\n", SDL_GetError());
   }
 
-  TTF_Font *font = TTF_OpenFont("assets/fonts/NotoSansCJKjp-VF.ttf", 30);
-
-  if (!font) {
-    SDL_Log("TTF_OpenFont: %s\n", SDL_GetError());
-  }
-
-  TTF_SetFontStyle(font, TTF_STYLE_BOLD);
+  TTF_Font *font =
+      TTF_GetFont("assets/fonts/NotoSansCJKjp-VF.ttf", 30, TTF_STYLE_BOLD);
 
   // Length can be zero for null-terminated text
   SDL_Surface *surface = TTF_RenderText_Blended_Wrapped(
       font, "Left/Right arrows to turn\nSpace to restart", 0,
       {255, 255, 255, 255}, 0);
 
+  TTF_CloseFont(font);
+
   GLuint hudTexture = SDL_GL_LoadTexture(surface, mScreen, SDL_FLIP_VERTICAL);
+
+  SDL_DestroySurface(surface);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   SetHUD(hudTexture);
-
-  SDL_DestroySurface(surface);
-  TTF_CloseFont(font);
 
   return (glGetError() == 0);
 }
