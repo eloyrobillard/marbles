@@ -5,7 +5,6 @@
 // SOURCE: https://lackeyccg.com/glfont.c
 void SDL_GL_Enter2DMode() {
   glDisable(GL_DEPTH_TEST);
-  glDisable(GL_CULL_FACE);
   glEnable(GL_TEXTURE_2D);
 
   /* This allows alpha blending of 2D textures with the scene */
@@ -15,7 +14,6 @@ void SDL_GL_Enter2DMode() {
 
 void SDL_GL_Leave2DMode() {
   glEnable(GL_DEPTH_TEST);
-  glEnable(GL_CULL_FACE);
   glDisable(GL_TEXTURE_2D);
 
   /* This allows alpha blending of 2D textures with the scene */
