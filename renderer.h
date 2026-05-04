@@ -40,6 +40,7 @@ class Renderer {
   GLuint screenTexture;
   GLuint quadVAO, quadVBO;
   GLuint hudVAO, hudVBO;
+  GLuint mVictoryTexture;
 
   Shader::Shader mTextShader;
   Shader::Shader mMeshShader;
@@ -48,14 +49,14 @@ class Renderer {
   Shader::Shader mSkyboxShader;
   Shader::Shader mPostShader;
 
-  bool mShowVictoryMessage;
+  bool mShowVictoryMessage = false;
 
   bool setupFramebuffers();
   bool setupSkyboxVAO();
 
   void SetView(const shared_ptr<FollowCamera> &camera);
   void SetProjection(const shared_ptr<Surface> &screen);
-  void SetHUD(GLuint texture) { hudTextures.push_back(texture); }
+  void PushHUDTexture(GLuint texture) { hudTextures.push_back(texture); }
   void GetMeshes(const vector<pair<string, BodyType>> &meshList);
   static Shader::Shader GetShader(const char *vert, const char *frag);
 

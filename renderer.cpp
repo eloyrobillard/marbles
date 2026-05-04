@@ -24,7 +24,7 @@ void SDL_GL_Leave2DMode() {
 
 // SOURCE: https://lackeyccg.com/glfont.c
 GLuint SDL_GL_LoadTexture(SDL_Surface *surface, shared_ptr<Surface> &screen,
-                          SDL_FlipMode flip_mode) {
+                          int dst_x, int dst_y, SDL_FlipMode flip_mode) {
   int w = screen->GetWidth();
   int h = screen->GetHeight();
 
@@ -50,8 +50,8 @@ GLuint SDL_GL_LoadTexture(SDL_Surface *surface, shared_ptr<Surface> &screen,
   src.h = surface->h;
 
   SDL_Rect dst;
-  dst.x = 0;
-  dst.y = 0;
+  dst.x = dst_x;
+  dst.y = dst_y;
   dst.w = surface->w;
   dst.h = surface->h;
 
@@ -327,20 +327,34 @@ bool Renderer::setupFramebuffers() {
       TTF_GetFont("assets/fonts/NotoSansCJKjp-VF.ttf", 30, TTF_STYLE_BOLD);
 
   // Length can be zero for null-terminated text
-  SDL_Surface *surface = TTF_RenderText_Blended_Wrapped(
+  SDL_Surface *commandsSurface = TTF_RenderText_Blended_Wrapped(
       font, "Left/Right arrows to turn\nSpace to restart", 0,
       {255, 255, 255, 255}, 0);
 
-  TTF_CloseFont(font);
+  GLuint hudTexture =
+      SDL_GL_LoadTexture(commandsSurface, mScreen, 5, 5, SDL_FLIP_VERTICAL);
 
-  GLuint hudTexture = SDL_GL_LoadTexture(surface, mScreen, SDL_FLIP_VERTICAL);
-
-  SDL_DestroySurface(surface);
+  SDL_DestroySurface(commandsSurface);
 
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-  SetHUD(hudTexture);
+  PushHUDTexture(hudTexture);
+
+  TTF_SetFontSize(font, 200);
+  SDL_Surface *victorySurface = TTF_RenderText_Blended_Wrapped(
+      font, "You win!", 0, {255, 255, 255, 255}, 0);
+
+  TTF_CloseFont(font);
+
+  mVictoryTexture = SDL_GL_LoadTexture(
+      victorySurface, mScreen, (mScreen->GetWidth() - victorySurface->w) >> 1,
+      (mScreen->GetHeight() - victorySurface->h) >> 1, SDL_FLIP_VERTICAL);
+
+  SDL_DestroySurface(victorySurface);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   return (glGetError() == 0);
 }
@@ -438,11 +452,18 @@ void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
     glUniform3f(glGetUniformLocation(mTextShader.program, "textColor"), 1.0,
                 1.0, 1.0);
     glBindVertexArray(hudVAO);
-    for (auto text : hudTextures) {
-      glActiveTexture(GL_TEXTURE0);
-      glBindTexture(GL_TEXTURE_2D, text);
+    glActiveTexture(GL_TEXTURE0);
+
+    if (!mShowVictoryMessage) {
+      for (auto text : hudTextures) {
+        glBindTexture(GL_TEXTURE_2D, text);
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+      }
+    } else {
+      glBindTexture(GL_TEXTURE_2D, mVictoryTexture);
       glDrawArrays(GL_TRIANGLES, 0, 6);
     }
+
     glBindVertexArray(0);
 
     // 2. now blit multisampled buffer(s) to normal colorbuffer of intermediate

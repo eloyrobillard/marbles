@@ -19,7 +19,7 @@ void Game::Tick(float deltaTime) {
     Restart();
   }
 
-  if (entities->GetDynamicEntities()[0].body.position.x > 150.0f) {
+  if (entities->GetDynamicEntities()[0].body.position.x > 200.0f) {
     renderer->ShowVictoryMessage();
   }
 }
