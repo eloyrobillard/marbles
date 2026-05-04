@@ -67,6 +67,7 @@ public:
               const vector<DynamicEntity> &de);
   void SetCamera(const shared_ptr<FollowCamera> &camera);
   void ShowVictoryMessage() { mShowVictoryMessage = true; }
+  void Restart() { mShowVictoryMessage = false; }
 };
 
 #endif

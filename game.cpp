@@ -29,5 +29,6 @@ void Game::Shutdown() {}
 void Game::Restart() {
   entities->Restart();
   camera->Restart(entities->ProvideCameraFollow());
+  renderer->Restart();
 }
 } // namespace Tmpl8
