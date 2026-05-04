@@ -4,6 +4,11 @@
 
 namespace Tmpl8 {
 
+int checkpointID = 0;
+vector<vector<vec3>> checkpoints{
+    {{9.826279640197754, -0.024219999089837074, 0.1309020072221756}},
+    {{53.835, -.45012, -3.5062}}};
+
 void Game::Init() {}
 
 void Game::Tick(float deltaTime) {
@@ -19,15 +24,21 @@ void Game::Tick(float deltaTime) {
     Restart();
   }
 
+  if (entities->GetDynamicEntities()[0].body.position.x > 55.0f) {
+    checkpointID = 1;
+  }
+
   if (entities->GetDynamicEntities()[0].body.position.x > 200.0f) {
     renderer->ShowVictoryMessage();
+    checkpointID = 0;
   }
 }
 
 void Game::Shutdown() {}
 
 void Game::Restart() {
-  entities->Restart();
+  const auto &dynamicEntitiesPos = checkpoints[checkpointID];
+  entities->Restart(dynamicEntitiesPos);
   camera->Restart(entities->ProvideCameraFollow());
   renderer->Restart();
 }

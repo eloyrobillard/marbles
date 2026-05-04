@@ -88,8 +88,10 @@ void Entities::RegisterPlayerRight(float dt) {
   mDynamicEntities[0].body.velocity += right * 4.0f * dt;
 }
 
-void Entities::Restart() {
-  for (int i = 0; i < mDynamicEntities.size(); i++) {
-    mDynamicEntities[i] = mDynamicEntitiesStartingState[i];
+void Entities::Restart(const vector<vec3> &dynamicEntitiesPos) {
+  for (int i = 0; i < dynamicEntitiesPos.size(); i++) {
+    mDynamicEntities[i].body.position = dynamicEntitiesPos[i];
+    mDynamicEntities[i].body.velocity = vec3::zero;
+    mDynamicEntities[i].body.rotational_velocity = vec3::zero;
   }
 }

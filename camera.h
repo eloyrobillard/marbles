@@ -43,9 +43,10 @@ public:
   }
 
   void Restart(const vec3 &target) {
-    mActualPosition = mStartingPosition;
     mVelocity = vec3::zero;
     mTarget = target;
+    // snap to target
+    mActualPosition = mTarget + mIdealOffset;
   }
 };
 

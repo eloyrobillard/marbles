@@ -44,7 +44,7 @@ public:
   void RegisterPlayerForward(float dt);
   void RegisterPlayerLeft(float dt);
   void RegisterPlayerRight(float dt);
-  void Restart();
+  void Restart(const vector<vec3> &dynamicEntitiesPos);
 };
 
 #endif // ENTITIES_H
