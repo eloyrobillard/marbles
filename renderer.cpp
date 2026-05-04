@@ -434,14 +434,18 @@ void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
 
   // finally, draw HUD elements
   SDL_GL_Enter2DMode();
+
   Shader::setActive(mTextShader);
   glUniform3f(glGetUniformLocation(mTextShader.program, "textColor"), 1.0, 1.0,
               1.0);
   glBindVertexArray(hudVAO);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, hudTextures[0]);
-  glDrawArrays(GL_TRIANGLES, 0, 6);
+  for (auto text : hudTextures) {
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, text);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+  }
   glBindVertexArray(0);
+
   SDL_GL_Leave2DMode();
 
   // 2. now blit multisampled buffer(s) to normal colorbuffer of intermediate
