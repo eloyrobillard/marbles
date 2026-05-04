@@ -460,6 +460,7 @@ void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
+  glDisable(GL_DEPTH_TEST);
 
   // draw Screen quad
   Shader::setActive(mPostShader);
