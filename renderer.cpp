@@ -433,39 +433,39 @@ void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
 
   // finally, draw HUD elements
   SDL_GL_Enter2DMode();
+  {
+    Shader::setActive(mTextShader);
+    glUniform3f(glGetUniformLocation(mTextShader.program, "textColor"), 1.0,
+                1.0, 1.0);
+    glBindVertexArray(hudVAO);
+    for (auto text : hudTextures) {
+      glActiveTexture(GL_TEXTURE0);
+      glBindTexture(GL_TEXTURE_2D, text);
+      glDrawArrays(GL_TRIANGLES, 0, 6);
+    }
+    glBindVertexArray(0);
 
-  Shader::setActive(mTextShader);
-  glUniform3f(glGetUniformLocation(mTextShader.program, "textColor"), 1.0, 1.0,
-              1.0);
-  glBindVertexArray(hudVAO);
-  for (auto text : hudTextures) {
+    // 2. now blit multisampled buffer(s) to normal colorbuffer of intermediate
+    // FBO. Image is stored in screenTexture
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateFBO);
+    glBlitFramebuffer(0, 0, mScreen->GetWidth(), mScreen->GetHeight(), 0, 0,
+                      mScreen->GetWidth(), mScreen->GetHeight(),
+                      GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+    // 3. now render quad with scene's visuals as its texture image
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    // draw Screen quad
+    Shader::setActive(mPostShader);
+    glBindVertexArray(quadVAO);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, text);
+    glBindTexture(GL_TEXTURE_2D, screenTexture);
+    // use the now resolved color attachment as the quad's texture
     glDrawArrays(GL_TRIANGLES, 0, 6);
   }
-  glBindVertexArray(0);
-
-  // 2. now blit multisampled buffer(s) to normal colorbuffer of intermediate
-  // FBO. Image is stored in screenTexture
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateFBO);
-  glBlitFramebuffer(0, 0, mScreen->GetWidth(), mScreen->GetHeight(), 0, 0,
-                    mScreen->GetWidth(), mScreen->GetHeight(),
-                    GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-  // 3. now render quad with scene's visuals as its texture image
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT);
-
-  // draw Screen quad
-  Shader::setActive(mPostShader);
-  glBindVertexArray(quadVAO);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, screenTexture);
-  // use the now resolved color attachment as the quad's texture
-  glDrawArrays(GL_TRIANGLES, 0, 6);
-
   SDL_GL_Leave2DMode();
 
   SDL_GL_SwapWindow(mWindow);
