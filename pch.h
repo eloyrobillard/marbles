@@ -59,7 +59,7 @@ using std::vector;
 
 #define ALL(v) (v).begin(), (v).end()
 
-template <typename T> ostream &operator<<(ostream &os, const vector<T> &v) {
-  copy(v.begin(), v.end(), ostream_iterator<T>(os, ", "));
-  return os;
-}
+// template <typename T> ostream &operator<<(ostream &os, const vector<T> &v) {
+//   copy(ALL(v), ostream_iterator<T>(os, ", "));
+//   return os;
+// }
