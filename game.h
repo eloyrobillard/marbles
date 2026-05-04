@@ -3,6 +3,7 @@
 #include "camera.h"
 #include "entities.h"
 #include "pch.h"
+#include "renderer.h"
 
 namespace Tmpl8 {
 
@@ -31,6 +32,7 @@ public:
   } // returns true if the key was released since the last Tick
   void Screenshot();
   void SetCamera(shared_ptr<FollowCamera> &c) { camera = c; }
+  void SetRenderer(shared_ptr<Renderer> &r) { renderer = r; }
   void SetEntities(shared_ptr<Entities> &e) { entities = e; }
   void SetupKeys() {
     // Remember any newly pressed key while keeping the old ones

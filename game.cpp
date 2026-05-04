@@ -18,6 +18,10 @@ void Game::Tick(float deltaTime) {
   if (GetKeyPressed(SDL_SCANCODE_SPACE)) {
     Restart();
   }
+
+  if (entities->GetDynamicEntities()[0].body.position.x > 150.0f) {
+    renderer->ShowVictoryMessage();
+  }
 }
 
 void Game::Shutdown() {}

@@ -48,20 +48,24 @@ class Renderer {
   Shader::Shader mSkyboxShader;
   Shader::Shader mPostShader;
 
+  bool mShowVictoryMessage;
+
   bool setupFramebuffers();
   bool setupSkyboxVAO();
+
+  void SetView(const shared_ptr<FollowCamera> &camera);
+  void SetProjection(const shared_ptr<Surface> &screen);
+  void SetHUD(GLuint texture) { hudTextures.push_back(texture); }
+  void GetMeshes(const vector<pair<string, BodyType>> &meshList);
+  static Shader::Shader GetShader(const char *vert, const char *frag);
 
 public:
   Renderer(const shared_ptr<Surface> &screen);
   ~Renderer();
-  void SetHUD(GLuint texture) { hudTextures.push_back(texture); }
   void Draw3D(float deltaTime, const vector<StaticEntity> &se,
               const vector<DynamicEntity> &de);
-  void SetView(const shared_ptr<FollowCamera> &camera);
-  void SetProjection(const shared_ptr<Surface> &screen);
-  void GetMeshes(const vector<pair<string, BodyType>> &meshList);
-  static Shader::Shader GetShader(const char *vert, const char *frag);
   void SetCamera(const shared_ptr<FollowCamera> &camera);
+  void ShowVictoryMessage() { mShowVictoryMessage = true; }
 };
 
 #endif
