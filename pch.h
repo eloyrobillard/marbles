@@ -57,8 +57,6 @@ using std::tuple;
 using std::unique_ptr;
 using std::vector;
 
-#define v(T) vector<T>
-#define vv(T) v(v(T))
 #define ALL(v) (v).begin(), (v).end()
 
 template <typename T> ostream &operator<<(ostream &os, const vector<T> &v) {

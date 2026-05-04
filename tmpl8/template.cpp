@@ -17,13 +17,11 @@
 #include "game.h"
 #include "physics.h"
 #include "renderer.h"
-#include "surface.h"
 #include <corecrt_math.h>
 #include <cstdio>
 #include <fcntl.h>
 #include <io.h>
 #include <iostream>
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
 namespace Tmpl8 {
