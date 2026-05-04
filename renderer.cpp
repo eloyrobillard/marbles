@@ -211,8 +211,7 @@ bool Renderer::setupSkyboxVAO() {
   glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices,
                GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float),
-                        (void *)nullptr);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
 
   Shader::setActive(mSkyboxShader);
   Shader::setIntUniform(mSkyboxShader, "skybox", 0);
@@ -251,8 +250,7 @@ bool Renderer::setupFramebuffers() {
   glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices,
                GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
-                        (void *)nullptr);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
                         (void *)(2 * sizeof(float)));
@@ -265,8 +263,7 @@ bool Renderer::setupFramebuffers() {
   glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices,
                GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
-                        (void *)nullptr);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
                         (void *)(2 * sizeof(float)));
@@ -406,10 +403,12 @@ void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
 
   Shader::setLight(mMeshShader, mView);
 
+  // draw static entities
   for (const auto &e : se) {
     Mesh::Draw(mMeshShader, e.mesh, e.body);
   }
 
+  // draw dynamic entities
   for (const auto &e : de) {
     Mesh::Draw(mMeshShader, e.mesh, e.body);
   }
@@ -446,8 +445,6 @@ void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
   }
   glBindVertexArray(0);
 
-  SDL_GL_Leave2DMode();
-
   // 2. now blit multisampled buffer(s) to normal colorbuffer of intermediate
   // FBO. Image is stored in screenTexture
   glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
@@ -460,7 +457,6 @@ void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
-  glDisable(GL_DEPTH_TEST);
 
   // draw Screen quad
   Shader::setActive(mPostShader);
@@ -469,6 +465,8 @@ void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
   glBindTexture(GL_TEXTURE_2D, screenTexture);
   // use the now resolved color attachment as the quad's texture
   glDrawArrays(GL_TRIANGLES, 0, 6);
+
+  SDL_GL_Leave2DMode();
 
   SDL_GL_SwapWindow(mWindow);
 }
