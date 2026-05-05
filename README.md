@@ -6,7 +6,7 @@ This concept is loosely based around the word "transform", as in transforming gr
 
 ## How to start the game
 
-Using Visual Studio, the game should be playable right away by pressing F5 in both Debug (featuring a visualization of collisions) and Release mode.
+After opening `marbles.slnx` in Visual Studio, the game should be playable right away by pressing F5 in both Debug and Release modes.
 
 ## How to play
 
