@@ -1,6 +1,7 @@
 #include "renderer.h"
 #include "camera.h"
 #include "shader.h"
+#include "template.h"
 
 // SOURCE: https://lackeyccg.com/glfont.c
 void SDL_GL_Enter2DMode() {

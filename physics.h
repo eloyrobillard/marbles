@@ -2,12 +2,12 @@
 #define _PHYSICS_H
 #pragma once
 
+#include "maths.hpp"
 #include "pch.h"
-#include "template.h"
 
-using Tmpl8::mat4;
-using Tmpl8::quat;
-using Tmpl8::vec3;
+using Maths::mat4;
+using Maths::quat;
+using Maths::vec3;
 
 const vec3 grav_force = vec3(0.0f, 0.0f, -9.81f);
 

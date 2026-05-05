@@ -1,6 +1,6 @@
 #include "shader.h"
+#include "maths.hpp"
 #include "pch.h"
-#include "template.h"
 
 bool isCompiled(GLuint shader) {
   // Query the compile status
@@ -100,7 +100,7 @@ void Shader::Unload() const {
 }
 
 void Shader::setMatrixUniform(const char *name,
-                              const Tmpl8::mat4 &matrix) const {
+                              const Maths::mat4 &matrix) const {
   // Find the uniform by this name
   GLuint loc = glGetUniformLocation(program, name);
   // Send the matrix data to the uniform
@@ -122,8 +122,8 @@ void Shader::setVec3Uniform(const char *name, const float values[3]) const {
   glUniform3fv(static_cast<GLint>(loc), 1, values);
 }
 
-void Shader::setLight(Tmpl8::mat4 &view) const {
-  Tmpl8::mat4 camera_pos = view;
+void Shader::setLight(mat4 &view) const {
+  mat4 camera_pos = view;
   // Camera position is from inverted view
   camera_pos.invert();
 

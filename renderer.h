@@ -3,9 +3,9 @@
 
 #include "camera.h"
 #include "entities.h"
+#include "maths.hpp"
 #include "pch.h"
 #include "surface.h"
-#include "template.h"
 
 #define GLEW_BUILD
 extern "C" {
@@ -13,8 +13,8 @@ extern "C" {
 }
 #include "gl.h"
 
-using Tmpl8::mat4;
-using Tmpl8::PI;
+using Maths::mat4;
+using Maths::PI;
 using Tmpl8::Surface;
 
 class Renderer {

@@ -1,13 +1,14 @@
 #ifndef ENTITIES_H
 #define ENTITIES_H
 
+#include "maths.hpp"
 #include "mesh.h"
 #include "pch.h"
 #include "physics.h"
-#include "template.h"
+#include "shader.h"
 
-using Tmpl8::quat;
-using Tmpl8::vec3;
+using Maths::quat;
+using Maths::vec3;
 
 inline stack<GLuint> gTo_render_as_collided;
 inline vector<TriangleCollider> gCurrent_partition;

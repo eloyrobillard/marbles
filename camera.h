@@ -2,12 +2,12 @@
 #define CAMERA_H
 #pragma once
 
+#include "maths.hpp"
 #include "physics.h"
-#include "template.h"
 
-using Tmpl8::mat4;
-using Tmpl8::vec3;
-using Tmpl8::vec4;
+using Maths::mat4;
+using Maths::vec3;
+using Maths::vec4;
 
 class FollowCamera {
   vec3 mStartingPosition;

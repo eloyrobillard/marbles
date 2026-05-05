@@ -17,6 +17,7 @@
     <ClCompile Include="physics.cpp" />
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="entities.cpp" />
+    <ClCompile Include="maths.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\FreeImage\inc\FreeImage.h">
@@ -245,6 +246,7 @@
     <ClInclude Include="physics.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="entities.h" />
+    <ClInclude Include="maths.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

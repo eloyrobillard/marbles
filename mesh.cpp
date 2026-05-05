@@ -1,13 +1,13 @@
 #include "mesh.h"
+#include "maths.hpp"
 #include "pch.h"
 #include "physics.h"
 #include "rapidjson/document.h"
-#include "template.h"
 #include "texture.h"
 
-using Tmpl8::mat4;
-using Tmpl8::vec3;
-using Tmpl8::vec4;
+using Maths::mat4;
+using Maths::vec3;
+using Maths::vec4;
 
 tuple<GLuint, GLuint, GLuint>
 createVertexArray(const float *verts, uint numVerts, const uint *indices,
