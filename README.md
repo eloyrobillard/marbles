@@ -51,6 +51,8 @@ Making ramps and gutters in Blender3D:
 - making a curved road/ramp: [BlenderVitals](https://www.youtube.com/watch?v=-v-_vubDXog)
 - making a gutter: [PIXXO 3D](https://youtu.be/i0hK-sqxWS0)
 
+Render frames debugging: [RenderDoc](https://renderdoc.org/)
+
 ### Libraries/Templates
 
 - [SDL3 3.4.4](https://github.com/libsdl-org/SDL)
