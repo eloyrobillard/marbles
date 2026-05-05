@@ -59,8 +59,8 @@ void Entities::RegisterEntities(
         mDynamicEntities.emplace_back(de);
         mDynamicEntitiesStartingState.emplace_back(de);
       } else {
-        auto triangles = Mesh::generateTriangleCollidersFromMesh(
-            mesh, body, accel, override_impulse, impulse_override);
+        auto triangles = mesh.generateTriangleCollidersFromMesh(
+            body, accel, override_impulse, impulse_override);
         gSP.populate(triangles);
 
         mStaticEntities.emplace_back(mesh, body);

@@ -6,8 +6,7 @@
 #include "template.h"
 #include "texture.h"
 
-namespace Mesh {
-typedef struct {
+class Mesh {
   vector<float> verts;
   vector<unsigned int> indices;
   GLuint vertexBuffer;
@@ -17,16 +16,17 @@ typedef struct {
   vector<vec3> vert_coord;
   vector<vec3> vert_normal;
   vector<std::tuple<uint, uint, uint>> idx_triplets;
-} Mesh;
 
-optional<pair<Mesh, Body>> Load(const std::string &filename);
-void Draw(Shader::Shader &shader, const Mesh &mesh, const Body &body);
-void deleteVertexArray(GLuint vertexBuffer, GLuint indexBuffer,
-                       GLuint vertexArray);
-vector<TriangleCollider>
-generateTriangleCollidersFromMesh(Mesh &mesh, Body &body, float accel,
-                                  bool override_impulse, vec3 impulse_override);
+  void deleteVertexArray() const;
+  [[nodiscard]] optional<Texture::Texture *> lookTextureUp(size_t index) const;
 
-} // namespace Mesh
+public:
+  void Draw(Shader::Shader &shader, const Body &body) const;
+  static optional<pair<Mesh, Body>> Load(const std::string &filename);
+  vector<TriangleCollider>
+  generateTriangleCollidersFromMesh(Body &body, float accel,
+                                    bool override_impulse,
+                                    vec3 impulse_override) const;
+}; // namespace Mesh
 
 #endif // MESH_H

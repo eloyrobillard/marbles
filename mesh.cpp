@@ -9,8 +9,6 @@ using Tmpl8::mat4;
 using Tmpl8::vec3;
 using Tmpl8::vec4;
 
-namespace Mesh {
-
 tuple<GLuint, GLuint, GLuint>
 createVertexArray(const float *verts, uint numVerts, const uint *indices,
                   uint numIndices, size_t vertSize) {
@@ -23,30 +21,33 @@ createVertexArray(const float *verts, uint numVerts, const uint *indices,
   GLuint vertexBuffer = 0;
   glGenBuffers(1, &vertexBuffer);
   glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-  glBufferData(GL_ARRAY_BUFFER, numVerts * vertSize * sizeof(float), verts,
+  glBufferData(GL_ARRAY_BUFFER,
+               static_cast<int>(numVerts * vertSize * sizeof(float)), verts,
                GL_STATIC_DRAW);
 
   // Create index buffer
   GLuint indexBuffer = 0;
   glGenBuffers(1, &indexBuffer);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint), indices,
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+               static_cast<int>(numIndices * sizeof(uint)), indices,
                GL_STATIC_DRAW);
 
   // Specify the vertex attributes
   // (For now, assume one vertex format)
   // Position is 3 floats
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertSize * sizeof(float),
-                        nullptr);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
+                        static_cast<int>(vertSize * sizeof(float)), nullptr);
   // Normal is 3 floats
   glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, vertSize * sizeof(float),
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
+                        static_cast<int>(vertSize * sizeof(float)),
                         reinterpret_cast<void *>(sizeof(float) * 3));
   // Texture coordinates is 2 floats
   glEnableVertexAttribArray(2);
   glVertexAttribPointer(
-      2, 2, GL_FLOAT, GL_FALSE, vertSize * sizeof(float),
+      2, 2, GL_FLOAT, GL_FALSE, static_cast<int>(vertSize * sizeof(float)),
       reinterpret_cast<void *>(sizeof(float) * (vertSize - 2)));
 
   return {vertexBuffer, indexBuffer, vertexArray};
@@ -66,22 +67,24 @@ tuple<GLuint, GLuint, GLuint> createVertexArrayVertsOnly(const float *verts,
   GLuint vertexBuffer = 0;
   glGenBuffers(1, &vertexBuffer);
   glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
-  glBufferData(GL_ARRAY_BUFFER, numVerts * vertSize * sizeof(float), verts,
+  glBufferData(GL_ARRAY_BUFFER,
+               static_cast<int>(numVerts * vertSize * sizeof(float)), verts,
                GL_STATIC_DRAW);
 
   // Create index buffer
   GLuint indexBuffer = 0;
   glGenBuffers(1, &indexBuffer);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, numIndices * sizeof(uint), indices,
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+               static_cast<int>(numIndices * sizeof(uint)), indices,
                GL_STATIC_DRAW);
 
   // Specify the vertex attributes
   // (For now, assume one vertex format)
   // Position is 3 floats
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, vertSize * sizeof(float),
-                        nullptr);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
+                        static_cast<int>(vertSize * sizeof(float)), nullptr);
 
   return {vertexBuffer, indexBuffer, vertexArray};
 }
@@ -103,7 +106,7 @@ optional<Texture::Texture *> GetTexture(Mesh &mesh,
   }
 }
 
-optional<pair<Mesh, Body>> Load(const std::string &filename) {
+optional<pair<Mesh, Body>> Mesh::Load(const std::string &filename) {
   Mesh mesh{};
   Body body{};
 
@@ -213,15 +216,15 @@ optional<pair<Mesh, Body>> Load(const std::string &filename) {
       continue;
     }
 
-    float coord0 = vert[0].GetDouble();
-    float coord1 = vert[1].GetDouble();
-    float coord2 = vert[2].GetDouble();
+    auto coord0 = static_cast<float>(vert[0].GetDouble());
+    auto coord1 = static_cast<float>(vert[1].GetDouble());
+    auto coord2 = static_cast<float>(vert[2].GetDouble());
 
     vert_coord.emplace_back(coord0, coord1, coord2);
 
-    float norm0 = vert[3].GetDouble();
-    float norm1 = vert[4].GetDouble();
-    float norm2 = vert[5].GetDouble();
+    auto norm0 = static_cast<float>(vert[3].GetDouble());
+    auto norm1 = static_cast<float>(vert[4].GetDouble());
+    auto norm2 = static_cast<float>(vert[5].GetDouble());
 
     vert_norm.emplace_back(norm0, norm1, norm2);
 
@@ -283,9 +286,9 @@ optional<pair<Mesh, Body>> Load(const std::string &filename) {
   return {{mesh, body}};
 }
 
-optional<Texture::Texture *> lookTextureUp(const Mesh &mesh, size_t index) {
-  if (index < mesh.textures.size())
-    return {mesh.textures[index]};
+optional<Texture::Texture *> Mesh::lookTextureUp(size_t index) const {
+  if (index < textures.size())
+    return {textures[index]};
   else
     return {};
 }
@@ -298,20 +301,21 @@ mat4 getWorldTransform(const Body &body) {
   return scale * rotation * translation;
 }
 
-void Draw(Shader::Shader &shader, const Mesh &mesh, const Body &body) {
+void Mesh::Draw(Shader::Shader &shader, const Body &body) const {
   // Set world transform
   mat4 worldTransform = getWorldTransform(body);
 
   Shader::setMatrixUniform(shader, "uWorldTransform", worldTransform);
 
-  auto maybe_tex = lookTextureUp(mesh, 0);
+  auto maybe_tex = lookTextureUp(0);
   if (maybe_tex.has_value())
     Texture::SetActive(maybe_tex.value()->textureID);
 
-  Shader::setVerticesActive(mesh.vertexArray);
+  Shader::setVerticesActive(vertexArray);
 
   // Draw triangles
-  glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);
+  glDrawElements(GL_TRIANGLES, static_cast<int>(indices.size()),
+                 GL_UNSIGNED_INT, nullptr);
 
   GLenum err_code = glGetError();
   while (GL_NO_ERROR != err_code) {
@@ -320,30 +324,29 @@ void Draw(Shader::Shader &shader, const Mesh &mesh, const Body &body) {
   }
 }
 
-void deleteVertexArray(GLuint vertexBuffer, GLuint indexBuffer,
-                       GLuint vertexArray) {
+void Mesh::deleteVertexArray() const {
   glDeleteBuffers(1, &vertexBuffer);
   glDeleteBuffers(1, &indexBuffer);
   glDeleteBuffers(1, &vertexArray);
 }
 
 vector<TriangleCollider>
-generateTriangleCollidersFromMesh(Mesh &mesh, Body &body, float accel,
-                                  bool override_impulse,
-                                  vec3 impulse_override) {
+Mesh::generateTriangleCollidersFromMesh(Body &body, float accel,
+                                        bool override_impulse,
+                                        vec3 impulse_override) const {
   vector<TriangleCollider> triangles;
-  triangles.reserve(mesh.idx_triplets.size());
+  triangles.reserve(idx_triplets.size());
 
   const mat4 worldTransform = getWorldTransform(body);
 
-  for (const auto &[i0, i1, i2] : mesh.idx_triplets) {
-    auto a = vec3(vec4(mesh.vert_coord[i0], 1.0f) * worldTransform);
-    auto b = vec3(vec4(mesh.vert_coord[i1], 1.0f) * worldTransform);
-    auto c = vec3(vec4(mesh.vert_coord[i2], 1.0f) * worldTransform);
+  for (const auto &[i0, i1, i2] : idx_triplets) {
+    auto a = vec3(vec4(vert_coord[i0], 1.0f) * worldTransform);
+    auto b = vec3(vec4(vert_coord[i1], 1.0f) * worldTransform);
+    auto c = vec3(vec4(vert_coord[i2], 1.0f) * worldTransform);
 
-    auto n0 = mesh.vert_normal[i0];
-    auto n1 = mesh.vert_normal[i1];
-    auto n2 = mesh.vert_normal[i2];
+    auto n0 = vert_normal[i0];
+    auto n1 = vert_normal[i1];
+    auto n2 = vert_normal[i2];
 
     mat4 rot = mat4::CreateFromQuaternion(body.rotation);
 
@@ -358,13 +361,9 @@ generateTriangleCollidersFromMesh(Mesh &mesh, Body &body, float accel,
     auto [vertexBuffer, indexBuffer, vertexArray] =
         createVertexArrayVertsOnly(verts, 3, indices, 3, 3 /* Position only */);
 
-    // NOTE: leaving constructor so clangd reports type errors
-    triangles.emplace_back(
-        TriangleCollider(average_normal, a, b, c, accel, override_impulse,
-                         impov, vertexBuffer, indexBuffer, vertexArray));
+    triangles.emplace_back(average_normal, a, b, c, accel, override_impulse,
+                           impov, vertexBuffer, indexBuffer, vertexArray);
   }
 
   return triangles;
 }
-
-} // namespace Mesh

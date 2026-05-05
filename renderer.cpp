@@ -415,12 +415,12 @@ void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
 
   // draw static entities
   for (const auto &e : se) {
-    Mesh::Draw(mMeshShader, e.mesh, e.body);
+    e.mesh.Draw(mMeshShader, e.body);
   }
 
   // draw dynamic entities
   for (const auto &e : de) {
-    Mesh::Draw(mMeshShader, e.mesh, e.body);
+    e.mesh.Draw(mMeshShader, e.body);
   }
 
   // draw skybox behind scene

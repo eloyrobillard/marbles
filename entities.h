@@ -15,13 +15,13 @@ inline vector<TriangleCollider> gCurrent_partition;
 enum class BodyType { Dynamic, Static };
 
 struct DynamicEntity {
-  Mesh::Mesh mesh;
+  Mesh mesh;
   Body body;
   SphereCollider collider;
 };
 
 struct StaticEntity {
-  Mesh::Mesh mesh;
+  Mesh mesh;
   Body body;
 };
 
