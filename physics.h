@@ -5,6 +5,7 @@
 #include "pch.h"
 #include "template.h"
 
+using Tmpl8::mat4;
 using Tmpl8::quat;
 using Tmpl8::vec3;
 
@@ -64,6 +65,14 @@ struct Body {
   quat rotation;
   vec3 rotational_velocity;
   vector<Collider> colliders;
+
+  [[nodiscard]] mat4 getWorldTransform() const {
+    mat4 s = mat4::CreateScale(scale);
+    mat4 r = mat4::CreateFromQuaternion(rotation);
+    mat4 t = mat4::CreateTranslation(position);
+
+    return s * r * t;
+  }
 };
 
 class SpacePartition {

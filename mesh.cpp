@@ -293,17 +293,9 @@ optional<Texture::Texture *> Mesh::lookTextureUp(size_t index) const {
     return {};
 }
 
-mat4 getWorldTransform(const Body &body) {
-  mat4 scale = mat4::CreateScale(body.scale);
-  mat4 rotation = mat4::CreateFromQuaternion(body.rotation);
-  mat4 translation = mat4::CreateTranslation(body.position);
-
-  return scale * rotation * translation;
-}
-
 void Mesh::Draw(Shader::Shader &shader, const Body &body) const {
   // Set world transform
-  mat4 worldTransform = getWorldTransform(body);
+  mat4 worldTransform = body.getWorldTransform();
 
   Shader::setMatrixUniform(shader, "uWorldTransform", worldTransform);
 
@@ -337,7 +329,7 @@ Mesh::generateTriangleCollidersFromMesh(Body &body, float accel,
   vector<TriangleCollider> triangles;
   triangles.reserve(idx_triplets.size());
 
-  const mat4 worldTransform = getWorldTransform(body);
+  const mat4 worldTransform = body.getWorldTransform();
 
   for (const auto &[i0, i1, i2] : idx_triplets) {
     auto a = vec3(vec4(vert_coord[i0], 1.0f) * worldTransform);
