@@ -1,12 +1,6 @@
-#include <SDL_log.h>
-#include <fstream>
-#include <sstream>
-
-#include "pch.h"
 #include "shader.h"
+#include "pch.h"
 #include "template.h"
-
-namespace Shader {
 
 bool isCompiled(GLuint shader) {
   // Query the compile status
@@ -74,14 +68,14 @@ void set_shader_program_active(GLuint shaderProgram) {
   glUseProgram(shaderProgram);
 }
 
-Shader Load(const std::string &vertName, const std::string &fragName) {
-  Shader shader;
+optional<Shader> Shader::Load(const std::string &vertName,
+                              const std::string &fragName) {
+  Shader shader{};
 
   // Compile vertex and fragment shaders
   if (!compile(vertName, GL_VERTEX_SHADER, shader.vertexShader) ||
       !compile(fragName, GL_FRAGMENT_SHADER, shader.fragmentShader)) {
-    shader.isValid = false;
-    return shader;
+    return {};
   }
 
   // Now create a shader program that
@@ -92,64 +86,62 @@ Shader Load(const std::string &vertName, const std::string &fragName) {
   glLinkProgram(shader.program);
 
   // Verify that the program linked successfully
-  shader.isValid = programIsValid(shader.program);
+  if (programIsValid(shader.program)) {
+    return {shader};
+  }
 
-  return shader;
+  return {};
 }
 
-void Unload(Shader &shader) {
-  glDeleteProgram(shader.program);
-  glDeleteShader(shader.vertexShader);
-  glDeleteShader(shader.fragmentShader);
+void Shader::Unload() const {
+  glDeleteProgram(program);
+  glDeleteShader(vertexShader);
+  glDeleteShader(fragmentShader);
 }
 
-void setActive(Shader &shader) { glUseProgram(shader.program); }
-
-void setMatrixUniform(Shader &shader, const char *name,
-                      const Tmpl8::mat4 &matrix) {
+void Shader::setMatrixUniform(const char *name,
+                              const Tmpl8::mat4 &matrix) const {
   // Find the uniform by this name
-  GLuint loc = glGetUniformLocation(shader.program, name);
+  GLuint loc = glGetUniformLocation(program, name);
   // Send the matrix data to the uniform
-  glUniformMatrix4fv(loc, 1, GL_TRUE, matrix.cell);
+  glUniformMatrix4fv(static_cast<GLint>(loc), 1, GL_TRUE, matrix.cell);
 }
 
-void setIntUniform(Shader &shader, const char *name, int value) {
-  GLuint loc = glGetUniformLocation(shader.program, name);
-  glUniform1i(loc, value);
+void Shader::setIntUniform(const char *name, int value) const {
+  GLuint loc = glGetUniformLocation(program, name);
+  glUniform1i(static_cast<GLint>(loc), value);
 }
 
-void setFloatUniform(Shader &shader, const char *name, const float value) {
-  GLuint loc = glGetUniformLocation(shader.program, name);
-  glUniform1f(loc, value);
+void Shader::setFloatUniform(const char *name, const float value) const {
+  GLuint loc = glGetUniformLocation(program, name);
+  glUniform1f(static_cast<GLint>(loc), value);
 }
 
-void setVec3Uniform(Shader &shader, const char *name, const float values[3]) {
-  GLuint loc = glGetUniformLocation(shader.program, name);
-  glUniform3fv(loc, 1, values);
+void Shader::setVec3Uniform(const char *name, const float values[3]) const {
+  GLuint loc = glGetUniformLocation(program, name);
+  glUniform3fv(static_cast<GLint>(loc), 1, values);
 }
 
-void setLight(Shader &shader, Tmpl8::mat4 &view) {
+void Shader::setLight(Tmpl8::mat4 &view) const {
   Tmpl8::mat4 camera_pos = view;
   // Camera position is from inverted view
   camera_pos.invert();
 
-  setVec3Uniform(shader, "uCameraPos", view.getTranslation());
+  setVec3Uniform("uCameraPos", view.getTranslation());
 
   float ambient[3] = {0.2f, 0.2f, 0.2f};
-  setVec3Uniform(shader, "uAmbientLight", ambient);
+  setVec3Uniform("uAmbientLight", ambient);
 
   float direction[3] = {0.0f, 0.0f, -1.0f};
-  setVec3Uniform(shader, "uDirLight.direction", direction);
+  setVec3Uniform("uDirLight.direction", direction);
 
   float diffuse[3] = {1.0f, 1.0f, 1.0f};
-  setVec3Uniform(shader, "uDirLight.diffuseColor", diffuse);
+  setVec3Uniform("uDirLight.diffuseColor", diffuse);
 
   float specular[3] = {1.0f, 1.0f, 1.0f};
-  setVec3Uniform(shader, "uDirLight.specularColor", specular);
+  setVec3Uniform("uDirLight.specularColor", specular);
 
   // Strength of shine
   float specPower = 32.0f;
-  setFloatUniform(shader, "uSpecPower", specPower);
+  setFloatUniform("uSpecPower", specPower);
 }
-
-} // namespace Shader

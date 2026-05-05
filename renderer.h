@@ -12,13 +12,10 @@ extern "C" {
 #include "glew.h"
 }
 #include "gl.h"
-#include "wglext.h"
 
 using Tmpl8::mat4;
 using Tmpl8::PI;
 using Tmpl8::Surface;
-
-typedef BOOL(APIENTRY *PFNWGLSWAPINTERVALFARPROC)(int);
 
 class Renderer {
   mat4 mView;
@@ -42,12 +39,12 @@ class Renderer {
   GLuint hudVAO, hudVBO;
   GLuint mVictoryTexture;
 
-  Shader::Shader mTextShader;
-  Shader::Shader mMeshShader;
-  Shader::Shader mColliderShader;
-  Shader::Shader mCollisionShader;
-  Shader::Shader mSkyboxShader;
-  Shader::Shader mPostShader;
+  Shader mTextShader;
+  Shader mMeshShader;
+  Shader mColliderShader;
+  Shader mCollisionShader;
+  Shader mSkyboxShader;
+  Shader mPostShader;
 
   bool mShowVictoryMessage = false;
 
@@ -58,7 +55,7 @@ class Renderer {
   void SetProjection(const shared_ptr<Surface> &screen);
   void PushHUDTexture(GLuint texture) { hudTextures.push_back(texture); }
   void GetMeshes(const vector<pair<string, BodyType>> &meshList);
-  static Shader::Shader GetShader(const char *vert, const char *frag);
+  static Shader GetShader(const char *vert, const char *frag);
 
 public:
   Renderer(const shared_ptr<Surface> &screen);

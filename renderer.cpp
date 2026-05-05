@@ -138,9 +138,12 @@ void Renderer::SetCamera(const shared_ptr<FollowCamera> &camera) {
 }
 
 Renderer::~Renderer() {
-  Shader::Unload(mMeshShader);
-  Shader::Unload(mColliderShader);
-  Shader::Unload(mCollisionShader);
+  mMeshShader.Unload();
+  mColliderShader.Unload();
+  mCollisionShader.Unload();
+  mTextShader.Unload();
+  mPostShader.Unload();
+  mSkyboxShader.Unload();
 
   for (auto &tex : Texture::gAllTextures) {
     Texture::Unload(tex.second->textureID);
@@ -208,9 +211,6 @@ bool Renderer::setupSkyboxVAO() {
                GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-
-  Shader::setActive(mSkyboxShader);
-  Shader::setIntUniform(mSkyboxShader, "skybox", 0);
 
   return (glGetError() == 0);
 }
@@ -312,8 +312,8 @@ bool Renderer::setupFramebuffers() {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // post-processing shader config
-  Shader::setActive(mPostShader);
-  Shader::setIntUniform(mPostShader, "screenTexture", 0);
+  mPostShader.setActive();
+  mPostShader.setIntUniform("screenTexture", 0);
 
   if (!TTF_Init()) {
     SDL_Log("TTF_Init error: %s\n", SDL_GetError());
@@ -374,9 +374,9 @@ void Renderer::Draw3D(float deltaTime, const vector<Entity> &se,
 
 #ifdef _DEBUG
   // Visualize collisions
-  Shader::setActive(mCollisionShader);
+  mCollisionShader.setActive();
 
-  Shader::setMatrixUniform(mCollisionShader, "uViewProj", viewProj);
+  mCollisionShader.setMatrixUniform("uViewProj", viewProj);
 
   while (!gTo_render_as_collided.empty()) {
     Shader::setVerticesActive(gTo_render_as_collided.top());
@@ -388,9 +388,9 @@ void Renderer::Draw3D(float deltaTime, const vector<Entity> &se,
   }
 
   // Visualize triangle colliders as a wireframe
-  Shader::setActive(mColliderShader);
+  mColliderShader.setActive();
 
-  Shader::setMatrixUniform(mColliderShader, "uViewProj", viewProj);
+  mColliderShader.setMatrixUniform("uViewProj", viewProj);
 
   // Turn on wireframe mode
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -407,11 +407,11 @@ void Renderer::Draw3D(float deltaTime, const vector<Entity> &se,
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 #endif // _DEBUG
 
-  Shader::setActive(mMeshShader);
+  mMeshShader.setActive();
 
-  Shader::setMatrixUniform(mMeshShader, "uViewProj", viewProj);
+  mMeshShader.setMatrixUniform("uViewProj", viewProj);
 
-  Shader::setLight(mMeshShader, mView);
+  mMeshShader.setLight(mView);
 
   // draw static entities
   for (const auto &e : se) {
@@ -426,12 +426,11 @@ void Renderer::Draw3D(float deltaTime, const vector<Entity> &se,
   // draw skybox behind scene
   glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when
                           // values are equal to depth buffer's content
-  Shader::setActive(mSkyboxShader);
-  Shader::setMatrixUniform(mSkyboxShader, "view",
-                           mat4::CreateLookAtSkybox(mCamera->mActualPosition,
-                                                    mCamera->mTarget,
-                                                    mCamera->mUp));
-  Shader::setMatrixUniform(mSkyboxShader, "projection", mProjection);
+  mSkyboxShader.setActive();
+  mSkyboxShader.setMatrixUniform(
+      "view", mat4::CreateLookAtSkybox(mCamera->mActualPosition,
+                                       mCamera->mTarget, mCamera->mUp));
+  mSkyboxShader.setMatrixUniform("projection", mProjection);
 
   // skybox cube
   glBindVertexArray(skyboxVAO);
@@ -444,9 +443,9 @@ void Renderer::Draw3D(float deltaTime, const vector<Entity> &se,
   // finally, draw HUD elements
   SDL_GL_Enter2DMode();
   {
-    Shader::setActive(mTextShader);
-    glUniform3f(glGetUniformLocation(mTextShader.program, "textColor"), 1.0,
-                1.0, 1.0);
+    mTextShader.setActive();
+    const float textColor[3] = {1.0f, 1.0f, 1.0f};
+    mTextShader.setVec3Uniform("textColor", textColor);
     glBindVertexArray(hudVAO);
     glActiveTexture(GL_TEXTURE0);
 
@@ -476,7 +475,7 @@ void Renderer::Draw3D(float deltaTime, const vector<Entity> &se,
     glClear(GL_COLOR_BUFFER_BIT);
 
     // draw Screen quad
-    Shader::setActive(mPostShader);
+    mPostShader.setActive();
     glBindVertexArray(quadVAO);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, screenTexture);
@@ -499,15 +498,15 @@ void Renderer::SetProjection(const shared_ptr<Surface> &screen) {
       static_cast<float>(screen->GetHeight()), 1.0f, 10000.0f);
 }
 
-Shader::Shader Renderer::GetShader(const char *vert, const char *frag) {
+Shader Renderer::GetShader(const char *vert, const char *frag) {
   // Collider shader
-  Shader::Shader shader = Shader::Load(vert, frag);
+  optional<Shader> maybe_shader = Shader::Load(vert, frag);
 
-  if (!shader.isValid) {
+  if (!maybe_shader.has_value()) {
     SDL_Log("Failed to load shader: %s", vert);
   }
 
-  Shader::setActive(shader);
+  maybe_shader.value().setActive();
 
-  return shader;
+  return maybe_shader.value_or(Shader());
 }

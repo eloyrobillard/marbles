@@ -18,7 +18,7 @@ enum class BodyType { Dynamic, Static };
 // Making Entity a struct to make it clear mesh and body can vary independently
 struct Entity {
   Entity(Mesh mesh, Body body) : mesh(std::move(mesh)), body(std::move(body)) {}
-  void Draw(Shader::Shader &shader) const;
+  void Draw(Shader &shader) const;
 
 protected:
   Mesh mesh;

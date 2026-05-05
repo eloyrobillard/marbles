@@ -3,24 +3,23 @@
 #include "pch.h"
 #include "template.h"
 
-namespace Shader {
-typedef struct {
+// NOTE: From "Game Programming in C++" by Sanjay Madhav
+class Shader {
   GLuint program;
   GLuint vertexShader;
   GLuint fragmentShader;
-  bool isValid;
-} Shader;
 
-// NOTE: From "Game Programming in C++" by Sanjay Madhav
-Shader Load(const std::string &vertName, const std::string &fragName);
-void Unload(Shader &shader);
-void setActive(Shader &shader);
-void setMatrixUniform(Shader &shader, const char *name,
-                      const Tmpl8::mat4 &matrix);
-void setIntUniform(Shader &shader, const char *name, int value);
-void setLight(Shader &shader, Tmpl8::mat4 &view);
-inline void setVerticesActive(GLuint vertexArray) {
-  glBindVertexArray(vertexArray);
-}
-
-} // namespace Shader
+public:
+  static optional<Shader> Load(const std::string &vertName,
+                               const std::string &fragName);
+  void Unload() const;
+  void setLight(Tmpl8::mat4 &view) const;
+  void setActive() const { glUseProgram(program); }
+  void setMatrixUniform(const char *name, const Tmpl8::mat4 &matrix) const;
+  void setIntUniform(const char *name, int value) const;
+  void setFloatUniform(const char *name, float value) const;
+  void setVec3Uniform(const char *name, const float values[3]) const;
+  static void setVerticesActive(GLuint vertexArray) {
+    glBindVertexArray(vertexArray);
+  }
+};

@@ -43,11 +43,11 @@ void DynamicEntity::Update(float t, float dt, const SpacePartition &sp) {
   collider.position = body.position;
 }
 
-void Entity::Draw(Shader::Shader &shader) const {
+void Entity::Draw(Shader &shader) const {
   // Set world transform
   mat4 worldTransform = body.getWorldTransform();
 
-  Shader::setMatrixUniform(shader, "uWorldTransform", worldTransform);
+  shader.setMatrixUniform("uWorldTransform", worldTransform);
 
   auto maybe_tex = mesh.lookTextureUp(0);
   if (maybe_tex.has_value())
@@ -100,8 +100,8 @@ void Entities::RegisterInputRight(float dt) {
   mDynamicEntities[0].RegisterInputRight(dt);
 }
 
-void Entities::ToCheckpoint(const vector<vec3> &dynamicEntitiesPos) {
-  for (int i = 0; i < dynamicEntitiesPos.size(); i++) {
-    mDynamicEntities[i].ResetToPosition(dynamicEntitiesPos[i]);
+void Entities::ToCheckpoint(const vector<vec3> &positionsAtCheckpoint) {
+  for (int i = 0; i < positionsAtCheckpoint.size(); i++) {
+    mDynamicEntities[i].ResetToPosition(positionsAtCheckpoint[i]);
   }
 }

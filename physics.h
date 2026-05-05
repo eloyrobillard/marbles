@@ -57,15 +57,16 @@ inline ostream &operator<<(ostream &os, const TriangleCollider &coll) {
 
 class Body {
 public:
-  Body()
-      : scale(vec3(1.0f)), position(vec3()), velocity(vec3()), rotation(quat()),
-        rotational_velocity(vec3()), colliders({}) {}
   vec3 scale;
   vec3 position;
   vec3 velocity;
   quat rotation;
   vec3 rotational_velocity;
   vector<Collider> colliders;
+
+  Body()
+      : scale(vec3(1.0f)), position(vec3()), velocity(vec3()), rotation(quat()),
+        rotational_velocity(vec3()), colliders({}) {}
 
   [[nodiscard]] mat4 getWorldTransform() const {
     mat4 s = mat4::CreateScale(scale);
