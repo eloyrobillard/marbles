@@ -20,28 +20,50 @@ Entities::Entities() {
 
 void Entities::Update(float time, float deltaTime) {
   for (auto &dynamicEntity : mDynamicEntities) {
-    UpdateBody(time, deltaTime, dynamicEntity, gSP);
+    dynamicEntity.Update(time, deltaTime, gSP);
   }
 }
 
-void Entities::UpdateBody(float t, float dt, DynamicEntity &e,
-                          const SpacePartition &sp) {
-  const vec3 prev_p = e.body.position;
+void DynamicEntity::Update(float t, float dt, const SpacePartition &sp) {
+  const vec3 prev_p = body.position;
 
-  e.body.velocity += dt * grav_force;
-  e.body.position += dt * e.body.velocity;
+  body.velocity += dt * grav_force;
+  body.position += dt * body.velocity;
 
   // Test collisions at new body position
-  e.collider.position = e.body.position;
+  collider.position = body.position;
 
   // Instantly apply collisions to the velocity of the body
-  Physics::getCollisionImpulse(sp, e.collider, e.body.velocity);
+  Physics::getCollisionImpulse(sp, collider, body.velocity);
 
   // Adjust position based on (possibly) updated velocity
-  e.body.position = prev_p + dt * e.body.velocity;
+  body.position = prev_p + dt * body.velocity;
 
   // Match body's position with collider's
-  e.collider.position = e.body.position;
+  collider.position = body.position;
+}
+
+void Entity::Draw(Shader::Shader &shader) const {
+  // Set world transform
+  mat4 worldTransform = body.getWorldTransform();
+
+  Shader::setMatrixUniform(shader, "uWorldTransform", worldTransform);
+
+  auto maybe_tex = mesh.lookTextureUp(0);
+  if (maybe_tex.has_value())
+    Texture::SetActive(maybe_tex.value()->textureID);
+
+  Shader::setVerticesActive(mesh.GetVertexArray());
+
+  // Draw triangles
+  glDrawElements(GL_TRIANGLES, static_cast<int>(mesh.GetNumIndices()),
+                 GL_UNSIGNED_INT, nullptr);
+
+  GLenum err_code = glGetError();
+  while (GL_NO_ERROR != err_code) {
+    printf("OpenGL Error @ %s: %i", "mesh draw", err_code);
+    err_code = glGetError();
+  }
 }
 
 void Entities::RegisterEntities(
@@ -70,28 +92,16 @@ void Entities::RegisterEntities(
   }
 }
 
-vec3 &Entities::ProvideCameraFollow() {
-  return mDynamicEntities[0].body.position;
+void Entities::RegisterInputLeft(float dt) {
+  mDynamicEntities[0].RegisterInputLeft(dt);
 }
 
-void Entities::RegisterPlayerForward(float dt) {
-  mDynamicEntities[0].body.velocity *= 1.0f + dt;
+void Entities::RegisterInputRight(float dt) {
+  mDynamicEntities[0].RegisterInputRight(dt);
 }
 
-void Entities::RegisterPlayerLeft(float dt) {
-  vec3 left = mDynamicEntities[0].body.velocity.cross(vec3::up).normalized();
-  mDynamicEntities[0].body.velocity += left * 4.0f * dt;
-}
-
-void Entities::RegisterPlayerRight(float dt) {
-  vec3 right = vec3::up.cross(mDynamicEntities[0].body.velocity).normalized();
-  mDynamicEntities[0].body.velocity += right * 4.0f * dt;
-}
-
-void Entities::Restart(const vector<vec3> &dynamicEntitiesPos) {
+void Entities::ToCheckpoint(const vector<vec3> &dynamicEntitiesPos) {
   for (int i = 0; i < dynamicEntitiesPos.size(); i++) {
-    mDynamicEntities[i].body.position = dynamicEntitiesPos[i];
-    mDynamicEntities[i].body.velocity = vec3::zero;
-    mDynamicEntities[i].body.rotational_velocity = vec3::zero;
+    mDynamicEntities[i].ResetToPosition(dynamicEntitiesPos[i]);
   }
 }

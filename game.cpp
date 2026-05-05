@@ -13,22 +13,22 @@ void Game::Init() {}
 
 void Game::Tick(float deltaTime) {
   if (GetKey(SDL_SCANCODE_RIGHT)) {
-    entities->RegisterPlayerRight(deltaTime);
+    entities->RegisterInputRight(deltaTime);
   }
 
   if (GetKey(SDL_SCANCODE_LEFT)) {
-    entities->RegisterPlayerLeft(deltaTime);
+    entities->RegisterInputLeft(deltaTime);
   }
 
   if (GetKeyPressed(SDL_SCANCODE_SPACE)) {
     Restart();
   }
 
-  if (entities->GetDynamicEntities()[0].body.position.x > 55.0f) {
+  if (entities->GetDynamicEntities()[0].GetPositionAsRef().x > 55.0f) {
     checkpointID = 1;
   }
 
-  if (entities->GetDynamicEntities()[0].body.position.x > 200.0f) {
+  if (entities->GetDynamicEntities()[0].GetPositionAsRef().x > 200.0f) {
     renderer->ShowVictoryMessage();
     checkpointID = 0;
   }
@@ -38,7 +38,7 @@ void Game::Shutdown() {}
 
 void Game::Restart() {
   const auto &dynamicEntitiesPos = checkpoints[checkpointID];
-  entities->Restart(dynamicEntitiesPos);
+  entities->ToCheckpoint(dynamicEntitiesPos);
   camera->Restart(entities->ProvideCameraFollow());
   renderer->Restart();
 }

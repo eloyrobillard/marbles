@@ -293,29 +293,6 @@ optional<Texture::Texture *> Mesh::lookTextureUp(size_t index) const {
     return {};
 }
 
-void Mesh::Draw(Shader::Shader &shader, const Body &body) const {
-  // Set world transform
-  mat4 worldTransform = body.getWorldTransform();
-
-  Shader::setMatrixUniform(shader, "uWorldTransform", worldTransform);
-
-  auto maybe_tex = lookTextureUp(0);
-  if (maybe_tex.has_value())
-    Texture::SetActive(maybe_tex.value()->textureID);
-
-  Shader::setVerticesActive(vertexArray);
-
-  // Draw triangles
-  glDrawElements(GL_TRIANGLES, static_cast<int>(indices.size()),
-                 GL_UNSIGNED_INT, nullptr);
-
-  GLenum err_code = glGetError();
-  while (GL_NO_ERROR != err_code) {
-    printf("OpenGL Error @ %s: %i", "mesh draw", err_code);
-    err_code = glGetError();
-  }
-}
-
 void Mesh::deleteVertexArray() const {
   glDeleteBuffers(1, &vertexBuffer);
   glDeleteBuffers(1, &indexBuffer);

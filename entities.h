@@ -14,37 +14,65 @@ inline vector<TriangleCollider> gCurrent_partition;
 
 enum class BodyType { Dynamic, Static };
 
-struct DynamicEntity {
+// NOTE: As per C.2 section from the C++ Core Guidelines
+// Making Entity a struct to make it clear mesh and body can vary independently
+struct Entity {
+  Entity(Mesh mesh, Body body) : mesh(std::move(mesh)), body(std::move(body)) {}
+  void Draw(Shader::Shader &shader) const;
+
+protected:
   Mesh mesh;
   Body body;
-  SphereCollider collider;
 };
 
-struct StaticEntity {
-  Mesh mesh;
-  Body body;
+class DynamicEntity : public Entity {
+  SphereCollider collider;
+
+public:
+  DynamicEntity(const Mesh &mesh, const Body &body, SphereCollider collider)
+      : Entity(mesh, body), collider(collider) {}
+  void Update(float t, float dt, const SpacePartition &sp);
+  void ResetToPosition(const vec3 &pos) {
+    body.position = pos;
+    body.velocity = vec3::zero;
+    body.rotational_velocity = vec3::zero;
+  }
+  void RegisterInputLeft(float dt) {
+    vec3 left = body.velocity.cross(vec3::up).normalized();
+    body.velocity += left * 4.0f * dt;
+  }
+  void RegisterInputRight(float dt) {
+    vec3 right = vec3::up.cross(body.velocity).normalized();
+    body.velocity += right * 4.0f * dt;
+  }
+  [[nodiscard]] const vec3 &GetPositionAsRef() const { return body.position; }
 };
 
 class Entities {
-  vector<StaticEntity> mStaticEntities;
+  vector<Entity> mStaticEntities;
   vector<vector<TriangleCollider>> mStaticColliders;
   vector<DynamicEntity> mDynamicEntities;
   vector<DynamicEntity> mDynamicEntitiesStartingState;
 
 public:
   Entities();
-  static void UpdateBody(float t, float dt, DynamicEntity &e,
-                         const SpacePartition &sp);
   void Update(float time, float deltaTime);
   void RegisterEntities(
       const vector<tuple<string, BodyType, float, bool, vec3>> &entityList);
-  vec3 &ProvideCameraFollow();
-  const vector<StaticEntity> &GetStaticEntities() { return mStaticEntities; }
-  const vector<DynamicEntity> &GetDynamicEntities() { return mDynamicEntities; }
-  void RegisterPlayerForward(float dt);
-  void RegisterPlayerLeft(float dt);
-  void RegisterPlayerRight(float dt);
-  void Restart(const vector<vec3> &dynamicEntitiesPos);
+  [[nodiscard]]
+  const vec3 &ProvideCameraFollow() const {
+    return mDynamicEntities[0].GetPositionAsRef();
+  }
+  [[nodiscard]] const vector<Entity> &GetStaticEntities() const {
+    return mStaticEntities;
+  }
+  [[nodiscard]] const vector<DynamicEntity> &GetDynamicEntities() const {
+    return mDynamicEntities;
+  }
+  void RegisterInputForward(float dt);
+  void RegisterInputLeft(float dt);
+  void RegisterInputRight(float dt);
+  void ToCheckpoint(const vector<vec3> &positionsAtCheckpoint);
 };
 
 #endif // ENTITIES_H

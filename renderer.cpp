@@ -355,7 +355,7 @@ bool Renderer::setupFramebuffers() {
   return (glGetError() == 0);
 }
 
-void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
+void Renderer::Draw3D(float deltaTime, const vector<Entity> &se,
                       const vector<DynamicEntity> &de) {
   SetView(mCamera);
 
@@ -415,12 +415,12 @@ void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
 
   // draw static entities
   for (const auto &e : se) {
-    e.mesh.Draw(mMeshShader, e.body);
+    e.Draw(mMeshShader);
   }
 
   // draw dynamic entities
   for (const auto &e : de) {
-    e.mesh.Draw(mMeshShader, e.body);
+    e.Draw(mMeshShader);
   }
 
   // draw skybox behind scene

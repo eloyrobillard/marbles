@@ -55,7 +55,8 @@ inline ostream &operator<<(ostream &os, const TriangleCollider &coll) {
   return os;
 }
 
-struct Body {
+class Body {
+public:
   Body()
       : scale(vec3(1.0f)), position(vec3()), velocity(vec3()), rotation(quat()),
         rotational_velocity(vec3()), colliders({}) {}
