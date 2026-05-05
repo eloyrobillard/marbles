@@ -379,7 +379,7 @@ void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
   Shader::setMatrixUniform(mCollisionShader, "uViewProj", viewProj);
 
   while (!gTo_render_as_collided.empty()) {
-    Mesh::setVerticesActive(gTo_render_as_collided.top());
+    Shader::setVerticesActive(gTo_render_as_collided.top());
 
     // Draw triangles
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
@@ -397,7 +397,7 @@ void Renderer::Draw3D(float deltaTime, const vector<StaticEntity> &se,
 
   // Only show triangles currently tested against
   for (const auto &triangle : gCurrent_partition) {
-    Mesh::setVerticesActive(triangle.vertexArray);
+    Shader::setVerticesActive(triangle.vertexArray);
 
     // Draw triangles
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);

@@ -19,9 +19,6 @@ typedef struct {
   vector<std::tuple<uint, uint, uint>> idx_triplets;
 } Mesh;
 
-inline void setVerticesActive(GLuint vertexArray) {
-  glBindVertexArray(vertexArray);
-}
 optional<pair<Mesh, Body>> Load(const std::string &filename);
 void Draw(Shader::Shader &shader, const Mesh &mesh, const Body &body);
 void deleteVertexArray(GLuint vertexBuffer, GLuint indexBuffer,

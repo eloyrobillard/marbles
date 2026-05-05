@@ -1,5 +1,4 @@
 #include "mesh.h"
-#include "SDL_log.h"
 #include "pch.h"
 #include "physics.h"
 #include "rapidjson/document.h"
@@ -245,6 +244,7 @@ optional<pair<Mesh, Body>> Load(const std::string &filename) {
 
   std::vector<uint> indices;
   indices.reserve(indicesJSON.Size() * 3);
+  // To use during collision detection
   std::vector<std::tuple<uint, uint, uint>> idx_triplets;
   idx_triplets.reserve(indicesJSON.Size());
 
@@ -308,7 +308,7 @@ void Draw(Shader::Shader &shader, const Mesh &mesh, const Body &body) {
   if (maybe_tex.has_value())
     Texture::SetActive(maybe_tex.value()->textureID);
 
-  setVerticesActive(mesh.vertexArray);
+  Shader::setVerticesActive(mesh.vertexArray);
 
   // Draw triangles
   glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, nullptr);

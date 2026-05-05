@@ -19,4 +19,8 @@ void setMatrixUniform(Shader &shader, const char *name,
                       const Tmpl8::mat4 &matrix);
 void setIntUniform(Shader &shader, const char *name, int value);
 void setLight(Shader &shader, Tmpl8::mat4 &view);
+inline void setVerticesActive(GLuint vertexArray) {
+  glBindVertexArray(vertexArray);
+}
+
 } // namespace Shader
