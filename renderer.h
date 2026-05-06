@@ -50,6 +50,9 @@ class Renderer {
 
   bool setupFramebuffers();
   bool setupSkyboxVAO();
+  bool setupSkybox();
+
+  static void setupScreenQuadVAO(GLuint &VAO, GLuint &VBO);
 
   void SetView(const shared_ptr<FollowCamera> &camera);
   void SetProjection(const shared_ptr<Surface> &screen);

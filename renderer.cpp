@@ -121,16 +121,21 @@ Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
   mPostShader = GetShader("shaders/post.vert", "shaders/post.frag");
   mSkyboxShader = GetShader("shaders/skybox.vert", "shaders/skybox.frag");
 
-  // Load skybox
+  setupSkybox();
+
+  // Setup AA and depth framebuffers
+  setupFramebuffers();
+}
+
+bool Renderer::setupSkybox() {
   vector<std::string> faces{
       "assets/skybox/right.jpg", "assets/skybox/left.jpg",
       "assets/skybox/top.jpg",   "assets/skybox/bottom.jpg",
       "assets/skybox/front.jpg", "assets/skybox/back.jpg"};
-  skyboxTexture = Texture::LoadCubemap(faces);
-  setupSkyboxVAO();
 
-  // Setup AA and depth framebuffers
-  setupFramebuffers();
+  skyboxTexture = Texture::LoadCubemap(faces);
+
+  return setupSkyboxVAO();
 }
 
 void Renderer::SetCamera(const shared_ptr<FollowCamera> &camera) {
@@ -229,8 +234,7 @@ TTF_Font *TTF_GetFont(const char *fontName, float ptsize,
   return font;
 }
 
-// SOURCE: https://learnopengl.com/Advanced-OpenGL/Anti-Aliasing
-bool Renderer::setupFramebuffers() {
+void Renderer::setupScreenQuadVAO(GLuint &VAO, GLuint &VBO) {
   // vertex attributes for a quad that fills the entire screen in Normalized
   // Device Coordinates. (positions, texCoords)
   float quadVertices[] = {-1.0f, 1.0f, 0.0f, 1.0f,  -1.0f, -1.0f,
@@ -239,11 +243,10 @@ bool Renderer::setupFramebuffers() {
                           -1.0f, 1.0f, 0.0f, 1.0f,  1.0f,  -1.0f,
                           1.0f,  0.0f, 1.0f, 1.0f,  1.0f,  1.0f};
 
-  // setup hud VAO
-  glGenVertexArrays(1, &hudVAO);
-  glGenBuffers(1, &hudVBO);
-  glBindVertexArray(hudVAO);
-  glBindBuffer(GL_ARRAY_BUFFER, hudVBO);
+  glGenVertexArrays(1, &VAO);
+  glGenBuffers(1, &VBO);
+  glBindVertexArray(VAO);
+  glBindBuffer(GL_ARRAY_BUFFER, VBO);
   glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices,
                GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
@@ -251,19 +254,12 @@ bool Renderer::setupFramebuffers() {
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
                         (void *)(2 * sizeof(float)));
+}
 
-  // setup screen VAO
-  glGenVertexArrays(1, &quadVAO);
-  glGenBuffers(1, &quadVBO);
-  glBindVertexArray(quadVAO);
-  glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices,
-               GL_STATIC_DRAW);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
-                        (void *)(2 * sizeof(float)));
+// SOURCE: https://learnopengl.com/Advanced-OpenGL/Anti-Aliasing
+bool Renderer::setupFramebuffers() {
+  setupScreenQuadVAO(hudVAO, hudVBO);
+  setupScreenQuadVAO(quadVAO, quadVBO);
 
   // configure MSAA framebuffer
   // --------------------------
