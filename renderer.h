@@ -63,8 +63,7 @@ class Renderer {
 public:
   Renderer(const shared_ptr<Surface> &screen);
   ~Renderer();
-  void Draw3D(float deltaTime, const vector<Entity> &se,
-              const vector<DynamicEntity> &de);
+  void Draw3D(float deltaTime, const shared_ptr<const Entities> &entities);
   void SetCamera(const shared_ptr<FollowCamera> &camera);
   void ShowVictoryMessage() { mShowVictoryMessage = true; }
   void Restart() { mShowVictoryMessage = false; }

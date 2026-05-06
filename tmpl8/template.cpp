@@ -161,8 +161,7 @@ int main(int argc, char **argv) {
 
     game->Tick(elapsedTime);
     camera->Update(elapsedTime, entities->ProvideCameraFollow());
-    renderer->Draw3D(elapsedTime, entities->GetStaticEntities(),
-                     entities->GetDynamicEntities());
+    renderer->Draw3D(elapsedTime, entities);
 
     game->SetupKeys();
 

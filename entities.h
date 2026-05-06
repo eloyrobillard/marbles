@@ -74,6 +74,17 @@ public:
   void RegisterInputLeft(float dt);
   void RegisterInputRight(float dt);
   void ToCheckpoint(const vector<vec3> &positionsAtCheckpoint);
+  void DrawStaticEntities(Shader &shader) const {
+    for (const auto &e : mStaticEntities) {
+      e.Draw(shader);
+    }
+  }
+
+  void DrawDynamicEntities(Shader &shader) const {
+    for (const auto &e : mDynamicEntities) {
+      e.Draw(shader);
+    }
+  }
 };
 
 #endif // ENTITIES_H

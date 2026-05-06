@@ -352,8 +352,8 @@ bool Renderer::setupFramebuffers() {
   return (glGetError() == 0);
 }
 
-void Renderer::Draw3D(float deltaTime, const vector<Entity> &se,
-                      const vector<DynamicEntity> &de) {
+void Renderer::Draw3D(float deltaTime,
+                      const shared_ptr<const Entities> &entities) {
   SetView(mCamera);
 
   // Clear the color/depth buffer
@@ -410,15 +410,8 @@ void Renderer::Draw3D(float deltaTime, const vector<Entity> &se,
 
   mMeshShader.setLight(mView);
 
-  // draw static entities
-  for (const auto &e : se) {
-    e.Draw(mMeshShader);
-  }
-
-  // draw dynamic entities
-  for (const auto &e : de) {
-    e.Draw(mMeshShader);
-  }
+  entities->DrawStaticEntities(mMeshShader);
+  entities->DrawDynamicEntities(mMeshShader);
 
   // draw skybox behind scene
   glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when
