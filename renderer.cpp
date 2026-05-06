@@ -352,6 +352,25 @@ bool Renderer::setupFramebuffers() {
   return (glGetError() == 0);
 }
 
+void Renderer::drawSkybox() {
+  // draw skybox behind scene
+  glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when
+                          // values are equal to depth buffer's content
+  mSkyboxShader.setActive();
+  mSkyboxShader.setMatrixUniform(
+      "view", mat4::CreateLookAtSkybox(mCamera->mActualPosition,
+                                       mCamera->mTarget, mCamera->mUp));
+  mSkyboxShader.setMatrixUniform("projection", mProjection);
+
+  // skybox cube
+  glBindVertexArray(skyboxVAO);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
+  glDrawArrays(GL_TRIANGLES, 0, 36);
+  glBindVertexArray(0);
+  glDepthFunc(GL_LESS); // set depth function back to default
+}
+
 void Renderer::Draw3D(float deltaTime,
                       const shared_ptr<const Entities> &entities) {
   SetView(mCamera);
@@ -413,22 +432,7 @@ void Renderer::Draw3D(float deltaTime,
   entities->DrawStaticEntities(mMeshShader);
   entities->DrawDynamicEntities(mMeshShader);
 
-  // draw skybox behind scene
-  glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when
-                          // values are equal to depth buffer's content
-  mSkyboxShader.setActive();
-  mSkyboxShader.setMatrixUniform(
-      "view", mat4::CreateLookAtSkybox(mCamera->mActualPosition,
-                                       mCamera->mTarget, mCamera->mUp));
-  mSkyboxShader.setMatrixUniform("projection", mProjection);
-
-  // skybox cube
-  glBindVertexArray(skyboxVAO);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
-  glDrawArrays(GL_TRIANGLES, 0, 36);
-  glBindVertexArray(0);
-  glDepthFunc(GL_LESS); // set depth function back to default
+  drawSkybox();
 
   // finally, draw HUD elements
   SDL_GL_Enter2DMode();

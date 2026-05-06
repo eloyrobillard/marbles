@@ -59,6 +59,7 @@ class Renderer {
   void PushHUDTexture(GLuint texture) { hudTextures.push_back(texture); }
   void GetMeshes(const vector<pair<string, BodyType>> &meshList);
   static Shader GetShader(const char *vert, const char *frag);
+  void drawSkybox();
 
 public:
   Renderer(const shared_ptr<Surface> &screen);
