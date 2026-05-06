@@ -51,7 +51,7 @@ void Entity::Draw(Shader &shader) const {
 
   auto maybe_tex = mesh.lookTextureUp(0);
   if (maybe_tex.has_value())
-    Texture::SetActive(maybe_tex.value()->textureID);
+    maybe_tex.value()->SetActive();
 
   Shader::setVerticesActive(mesh.GetVertexArray());
 

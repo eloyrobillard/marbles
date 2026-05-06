@@ -89,17 +89,16 @@ tuple<GLuint, GLuint, GLuint> createVertexArrayVertsOnly(const float *verts,
   return {vertexBuffer, indexBuffer, vertexArray};
 }
 
-optional<Texture::Texture *> GetTexture(Mesh &mesh,
-                                        const std::string &fileName) {
-  auto iter = Texture::gAllTextures.find(fileName);
+optional<Texture *> GetTexture(Mesh &mesh, const std::string &fileName) {
+  auto iter = gAllTextures.find(fileName);
 
-  if (iter != Texture::gAllTextures.end()) {
+  if (iter != gAllTextures.end()) {
     return {iter->second};
   } else {
     auto maybe_tex = Texture::Load(fileName);
 
     if (maybe_tex.has_value()) {
-      Texture::gAllTextures.emplace(fileName, maybe_tex.value());
+      gAllTextures.emplace(fileName, maybe_tex.value());
     }
 
     return maybe_tex;
@@ -143,7 +142,7 @@ optional<pair<Mesh, Body>> Mesh::Load(const std::string &filename) {
       // Is this texture already loaded?
       std::string texName = textures[i].GetString();
 
-      optional<Texture::Texture *> maybe_tex = GetTexture(mesh, texName);
+      optional<Texture *> maybe_tex = GetTexture(mesh, texName);
       if (!maybe_tex.has_value()) {
         // Try loading the texture
         maybe_tex = GetTexture(mesh, texName);
@@ -286,7 +285,7 @@ optional<pair<Mesh, Body>> Mesh::Load(const std::string &filename) {
   return {{mesh, body}};
 }
 
-optional<Texture::Texture *> Mesh::lookTextureUp(size_t index) const {
+optional<Texture *> Mesh::lookTextureUp(size_t index) const {
   if (index < textures.size())
     return {textures[index]};
   else

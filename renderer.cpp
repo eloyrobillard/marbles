@@ -146,8 +146,8 @@ Renderer::~Renderer() {
   mPostShader.Unload();
   mSkyboxShader.Unload();
 
-  for (auto &tex : Texture::gAllTextures) {
-    Texture::Unload(tex.second->textureID);
+  for (const auto &[_, tex] : gAllTextures) {
+    tex->Unload();
   }
 
   TTF_Quit();

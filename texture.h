@@ -2,23 +2,18 @@
 
 #include "pch.h"
 
-namespace Texture {
-
 class Texture {
-public:
-  Texture(const string &filename);
   std::string filename;
   GLuint textureID;
   int width;
   int height;
-  bool isValid;
+
+public:
+  Texture(string filename);
+  static optional<Texture *> Load(const string &filename);
+  static uint LoadCubemap(vector<string> faces);
+  void SetActive() const { glBindTexture(GL_TEXTURE_2D, textureID); }
+  void Unload() { glDeleteTextures(1, &textureID); }
 };
 
 static std::unordered_map<std::string, Texture *> gAllTextures;
-
-optional<Texture *> Load(const string &filename);
-uint LoadCubemap(vector<string> faces);
-void SetActive(GLuint textureID);
-void Unload(GLuint textureID);
-
-} // namespace Texture

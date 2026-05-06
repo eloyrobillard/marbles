@@ -10,7 +10,7 @@ class Mesh {
   GLuint vertexBuffer;
   GLuint indexBuffer;
   GLuint vertexArray;
-  vector<Texture::Texture *> textures;
+  vector<Texture *> textures;
   vector<Maths::vec3> vert_coord;
   vector<Maths::vec3> vert_normal;
   vector<std::tuple<uint, uint, uint>> idx_triplets;
@@ -23,7 +23,7 @@ public:
   generateTriangleCollidersFromMesh(Body &body, float accel,
                                     bool override_impulse,
                                     Maths::vec3 impulse_override) const;
-  [[nodiscard]] optional<Texture::Texture *> lookTextureUp(size_t index) const;
+  [[nodiscard]] optional<Texture *> lookTextureUp(size_t index) const;
   [[nodiscard]] size_t GetNumIndices() const { return indices.size(); }
   [[nodiscard]] GLuint GetVertexArray() const { return vertexArray; }
 

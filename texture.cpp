@@ -1,10 +1,9 @@
 #include "texture.h"
 
-namespace Texture {
+Texture::Texture(string fileName)
+    : filename(std::move(fileName)), textureID(0), width(0), height(0) {}
 
-Texture::Texture(const string &fileName) : filename(fileName) {}
-
-optional<Texture *> Load(const std::string &filename) {
+optional<Texture *> Texture::Load(const std::string &filename) {
   auto *tex = new Texture(filename);
   int channels = 0;
 
@@ -45,7 +44,7 @@ optional<Texture *> Load(const std::string &filename) {
   return {tex};
 }
 
-uint LoadCubemap(vector<string> faces) {
+uint Texture::LoadCubemap(vector<string> faces) {
   uint textureID;
   glGenTextures(1, &textureID);
   glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
@@ -72,7 +71,3 @@ uint LoadCubemap(vector<string> faces) {
 
   return textureID;
 }
-
-void SetActive(GLuint textureID) { glBindTexture(GL_TEXTURE_2D, textureID); }
-void Unload(GLuint textureID) { glDeleteTextures(1, &textureID); }
-} // namespace Texture
