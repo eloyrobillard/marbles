@@ -345,15 +345,25 @@ void Renderer::setupScreenQuadVAO(GLuint &VAO, GLuint &VBO) {
                         (void *)(2 * sizeof(float)));
 }
 
-// SOURCE: https://learnopengl.com/Advanced-OpenGL/Anti-Aliasing
-bool Renderer::setupFramebuffers() {
-  setupScreenQuadVAO(hudVAO, hudVBO);
-  setupScreenQuadVAO(quadVAO, quadVBO);
+GLuint Renderer::createColorAttachmentTexture(int width, int height) {
+  GLuint texture;
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+               GL_UNSIGNED_BYTE, nullptr);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                         texture, 0); // we only need a color buffer
 
+  return texture;
+}
+
+void Renderer::configureMultiSampledAntiAliasing() {
   // configure MSAA framebuffer
   // --------------------------
-  glGenFramebuffers(1, &framebuffer);
-  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+  glGenFramebuffers(1, &mMSAAFrameBuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFrameBuffer);
   // create a multisampled color attachment texture
   unsigned int textureColorBufferMultiSampled;
   glGenTextures(1, &textureColorBufferMultiSampled);
@@ -367,39 +377,37 @@ bool Renderer::setupFramebuffers() {
 
   // create a (also multisampled) renderbuffer object for depth and stencil
   // attachments
-  glGenRenderbuffers(1, &rbo);
-  glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+  glGenRenderbuffers(1, &mMSAARenderBuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, mMSAARenderBuffer);
   glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8,
                                    mScreen->GetWidth(), mScreen->GetHeight());
   glBindRenderbuffer(GL_RENDERBUFFER, 0);
   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
-                            GL_RENDERBUFFER, rbo);
+                            GL_RENDERBUFFER, mMSAARenderBuffer);
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
+}
+
+// SOURCE: https://learnopengl.com/Advanced-OpenGL/Anti-Aliasing
+bool Renderer::setupFramebuffers() {
+  setupScreenQuadVAO(hudVAO, hudVBO);
+  setupScreenQuadVAO(quadVAO, quadVBO);
+
+  configureMultiSampledAntiAliasing();
 
   // configure second post-processing framebuffer
-  glGenFramebuffers(1, &intermediateFBO);
-  glBindFramebuffer(GL_FRAMEBUFFER, intermediateFBO);
+  glGenFramebuffers(1, &mIntermediateFBO);
+  glBindFramebuffer(GL_FRAMEBUFFER, mIntermediateFBO);
 
-  // create a color attachment texture
-  glGenTextures(1, &screenTexture);
-  glBindTexture(GL_TEXTURE_2D, screenTexture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, mScreen->GetWidth(),
-               mScreen->GetHeight(), 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
-                         screenTexture, 0); // we only need a color buffer
+  // create a color attachment texture for second framebuffer
+  mScreenTexture =
+      createColorAttachmentTexture(mScreen->GetWidth(), mScreen->GetHeight());
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     cout
         << "ERROR::FRAMEBUFFER:: Intermediate framebuffer is not complete !\n ";
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-  // post-processing shader config
-  mPostShader.SetActive();
-  mPostShader.SetIntUniform("screenTexture", 0);
 
   return (glGetError() == 0);
 }
@@ -483,7 +491,7 @@ void Renderer::Draw3D(float deltaTime,
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // 1. draw scene as normal in multisampled buffers
-  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFrameBuffer);
   // Set the clear color
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -523,7 +531,7 @@ void Renderer::Draw3D(float deltaTime,
 
     // 2. now blit multisampled buffer(s) to normal colorbuffer of intermediate
     // FBO. Image is stored in screenTexture
-    blitFramebuffer(framebuffer, intermediateFBO, mScreen->GetWidth(),
+    blitFramebuffer(mMSAAFrameBuffer, mIntermediateFBO, mScreen->GetWidth(),
                     mScreen->GetHeight(), mScreen->GetWidth(),
                     mScreen->GetHeight());
 
@@ -532,7 +540,7 @@ void Renderer::Draw3D(float deltaTime,
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
     // draw the result of every other draw
-    drawScreenQuad(mPostShader, quadVAO, screenTexture);
+    drawScreenQuad(mPostShader, quadVAO, mScreenTexture);
   }
   SDL_GL_Leave2DMode();
 

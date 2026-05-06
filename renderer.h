@@ -31,10 +31,10 @@ class Renderer {
 
   GLuint skyboxTexture;
   GLuint skyboxVAO, skyboxVBO;
-  GLuint framebuffer;
-  GLuint rbo;
-  GLuint intermediateFBO;
-  GLuint screenTexture;
+  GLuint mMSAAFrameBuffer;
+  GLuint mMSAARenderBuffer;
+  GLuint mIntermediateFBO;
+  GLuint mScreenTexture;
   GLuint quadVAO, quadVBO;
   GLuint hudVAO, hudVBO;
 
@@ -54,22 +54,24 @@ class Renderer {
   bool setupSkyboxVAO();
   bool setupSkybox();
 
-  static void setupScreenQuadVAO(GLuint &VAO, GLuint &VBO);
-
   void setView(const shared_ptr<FollowCamera> &camera);
   void setProjection(const shared_ptr<Surface> &screen);
   void pushHUDTexture(GLuint texture) { hudTextures.push_back(texture); }
   void getMeshes(const vector<pair<string, BodyType>> &meshList);
-  static Shader GetShader(const char *vert, const char *frag);
   void drawSkybox();
-  static void drawScreenQuad(Shader &shader, GLuint VAO, GLuint texture);
-  static void blitFramebuffer(GLuint readFB, GLuint drawFB, int readW,
-                              int readH, int drawW, int drawH);
   void drawDebug(const mat4 &viewProj);
   void drawEntities(const shared_ptr<const Entities> &entities,
                     const mat4 &viewProj);
   void drawToHUD(GLuint VAO, GLuint texture, const float textColor[3]);
+  void configureMultiSampledAntiAliasing();
+
+  static void setupScreenQuadVAO(GLuint &VAO, GLuint &VBO);
+  static Shader GetShader(const char *vert, const char *frag);
+  static void drawScreenQuad(Shader &shader, GLuint VAO, GLuint texture);
+  static void blitFramebuffer(GLuint readFB, GLuint drawFB, int readW,
+                              int readH, int drawW, int drawH);
   static void drawEntity(const Shader &shader, const Entity &entity);
+  static GLuint createColorAttachmentTexture(int width, int height);
 
 public:
   Renderer(const shared_ptr<Surface> &screen);
