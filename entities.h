@@ -19,7 +19,7 @@ enum class BodyType { Dynamic, Static };
 // Making Entity a struct to make it clear mesh and body can vary independently
 struct Entity {
   Entity(Mesh mesh, Body body) : mesh(std::move(mesh)), body(std::move(body)) {}
-  void Draw(Shader &shader) const;
+  void Draw(const Shader &shader) const;
 
 protected:
   Mesh mesh;
@@ -74,13 +74,13 @@ public:
   void RegisterInputLeft(float dt);
   void RegisterInputRight(float dt);
   void ToCheckpoint(const vector<vec3> &positionsAtCheckpoint);
-  void DrawStaticEntities(Shader &shader) const {
+  void DrawStaticEntities(const Shader &shader) const {
     for (const auto &e : mStaticEntities) {
       e.Draw(shader);
     }
   }
 
-  void DrawDynamicEntities(Shader &shader) const {
+  void DrawDynamicEntities(const Shader &shader) const {
     for (const auto &e : mDynamicEntities) {
       e.Draw(shader);
     }

@@ -54,16 +54,18 @@ class Renderer {
 
   static void setupScreenQuadVAO(GLuint &VAO, GLuint &VBO);
 
-  void SetView(const shared_ptr<FollowCamera> &camera);
-  void SetProjection(const shared_ptr<Surface> &screen);
-  void PushHUDTexture(GLuint texture) { hudTextures.push_back(texture); }
-  void GetMeshes(const vector<pair<string, BodyType>> &meshList);
+  void setView(const shared_ptr<FollowCamera> &camera);
+  void setProjection(const shared_ptr<Surface> &screen);
+  void pushHUDTexture(GLuint texture) { hudTextures.push_back(texture); }
+  void getMeshes(const vector<pair<string, BodyType>> &meshList);
   static Shader GetShader(const char *vert, const char *frag);
   void drawSkybox();
   static void drawScreenQuad(Shader &shader, GLuint VAO, GLuint texture);
   static void blitFramebuffer(GLuint readFB, GLuint drawFB, int readW,
                               int readH, int drawW, int drawH);
-  void DrawDebug(const mat4 &viewProj);
+  void drawDebug(const mat4 &viewProj);
+  void drawEntities(const shared_ptr<const Entities> &entities,
+                    const mat4 &viewProj);
 
 public:
   Renderer(const shared_ptr<Surface> &screen);

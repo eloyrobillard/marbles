@@ -43,7 +43,7 @@ void DynamicEntity::Update(float t, float dt, const SpacePartition &sp) {
   collider.position = body.position;
 }
 
-void Entity::Draw(Shader &shader) const {
+void Entity::Draw(const Shader &shader) const {
   // Set world transform
   mat4 worldTransform = body.getWorldTransform();
 

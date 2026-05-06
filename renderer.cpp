@@ -74,7 +74,7 @@ GLuint SDL_GL_LoadTexture(SDL_Surface *surface, shared_ptr<Surface> &screen,
 }
 
 Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
-  SetProjection(screen);
+  setProjection(screen);
 
   SDL_Init(SDL_INIT_VIDEO);
 
@@ -140,7 +140,7 @@ bool Renderer::setupSkybox() {
 
 void Renderer::SetCamera(const shared_ptr<FollowCamera> &camera) {
   mCamera = camera;
-  SetView(camera);
+  setView(camera);
 }
 
 Renderer::~Renderer() {
@@ -332,7 +332,7 @@ bool Renderer::setupFramebuffers() {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-  PushHUDTexture(hudTexture);
+  pushHUDTexture(hudTexture);
 
   TTF_SetFontSize(font, 200);
   SDL_Surface *victorySurface = TTF_RenderText_Blended_Wrapped(
@@ -371,7 +371,7 @@ void Renderer::drawSkybox() {
   glDepthFunc(GL_LESS); // set depth function back to default
 }
 
-void Renderer::DrawDebug(const mat4 &viewProj) {
+void Renderer::drawDebug(const mat4 &viewProj) {
   // Visualize collisions
   mCollisionShader.setActive();
 
@@ -406,9 +406,21 @@ void Renderer::DrawDebug(const mat4 &viewProj) {
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
+void Renderer::drawEntities(const shared_ptr<const Entities> &entities,
+                            const mat4 &viewProj) {
+  mMeshShader.setActive();
+
+  mMeshShader.setMatrixUniform("uViewProj", viewProj);
+
+  mMeshShader.setLight(mView);
+
+  entities->DrawStaticEntities(mMeshShader);
+  entities->DrawDynamicEntities(mMeshShader);
+}
+
 void Renderer::Draw3D(float deltaTime,
                       const shared_ptr<const Entities> &entities) {
-  SetView(mCamera);
+  setView(mCamera);
 
   // Clear the color/depth buffer
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -424,17 +436,10 @@ void Renderer::Draw3D(float deltaTime,
   mat4 viewProj = mView * mProjection;
 
 #ifdef _DEBUG
-  DrawDebug(viewProj);
+  drawDebug(viewProj);
 #endif // _DEBUG
 
-  mMeshShader.setActive();
-
-  mMeshShader.setMatrixUniform("uViewProj", viewProj);
-
-  mMeshShader.setLight(mView);
-
-  entities->DrawStaticEntities(mMeshShader);
-  entities->DrawDynamicEntities(mMeshShader);
+  drawEntities(entities, viewProj);
 
   drawSkybox();
 
@@ -494,12 +499,12 @@ void Renderer::drawScreenQuad(Shader &shader, GLuint VAO, GLuint texture) {
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void Renderer::SetView(const shared_ptr<FollowCamera> &camera) {
+void Renderer::setView(const shared_ptr<FollowCamera> &camera) {
   mView =
       mat4::CreateLookAt(camera->mActualPosition, camera->mTarget, camera->mUp);
 }
 
-void Renderer::SetProjection(const shared_ptr<Surface> &screen) {
+void Renderer::setProjection(const shared_ptr<Surface> &screen) {
   mProjection = mat4::CreatePerspectiveFOV(
       fovy, static_cast<float>(screen->GetWidth()),
       static_cast<float>(screen->GetHeight()), 1.0f, 10000.0f);
