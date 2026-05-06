@@ -69,6 +69,7 @@ class Renderer {
   void drawEntities(const shared_ptr<const Entities> &entities,
                     const mat4 &viewProj);
   void drawToHUD(GLuint VAO, GLuint texture, const float textColor[3]);
+  static void drawEntity(const Shader &shader, const Entity &entity);
 
 public:
   Renderer(const shared_ptr<Surface> &screen);

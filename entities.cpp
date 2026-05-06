@@ -43,27 +43,9 @@ void DynamicEntity::Update(float t, float dt, const SpacePartition &sp) {
   collider.position = body.position;
 }
 
-void Entity::Draw(const Shader &shader) const {
-  // Set world transform
-  mat4 worldTransform = body.getWorldTransform();
-
-  shader.SetMatrixUniform("uWorldTransform", worldTransform);
-
-  auto maybe_tex = mesh.lookTextureUp(0);
-  if (maybe_tex.has_value())
-    maybe_tex.value()->SetActive();
-
-  Shader::SetVerticesActive(mesh.GetVertexArray());
-
-  // Draw triangles
-  glDrawElements(GL_TRIANGLES, static_cast<int>(mesh.GetNumIndices()),
-                 GL_UNSIGNED_INT, nullptr);
-
-  GLenum err_code = glGetError();
-  while (GL_NO_ERROR != err_code) {
-    printf("OpenGL Error @ %s: %i", "mesh draw", err_code);
-    err_code = glGetError();
-  }
+tuple<mat4, optional<Texture *>, GLuint, size_t> Entity::GetDrawData() const {
+  return {body.getWorldTransform(), mesh.lookTextureUp(0),
+          mesh.GetVertexArray(), mesh.GetNumIndices()};
 }
 
 void Entities::RegisterEntities(

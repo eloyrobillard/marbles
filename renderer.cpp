@@ -198,6 +198,27 @@ Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
   SDL_GL_SwapWindow(mWindow);
 }
 
+void Renderer::drawEntity(const Shader &shader, const Entity &entity) {
+  const auto &[worldTransform, maybe_tex, vertexArray, numIndices] =
+      entity.GetDrawData();
+  shader.SetMatrixUniform("uWorldTransform", worldTransform);
+
+  if (maybe_tex.has_value())
+    maybe_tex.value()->SetActive();
+
+  Shader::SetVerticesActive(vertexArray);
+
+  // Draw triangles
+  glDrawElements(GL_TRIANGLES, static_cast<int>(numIndices), GL_UNSIGNED_INT,
+                 nullptr);
+
+  GLenum err_code = glGetError();
+  while (GL_NO_ERROR != err_code) {
+    printf("OpenGL Error @ %s: %i", "mesh draw", err_code);
+    err_code = glGetError();
+  }
+}
+
 void Renderer::drawToHUD(GLuint VAO, GLuint texture, const float textColor[3]) {
   mTextShader.SetActive();
   mTextShader.SetVec3Uniform("textColor", textColor);
@@ -445,8 +466,13 @@ void Renderer::drawEntities(const shared_ptr<const Entities> &entities,
 
   mMeshShader.SetLight(mView);
 
-  entities->DrawStaticEntities(mMeshShader);
-  entities->DrawDynamicEntities(mMeshShader);
+  for (const auto &e : entities->GetStaticEntities()) {
+    drawEntity(mMeshShader, e);
+  }
+
+  for (const auto &e : entities->GetDynamicEntities()) {
+    drawEntity(mMeshShader, e);
+  }
 }
 
 void Renderer::Draw3D(float deltaTime,
