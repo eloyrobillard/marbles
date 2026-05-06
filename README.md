@@ -34,7 +34,7 @@ Script to export from Blender3D as GPMesh: "Game Programming in C++" by Sanjay M
 
 - Phong: [LearnOpenGL](https://learnopengl.com/Lighting/Basic-Lighting)
 - Anti-Aliasing: [LearnOpenGL](https://learnopengl.com/Advanced-OpenGL/Anti-Aliasing)
-- Skybox, including the skybox image: [LearnOpenGL](https://learnopengl.com/Advanced-OpenGL/Cubemaps)
+- Skybox: [LearnOpenGL](https://learnopengl.com/Advanced-OpenGL/Cubemaps)
 - HUD: [LearnOpenGL](https://learnopengl.com/In-Practice/Text-Rendering), [lackeyccg.com](https://lackeyccg.com/glfont.c)
 
 Collision detection: ”Real-Time Collision Detection" by Christer Ericson
@@ -61,3 +61,8 @@ Render frames debugging: [RenderDoc](https://renderdoc.org/)
 - Texture loading: [SOIL](https://github.com/littlstar/soil)
 - GPU rendering: OpenGL & [glew 2.3.1](https://github.com/nigels-com/glew?tab=readme-ov-file)
 - [Tmpl8](https://www.3dgep.com/cpp-fast-track-2-template/) by Breda University
+
+### Assets
+
+Skybox image: [LearnOpenGL](https://learnopengl.com/Advanced-OpenGL/Cubemaps)
+Background track: "Station Six" by Dualistic
