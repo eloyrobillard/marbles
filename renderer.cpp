@@ -3,6 +3,19 @@
 #include "shader.h"
 #include "template.h"
 
+TTF_Font *TTF_GetFont(const char *fontName, float ptsize,
+                      TTF_FontStyleFlags fontStyleFlags) {
+  TTF_Font *font = TTF_OpenFont(fontName, ptsize);
+
+  if (!font) {
+    SDL_Log("TTF_OpenFont: %s\n", SDL_GetError());
+  }
+
+  TTF_SetFontStyle(font, fontStyleFlags);
+
+  return font;
+}
+
 // SOURCE: https://lackeyccg.com/glfont.c
 void SDL_GL_Enter2DMode() {
   glDisable(GL_DEPTH_TEST);
@@ -125,6 +138,74 @@ Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
 
   // Setup AA and depth framebuffers
   setupFramebuffers();
+
+  // Setup HUD
+  if (!TTF_Init()) {
+    SDL_Log("TTF_Init error: %s\n", SDL_GetError());
+  }
+
+  TTF_Font *font =
+      TTF_GetFont("assets/fonts/NotoSansCJKjp-VF.ttf", 30, TTF_STYLE_BOLD);
+
+  // Length can be zero for null-terminated text
+  SDL_Surface *commandsSurface = TTF_RenderText_Blended_Wrapped(
+      font, "Left/Right arrows to turn\nSpace to restart", 0,
+      {255, 255, 255, 255}, 0);
+
+  GLuint hudTexture =
+      SDL_GL_LoadTexture(commandsSurface, mScreen, 5, 5, SDL_FLIP_VERTICAL);
+
+  SDL_DestroySurface(commandsSurface);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  pushHUDTexture(hudTexture);
+
+  TTF_SetFontSize(font, 60);
+  SDL_Surface *loadingSurface = TTF_RenderText_Blended_Wrapped(
+      font, "...Loading", 0, {255, 255, 255, 255}, 0);
+
+  TTF_SetFontSize(font, 200);
+  SDL_Surface *victorySurface = TTF_RenderText_Blended_Wrapped(
+      font, "You win!", 0, {255, 255, 255, 255}, 0);
+
+  TTF_CloseFont(font);
+
+  mLoadingTexture = SDL_GL_LoadTexture(
+      loadingSurface, mScreen, mScreen->GetWidth() - loadingSurface->w - 10,
+      mScreen->GetHeight() - loadingSurface->h - 10, SDL_FLIP_VERTICAL);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  mVictoryTexture = SDL_GL_LoadTexture(
+      victorySurface, mScreen, (mScreen->GetWidth() - victorySurface->w) >> 1,
+      (mScreen->GetHeight() - victorySurface->h) >> 1, SDL_FLIP_VERTICAL);
+
+  SDL_DestroySurface(loadingSurface);
+  SDL_DestroySurface(victorySurface);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  // Draw loading screen
+  SDL_GL_Enter2DMode();
+  float textColor[3] = {1.0f, 1.0f, 1.0f};
+  drawToHUD(hudVAO, mLoadingTexture, textColor);
+  SDL_GL_Leave2DMode();
+
+  SDL_GL_SwapWindow(mWindow);
+}
+
+void Renderer::drawToHUD(GLuint VAO, GLuint texture, const float textColor[3]) {
+  mTextShader.SetActive();
+  mTextShader.SetVec3Uniform("textColor", textColor);
+  glBindVertexArray(VAO);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  // use the now resolved color attachment as the quad's texture
+  glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 bool Renderer::setupSkybox() {
@@ -221,19 +302,6 @@ bool Renderer::setupSkyboxVAO() {
   return (glGetError() == 0);
 }
 
-TTF_Font *TTF_GetFont(const char *fontName, float ptsize,
-                      TTF_FontStyleFlags fontStyleFlags) {
-  TTF_Font *font = TTF_OpenFont(fontName, ptsize);
-
-  if (!font) {
-    SDL_Log("TTF_OpenFont: %s\n", SDL_GetError());
-  }
-
-  TTF_SetFontStyle(font, fontStyleFlags);
-
-  return font;
-}
-
 void Renderer::setupScreenQuadVAO(GLuint &VAO, GLuint &VBO) {
   // vertex attributes for a quad that fills the entire screen in Normalized
   // Device Coordinates. (positions, texCoords)
@@ -309,45 +377,8 @@ bool Renderer::setupFramebuffers() {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // post-processing shader config
-  mPostShader.setActive();
-  mPostShader.setIntUniform("screenTexture", 0);
-
-  if (!TTF_Init()) {
-    SDL_Log("TTF_Init error: %s\n", SDL_GetError());
-  }
-
-  TTF_Font *font =
-      TTF_GetFont("assets/fonts/NotoSansCJKjp-VF.ttf", 30, TTF_STYLE_BOLD);
-
-  // Length can be zero for null-terminated text
-  SDL_Surface *commandsSurface = TTF_RenderText_Blended_Wrapped(
-      font, "Left/Right arrows to turn\nSpace to restart", 0,
-      {255, 255, 255, 255}, 0);
-
-  GLuint hudTexture =
-      SDL_GL_LoadTexture(commandsSurface, mScreen, 5, 5, SDL_FLIP_VERTICAL);
-
-  SDL_DestroySurface(commandsSurface);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-  pushHUDTexture(hudTexture);
-
-  TTF_SetFontSize(font, 200);
-  SDL_Surface *victorySurface = TTF_RenderText_Blended_Wrapped(
-      font, "You win!", 0, {255, 255, 255, 255}, 0);
-
-  TTF_CloseFont(font);
-
-  mVictoryTexture = SDL_GL_LoadTexture(
-      victorySurface, mScreen, (mScreen->GetWidth() - victorySurface->w) >> 1,
-      (mScreen->GetHeight() - victorySurface->h) >> 1, SDL_FLIP_VERTICAL);
-
-  SDL_DestroySurface(victorySurface);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  mPostShader.SetActive();
+  mPostShader.SetIntUniform("screenTexture", 0);
 
   return (glGetError() == 0);
 }
@@ -356,11 +387,11 @@ void Renderer::drawSkybox() {
   // draw skybox behind scene
   glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when
                           // values are equal to depth buffer's content
-  mSkyboxShader.setActive();
-  mSkyboxShader.setMatrixUniform(
+  mSkyboxShader.SetActive();
+  mSkyboxShader.SetMatrixUniform(
       "view", mat4::CreateLookAtSkybox(mCamera->mActualPosition,
                                        mCamera->mTarget, mCamera->mUp));
-  mSkyboxShader.setMatrixUniform("projection", mProjection);
+  mSkyboxShader.SetMatrixUniform("projection", mProjection);
 
   // skybox cube
   glBindVertexArray(skyboxVAO);
@@ -373,12 +404,12 @@ void Renderer::drawSkybox() {
 
 void Renderer::drawDebug(const mat4 &viewProj) {
   // Visualize collisions
-  mCollisionShader.setActive();
+  mCollisionShader.SetActive();
 
-  mCollisionShader.setMatrixUniform("uViewProj", viewProj);
+  mCollisionShader.SetMatrixUniform("uViewProj", viewProj);
 
   while (!gTo_render_as_collided.empty()) {
-    Shader::setVerticesActive(gTo_render_as_collided.top());
+    Shader::SetVerticesActive(gTo_render_as_collided.top());
 
     // Draw triangles
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
@@ -387,16 +418,16 @@ void Renderer::drawDebug(const mat4 &viewProj) {
   }
 
   // Visualize triangle colliders as a wireframe
-  mColliderShader.setActive();
+  mColliderShader.SetActive();
 
-  mColliderShader.setMatrixUniform("uViewProj", viewProj);
+  mColliderShader.SetMatrixUniform("uViewProj", viewProj);
 
   // Turn on wireframe mode
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   // Only show triangles currently tested against
   for (const auto &triangle : gCurrent_partition) {
-    Shader::setVerticesActive(triangle.vertexArray);
+    Shader::SetVerticesActive(triangle.vertexArray);
 
     // Draw triangles
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
@@ -408,11 +439,11 @@ void Renderer::drawDebug(const mat4 &viewProj) {
 
 void Renderer::drawEntities(const shared_ptr<const Entities> &entities,
                             const mat4 &viewProj) {
-  mMeshShader.setActive();
+  mMeshShader.SetActive();
 
-  mMeshShader.setMatrixUniform("uViewProj", viewProj);
+  mMeshShader.SetMatrixUniform("uViewProj", viewProj);
 
-  mMeshShader.setLight(mView);
+  mMeshShader.SetLight(mView);
 
   entities->DrawStaticEntities(mMeshShader);
   entities->DrawDynamicEntities(mMeshShader);
@@ -446,9 +477,9 @@ void Renderer::Draw3D(float deltaTime,
   // finally, draw HUD elements
   SDL_GL_Enter2DMode();
   {
-    mTextShader.setActive();
+    mTextShader.SetActive();
     const float textColor[3] = {1.0f, 1.0f, 1.0f};
-    mTextShader.setVec3Uniform("textColor", textColor);
+    mTextShader.SetVec3Uniform("textColor", textColor);
     glBindVertexArray(hudVAO);
     glActiveTexture(GL_TEXTURE0);
 
@@ -491,7 +522,7 @@ void Renderer::blitFramebuffer(GLuint readFB, GLuint drawFB, int readW,
 }
 
 void Renderer::drawScreenQuad(Shader &shader, GLuint VAO, GLuint texture) {
-  shader.setActive();
+  shader.SetActive();
   glBindVertexArray(VAO);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture);
@@ -518,7 +549,7 @@ Shader Renderer::GetShader(const char *vert, const char *frag) {
     SDL_Log("Failed to load shader: %s", vert);
   }
 
-  maybe_shader.value().setActive();
+  maybe_shader.value().SetActive();
 
   return maybe_shader.value_or(Shader());
 }

@@ -99,7 +99,7 @@ void Shader::Unload() const {
   glDeleteShader(fragmentShader);
 }
 
-void Shader::setMatrixUniform(const char *name,
+void Shader::SetMatrixUniform(const char *name,
                               const Maths::mat4 &matrix) const {
   // Find the uniform by this name
   GLuint loc = glGetUniformLocation(program, name);
@@ -107,41 +107,41 @@ void Shader::setMatrixUniform(const char *name,
   glUniformMatrix4fv(static_cast<GLint>(loc), 1, GL_TRUE, matrix.cell);
 }
 
-void Shader::setIntUniform(const char *name, int value) const {
+void Shader::SetIntUniform(const char *name, int value) const {
   GLuint loc = glGetUniformLocation(program, name);
   glUniform1i(static_cast<GLint>(loc), value);
 }
 
-void Shader::setFloatUniform(const char *name, const float value) const {
+void Shader::SetFloatUniform(const char *name, const float value) const {
   GLuint loc = glGetUniformLocation(program, name);
   glUniform1f(static_cast<GLint>(loc), value);
 }
 
-void Shader::setVec3Uniform(const char *name, const float values[3]) const {
+void Shader::SetVec3Uniform(const char *name, const float values[3]) const {
   GLuint loc = glGetUniformLocation(program, name);
   glUniform3fv(static_cast<GLint>(loc), 1, values);
 }
 
-void Shader::setLight(mat4 &view) const {
+void Shader::SetLight(mat4 &view) const {
   mat4 camera_pos = view;
   // Camera position is from inverted view
   camera_pos.invert();
 
-  setVec3Uniform("uCameraPos", view.getTranslation());
+  SetVec3Uniform("uCameraPos", view.getTranslation());
 
   float ambient[3] = {0.2f, 0.2f, 0.2f};
-  setVec3Uniform("uAmbientLight", ambient);
+  SetVec3Uniform("uAmbientLight", ambient);
 
   float direction[3] = {0.0f, 0.0f, -1.0f};
-  setVec3Uniform("uDirLight.direction", direction);
+  SetVec3Uniform("uDirLight.direction", direction);
 
   float diffuse[3] = {1.0f, 1.0f, 1.0f};
-  setVec3Uniform("uDirLight.diffuseColor", diffuse);
+  SetVec3Uniform("uDirLight.diffuseColor", diffuse);
 
   float specular[3] = {1.0f, 1.0f, 1.0f};
-  setVec3Uniform("uDirLight.specularColor", specular);
+  SetVec3Uniform("uDirLight.specularColor", specular);
 
   // Strength of shine
   float specPower = 32.0f;
-  setFloatUniform("uSpecPower", specPower);
+  SetFloatUniform("uSpecPower", specPower);
 }

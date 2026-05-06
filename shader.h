@@ -14,13 +14,13 @@ public:
   static optional<Shader> Load(const std::string &vertName,
                                const std::string &fragName);
   void Unload() const;
-  void setLight(mat4 &view) const;
-  void setActive() const { glUseProgram(program); }
-  void setMatrixUniform(const char *name, const mat4 &matrix) const;
-  void setIntUniform(const char *name, int value) const;
-  void setFloatUniform(const char *name, float value) const;
-  void setVec3Uniform(const char *name, const float values[3]) const;
-  static void setVerticesActive(GLuint vertexArray) {
+  void SetLight(mat4 &view) const;
+  void SetActive() const { glUseProgram(program); }
+  void SetMatrixUniform(const char *name, const mat4 &matrix) const;
+  void SetIntUniform(const char *name, int value) const;
+  void SetFloatUniform(const char *name, float value) const;
+  void SetVec3Uniform(const char *name, const float values[3]) const;
+  static void SetVerticesActive(GLuint vertexArray) {
     glBindVertexArray(vertexArray);
   }
 };

@@ -47,13 +47,13 @@ void Entity::Draw(const Shader &shader) const {
   // Set world transform
   mat4 worldTransform = body.getWorldTransform();
 
-  shader.setMatrixUniform("uWorldTransform", worldTransform);
+  shader.SetMatrixUniform("uWorldTransform", worldTransform);
 
   auto maybe_tex = mesh.lookTextureUp(0);
   if (maybe_tex.has_value())
     maybe_tex.value()->SetActive();
 
-  Shader::setVerticesActive(mesh.GetVertexArray());
+  Shader::SetVerticesActive(mesh.GetVertexArray());
 
   // Draw triangles
   glDrawElements(GL_TRIANGLES, static_cast<int>(mesh.GetNumIndices()),

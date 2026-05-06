@@ -37,6 +37,8 @@ class Renderer {
   GLuint screenTexture;
   GLuint quadVAO, quadVBO;
   GLuint hudVAO, hudVBO;
+
+  GLuint mLoadingTexture;
   GLuint mVictoryTexture;
 
   Shader mTextShader;
@@ -66,6 +68,7 @@ class Renderer {
   void drawDebug(const mat4 &viewProj);
   void drawEntities(const shared_ptr<const Entities> &entities,
                     const mat4 &viewProj);
+  void drawToHUD(GLuint VAO, GLuint texture, const float textColor[3]);
 
 public:
   Renderer(const shared_ptr<Surface> &screen);
