@@ -9,7 +9,30 @@ vector<vector<vec3>> checkpoints{
     {{9.826279640197754, -0.024219999089837074, 0.1309020072221756}},
     {{53.835, -.45012, -3.5062}}};
 
-void Game::Init() {}
+SDL_AudioSpec audioSpec;
+unsigned char *audioBuf;
+uint audioLength;
+SDL_AudioStream *audioStream;
+
+void Game::Init() {
+  if (!SDL_LoadWAV("assets/Dualistic - Station Six.wav", &audioSpec, &audioBuf,
+                   &audioLength)) {
+    SDL_Log("Error: Failed to load audio: %s", SDL_GetError());
+  }
+
+  audioStream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK,
+                                          &audioSpec, nullptr, nullptr);
+
+  if (!audioStream) {
+    SDL_Log("Error: Failed to open an audio device stream: %s", SDL_GetError());
+  }
+
+  if (!SDL_PutAudioStreamData(audioStream, audioBuf, audioLength)) {
+    SDL_Log("Error: Failed to put audio in the stream: %s", SDL_GetError());
+  }
+
+  SDL_ResumeAudioStreamDevice(audioStream);
+}
 
 void Game::Tick(float deltaTime) {
   if (GetKey(SDL_SCANCODE_RIGHT)) {
@@ -34,7 +57,10 @@ void Game::Tick(float deltaTime) {
   }
 }
 
-void Game::Shutdown() {}
+void Game::Shutdown() {
+  SDL_free(audioBuf);
+  SDL_DestroyAudioStream(audioStream);
+}
 
 void Game::Restart() {
   const auto &dynamicEntitiesPos = checkpoints[checkpointID];

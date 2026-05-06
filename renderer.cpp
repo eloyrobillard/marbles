@@ -89,7 +89,7 @@ GLuint SDL_GL_LoadTexture(SDL_Surface *surface, shared_ptr<Surface> &screen,
 Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
   setProjection(screen);
 
-  SDL_Init(SDL_INIT_VIDEO);
+  SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 
   // Set OpenGL attributes
   // Use the core OpenGL profile
