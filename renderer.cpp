@@ -371,24 +371,7 @@ void Renderer::drawSkybox() {
   glDepthFunc(GL_LESS); // set depth function back to default
 }
 
-void Renderer::Draw3D(float deltaTime,
-                      const shared_ptr<const Entities> &entities) {
-  SetView(mCamera);
-
-  // Clear the color/depth buffer
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  // 1. draw scene as normal in multisampled buffers
-  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-  // Set the clear color
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  glEnable(GL_DEPTH_TEST);
-
-  mat4 viewProj = mView * mProjection;
-
-#ifdef _DEBUG
+void Renderer::DrawDebug(const mat4 &viewProj) {
   // Visualize collisions
   mCollisionShader.setActive();
 
@@ -421,6 +404,27 @@ void Renderer::Draw3D(float deltaTime,
 
   // Turn off wireframe mode
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
+void Renderer::Draw3D(float deltaTime,
+                      const shared_ptr<const Entities> &entities) {
+  SetView(mCamera);
+
+  // Clear the color/depth buffer
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  // 1. draw scene as normal in multisampled buffers
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+  // Set the clear color
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  glEnable(GL_DEPTH_TEST);
+
+  mat4 viewProj = mView * mProjection;
+
+#ifdef _DEBUG
+  DrawDebug(viewProj);
 #endif // _DEBUG
 
   mMeshShader.setActive();
@@ -457,28 +461,37 @@ void Renderer::Draw3D(float deltaTime,
 
     // 2. now blit multisampled buffer(s) to normal colorbuffer of intermediate
     // FBO. Image is stored in screenTexture
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, framebuffer);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, intermediateFBO);
-    glBlitFramebuffer(0, 0, mScreen->GetWidth(), mScreen->GetHeight(), 0, 0,
-                      mScreen->GetWidth(), mScreen->GetHeight(),
-                      GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    blitFramebuffer(framebuffer, intermediateFBO, mScreen->GetWidth(),
+                    mScreen->GetHeight(), mScreen->GetWidth(),
+                    mScreen->GetHeight());
 
     // 3. now render quad with scene's visuals as its texture image
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-
-    // draw Screen quad
-    mPostShader.setActive();
-    glBindVertexArray(quadVAO);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, screenTexture);
-    // use the now resolved color attachment as the quad's texture
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    // draw the result of every other draw
+    drawScreenQuad(mPostShader, quadVAO, screenTexture);
   }
   SDL_GL_Leave2DMode();
 
   SDL_GL_SwapWindow(mWindow);
+}
+
+void Renderer::blitFramebuffer(GLuint readFB, GLuint drawFB, int readW,
+                               int readH, int drawW, int drawH) {
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, readFB);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, drawFB);
+  glBlitFramebuffer(0, 0, readW, readH, 0, 0, drawW, drawH, GL_COLOR_BUFFER_BIT,
+                    GL_NEAREST);
+}
+
+void Renderer::drawScreenQuad(Shader &shader, GLuint VAO, GLuint texture) {
+  shader.setActive();
+  glBindVertexArray(VAO);
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  // use the now resolved color attachment as the quad's texture
+  glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 void Renderer::SetView(const shared_ptr<FollowCamera> &camera) {

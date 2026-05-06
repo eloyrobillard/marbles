@@ -60,6 +60,10 @@ class Renderer {
   void GetMeshes(const vector<pair<string, BodyType>> &meshList);
   static Shader GetShader(const char *vert, const char *frag);
   void drawSkybox();
+  static void drawScreenQuad(Shader &shader, GLuint VAO, GLuint texture);
+  static void blitFramebuffer(GLuint readFB, GLuint drawFB, int readW,
+                              int readH, int drawW, int drawH);
+  void DrawDebug(const mat4 &viewProj);
 
 public:
   Renderer(const shared_ptr<Surface> &screen);
