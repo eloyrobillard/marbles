@@ -27,6 +27,8 @@ void Game::Init() {
     SDL_Log("Error: Failed to open an audio device stream: %s", SDL_GetError());
   }
 
+  SDL_SetAudioStreamGain(audioStream, 0.5f);
+
   if (!SDL_PutAudioStreamData(audioStream, audioBuf, audioLength)) {
     SDL_Log("Error: Failed to put audio in the stream: %s", SDL_GetError());
   }
