@@ -88,6 +88,8 @@ GLuint SDL_GL_LoadTexture(SDL_Surface *surface, shared_ptr<Surface> &screen,
 
 Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
   setProjection(screen);
+  mAspectRatio =
+      static_cast<float>(ScreenWidth) / static_cast<float>(ScreenHeight);
 
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 
@@ -133,6 +135,10 @@ Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
   mCollisionShader = GetShader("shaders/tint.vert", "shaders/tint.frag");
   mPostShader = GetShader("shaders/post.vert", "shaders/post.frag");
   mSkyboxShader = GetShader("shaders/skybox.vert", "shaders/skybox.frag");
+  mDebugDepthMapShader =
+      GetShader("shaders/debugDepthMap.vert", "shaders/debugDepthMap.frag");
+  mShadowMappingShader = GetShader("shaders/shadowMappingDepth.vert",
+                                   "shaders/shadowMappingDepth.frag");
 
   setupSkybox();
 
@@ -393,6 +399,7 @@ void Renderer::configureMultiSampledAntiAliasing() {
 bool Renderer::setupFramebuffers() {
   setupScreenQuadVAO(hudVAO, hudVBO);
   setupScreenQuadVAO(quadVAO, quadVBO);
+  setupScreenQuadVAO(debugDepthMapVAO, debugDepthMapVBO);
 
   configureMultiSampledAntiAliasing();
 
@@ -407,6 +414,29 @@ bool Renderer::setupFramebuffers() {
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     cout
         << "ERROR::FRAMEBUFFER:: Intermediate framebuffer is not complete !\n ";
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  // configure depth map framebuffer
+  glGenFramebuffers(1, &mDepthMapFBO);
+  glBindFramebuffer(GL_FRAMEBUFFER, mDepthMapFBO);
+
+  // create texture for shadow map
+
+  glGenTextures(1, &mDepthMapTexture);
+  glBindTexture(GL_TEXTURE_2D, mDepthMapTexture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, mScreen->GetWidth(),
+               mScreen->GetHeight(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
+                         mDepthMapTexture, 0);
+  glDrawBuffer(GL_NONE);
+  glReadBuffer(GL_NONE);
+
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    cout << "ERROR::FRAMEBUFFER:: Depth map framebuffer is not complete !\n ";
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   return (glGetError() == 0);
@@ -466,21 +496,32 @@ void Renderer::drawDebug(const mat4 &viewProj) {
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-void Renderer::drawEntities(const shared_ptr<const Entities> &entities,
-                            const mat4 &viewProj) {
-  mMeshShader.SetActive();
-
-  mMeshShader.SetMatrixUniform("uViewProj", viewProj);
-
-  mMeshShader.SetLight(mView);
-
+void Renderer::drawScene(const Shader &shader,
+                         const shared_ptr<const Entities> &entities,
+                         const mat4 &viewProj) {
   for (const auto &e : entities->GetStaticEntities()) {
-    drawEntity(mMeshShader, e);
+    drawEntity(shader, e);
   }
 
   for (const auto &e : entities->GetDynamicEntities()) {
-    drawEntity(mMeshShader, e);
+    drawEntity(shader, e);
   }
+}
+
+void Renderer::prepareShadowMap(const shared_ptr<const Entities> &entities,
+                                const mat4 &viewProj) {
+  glBindFramebuffer(GL_FRAMEBUFFER, mDepthMapFBO);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  vec3 lightPos = {-10.0f, 0.0f, 1.0f};
+  vec3 lightTgt = {0.0f, 0.0f, -1.0f};
+  mat4 lightProj = mat4::CreateOrtho(20.0f * mAspectRatio, 20.0f, 1.0f, 100.0f);
+  mat4 lightView = mat4::CreateLookAt(lightPos, lightTgt, vec3::up);
+  mShadowMappingShader.SetActive();
+  mShadowMappingShader.SetMatrixUniform("uLightSpaceMatrix",
+                                        lightView * lightProj);
+  drawScene(mShadowMappingShader, entities, viewProj);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Renderer::Draw3D(float deltaTime,
@@ -504,9 +545,16 @@ void Renderer::Draw3D(float deltaTime,
   drawDebug(viewProj);
 #endif // _DEBUG
 
-  drawEntities(entities, viewProj);
+  mMeshShader.SetActive();
+  mMeshShader.SetMatrixUniform("uViewProj", viewProj);
+  mMeshShader.SetLight(mView);
+  drawScene(mMeshShader, entities, viewProj);
 
   drawSkybox();
+
+  prepareShadowMap(entities, viewProj);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFrameBuffer);
 
   // finally, draw HUD elements
   SDL_GL_Enter2DMode();
@@ -535,12 +583,22 @@ void Renderer::Draw3D(float deltaTime,
                     mScreen->GetHeight(), mScreen->GetWidth(),
                     mScreen->GetHeight());
 
-    // 3. now render quad with scene's visuals as its texture image
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+#ifdef _DEBUG
+    // draw depth map to quad, for inspection in RenderDoc
+    mDebugDepthMapShader.SetActive();
+    mDebugDepthMapShader.SetFloatUniform("nearPlane", 1.0f);
+    mDebugDepthMapShader.SetFloatUniform("farPlane", 100.0f);
+    drawQuad(mDebugDepthMapShader, debugDepthMapVAO, mDepthMapTexture);
+#endif
+
+    // 3. now render quad with scene's visuals as its texture image
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    glClear(GL_DEPTH_BUFFER_BIT);
     // draw the result of every other draw
-    drawScreenQuad(mPostShader, quadVAO, mScreenTexture);
+    mPostShader.SetActive();
+    drawQuad(mPostShader, quadVAO, mScreenTexture);
   }
   SDL_GL_Leave2DMode();
 
@@ -555,8 +613,7 @@ void Renderer::blitFramebuffer(GLuint readFB, GLuint drawFB, int readW,
                     GL_NEAREST);
 }
 
-void Renderer::drawScreenQuad(Shader &shader, GLuint VAO, GLuint texture) {
-  shader.SetActive();
+void Renderer::drawQuad(Shader &shader, GLuint VAO, GLuint texture) {
   glBindVertexArray(VAO);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture);

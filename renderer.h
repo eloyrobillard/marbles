@@ -21,6 +21,7 @@ class Renderer {
   mat4 mView;
   mat4 mProjection;
   float fovy = 30.0f / 180.0f * PI;
+  float mAspectRatio;
 
   SDL_Window *mWindow;
   SDL_GLContext mGlContext;
@@ -29,17 +30,20 @@ class Renderer {
 
   vector<GLuint> hudTextures;
 
-  GLuint skyboxTexture;
-  GLuint skyboxVAO, skyboxVBO;
   GLuint mMSAAFrameBuffer;
   GLuint mMSAARenderBuffer;
   GLuint mIntermediateFBO;
+  GLuint mDepthMapFBO;
   GLuint mScreenTexture;
+  GLuint skyboxTexture;
+  GLuint skyboxVAO, skyboxVBO;
   GLuint quadVAO, quadVBO;
   GLuint hudVAO, hudVBO;
+  GLuint debugDepthMapVAO, debugDepthMapVBO;
 
   GLuint mLoadingTexture;
   GLuint mVictoryTexture;
+  GLuint mDepthMapTexture;
 
   Shader mTextShader;
   Shader mMeshShader;
@@ -47,6 +51,8 @@ class Renderer {
   Shader mCollisionShader;
   Shader mSkyboxShader;
   Shader mPostShader;
+  Shader mDebugDepthMapShader;
+  Shader mShadowMappingShader;
 
   bool mShowVictoryMessage = false;
 
@@ -60,14 +66,17 @@ class Renderer {
   void getMeshes(const vector<pair<string, BodyType>> &meshList);
   void drawSkybox();
   void drawDebug(const mat4 &viewProj);
-  void drawEntities(const shared_ptr<const Entities> &entities,
-                    const mat4 &viewProj);
   void drawToHUD(GLuint VAO, GLuint texture, const float textColor[3]);
   void configureMultiSampledAntiAliasing();
+  void prepareShadowMap(const shared_ptr<const Entities> &entities,
+                        const mat4 &viewProj);
 
+  static void drawScene(const Shader &shader,
+                        const shared_ptr<const Entities> &entities,
+                        const mat4 &viewProj);
   static void setupScreenQuadVAO(GLuint &VAO, GLuint &VBO);
   static Shader GetShader(const char *vert, const char *frag);
-  static void drawScreenQuad(Shader &shader, GLuint VAO, GLuint texture);
+  static void drawQuad(Shader &shader, GLuint VAO, GLuint texture);
   static void blitFramebuffer(GLuint readFB, GLuint drawFB, int readW,
                               int readH, int drawW, int drawH);
   static void drawEntity(const Shader &shader, const Entity &entity);

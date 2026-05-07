@@ -590,7 +590,15 @@ public:
                         {0.0f, yScale, 0.0f, 0.0f},
                         {0.0f, 0.0f, far / (far - near), 1.0f},
                         {0.0f, 0.0f, -near * far / (far - near), 0.0f}};
-    return mat4(temp);
+    return {temp};
+  }
+
+  static mat4 CreateOrtho(float width, float height, float near, float far) {
+    float temp[4][4] = {{2.0f / width, 0.0f, 0.0f, 0.0f},
+                        {0.0f, 2.0f / height, 0.0f, 0.0f},
+                        {0.0f, 0.0f, 1.0f / (far - near), 0.0f},
+                        {0.0f, 0.0f, near / (near - far), 1.0f}};
+    return {temp};
   }
 
   static mat4 CreateLookAt(const vec3 &eye, const vec3 &target,
