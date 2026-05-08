@@ -69,7 +69,7 @@ class Renderer {
   void drawToHUD(GLuint VAO, GLuint texture, const float textColor[3]);
   void configureMultiSampledAntiAliasing();
   void prepareShadowMap(const shared_ptr<const Entities> &entities,
-                        const mat4 &viewProj);
+                        const mat4 &viewProj, const mat4 &lightViewProj);
 
   static void drawScene(const Shader &shader,
                         const shared_ptr<const Entities> &entities,

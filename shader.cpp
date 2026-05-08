@@ -122,6 +122,12 @@ void Shader::SetVec3Uniform(const char *name, const float values[3]) const {
   glUniform3fv(static_cast<GLint>(loc), 1, values);
 }
 
+void Shader::SetVec3Uniform(const char *name, const Maths::vec3 &v) const {
+  GLuint loc = glGetUniformLocation(program, name);
+  float values[3] = {v.x, v.y, v.z};
+  glUniform3fv(static_cast<GLint>(loc), 1, values);
+}
+
 void Shader::SetLight(mat4 &view) const {
   mat4 camera_pos = view;
   // Camera position is from inverted view

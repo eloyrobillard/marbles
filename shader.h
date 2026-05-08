@@ -20,6 +20,7 @@ public:
   void SetIntUniform(const char *name, int value) const;
   void SetFloatUniform(const char *name, float value) const;
   void SetVec3Uniform(const char *name, const float values[3]) const;
+  void SetVec3Uniform(const char *name, const Maths::vec3 &values) const;
   static void SetVerticesActive(GLuint vertexArray) {
     glBindVertexArray(vertexArray);
   }

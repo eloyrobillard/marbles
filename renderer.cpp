@@ -140,6 +140,10 @@ Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
   mShadowMappingShader = GetShader("shaders/shadowMappingDepth.vert",
                                    "shaders/shadowMappingDepth.frag");
 
+  mMeshShader.SetActive();
+  mMeshShader.SetIntUniform("uSamplingTexture", 0);
+  mMeshShader.SetIntUniform("uDepthMap", 1);
+
   setupSkybox();
 
   // Setup AA and depth framebuffers
@@ -209,8 +213,10 @@ void Renderer::drawEntity(const Shader &shader, const Entity &entity) {
       entity.GetDrawData();
   shader.SetMatrixUniform("uWorldTransform", worldTransform);
 
-  if (maybe_tex.has_value())
+  if (maybe_tex.has_value()) {
+    glActiveTexture(GL_TEXTURE0);
     maybe_tex.value()->SetActive();
+  }
 
   Shader::SetVerticesActive(vertexArray);
 
@@ -509,17 +515,13 @@ void Renderer::drawScene(const Shader &shader,
 }
 
 void Renderer::prepareShadowMap(const shared_ptr<const Entities> &entities,
-                                const mat4 &viewProj) {
+                                const mat4 &viewProj,
+                                const mat4 &lightViewProj) {
   glBindFramebuffer(GL_FRAMEBUFFER, mDepthMapFBO);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  vec3 lightPos = {-10.0f, 0.0f, 1.0f};
-  vec3 lightTgt = {0.0f, 0.0f, -1.0f};
-  mat4 lightProj = mat4::CreateOrtho(20.0f * mAspectRatio, 20.0f, 1.0f, 100.0f);
-  mat4 lightView = mat4::CreateLookAt(lightPos, lightTgt, vec3::up);
   mShadowMappingShader.SetActive();
-  mShadowMappingShader.SetMatrixUniform("uLightSpaceMatrix",
-                                        lightView * lightProj);
+  mShadowMappingShader.SetMatrixUniform("uLightSpaceMatrix", lightViewProj);
   drawScene(mShadowMappingShader, entities, viewProj);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -545,16 +547,27 @@ void Renderer::Draw3D(float deltaTime,
   drawDebug(viewProj);
 #endif // _DEBUG
 
+  vec3 lightPos = {60.0f, -5.0f, 5.0f};
+  vec3 lightTgt = {50.0f, 0.0f, -1.0f};
+  mat4 lightProj = mat4::CreateOrtho(40.0f * mAspectRatio, 40.0f, 1.0f, 100.0f);
+  mat4 lightView = mat4::CreateLookAt(lightPos, lightTgt, vec3::up);
+  mat4 lightSpaceMatrix = lightView * lightProj;
+
+  prepareShadowMap(entities, viewProj, lightSpaceMatrix);
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFrameBuffer);
+
   mMeshShader.SetActive();
   mMeshShader.SetMatrixUniform("uViewProj", viewProj);
   mMeshShader.SetLight(mView);
+  mMeshShader.SetVec3Uniform("uLightPos", lightPos);
+  mMeshShader.SetMatrixUniform("uLightSpaceMatrix", lightSpaceMatrix);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, mDepthMapTexture);
   drawScene(mMeshShader, entities, viewProj);
 
   drawSkybox();
-
-  prepareShadowMap(entities, viewProj);
-
-  glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFrameBuffer);
 
   // finally, draw HUD elements
   SDL_GL_Enter2DMode();
