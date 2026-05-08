@@ -585,20 +585,22 @@ void Renderer::Draw3D(float deltaTime,
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-#ifdef _DEBUG
-    // draw depth map to quad, for inspection in RenderDoc
-    mDebugDepthMapShader.SetActive();
-    mDebugDepthMapShader.SetFloatUniform("nearPlane", 1.0f);
-    mDebugDepthMapShader.SetFloatUniform("farPlane", 100.0f);
-    drawQuad(mDebugDepthMapShader, debugDepthMapVAO, mDepthMapTexture);
-#endif
-
     // 3. now render quad with scene's visuals as its texture image
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_DEPTH_BUFFER_BIT);
     // draw the result of every other draw
     mPostShader.SetActive();
     drawQuad(mPostShader, quadVAO, mScreenTexture);
+
+#ifdef _DEBUG
+    // draw depth map to quad, for inspection in RenderDoc
+    glViewport(0, 0, 216, 144);
+    mDebugDepthMapShader.SetActive();
+    mDebugDepthMapShader.SetFloatUniform("nearPlane", 1.0f);
+    mDebugDepthMapShader.SetFloatUniform("farPlane", 100.0f);
+    drawQuad(mDebugDepthMapShader, debugDepthMapVAO, mDepthMapTexture);
+    glViewport(0, 0, mScreen->GetWidth(), mScreen->GetHeight());
+#endif
   }
   SDL_GL_Leave2DMode();
 
