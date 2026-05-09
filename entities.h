@@ -50,6 +50,7 @@ public:
   [[nodiscard]] const vec3 &GetPositionAsRef() const { return body.position; }
 };
 
+// Container for all game objects
 class Entities {
   vector<Entity> mStaticEntities;
   vector<vector<TriangleCollider>> mStaticColliders;
@@ -71,6 +72,7 @@ public:
   [[nodiscard]] const vector<DynamicEntity> &GetDynamicEntities() const {
     return mDynamicEntities;
   }
+  // TODO: move input handling somewhere else
   void RegisterInputForward(float dt);
   void RegisterInputLeft(float dt);
   void RegisterInputRight(float dt);

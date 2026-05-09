@@ -15,6 +15,7 @@ uint audioLength;
 SDL_AudioStream *audioStream;
 
 void Game::Init() {
+  // Launch background music
   if (!SDL_LoadWAV("assets/Dualistic - Station Six.wav", &audioSpec, &audioBuf,
                    &audioLength)) {
     SDL_Log("Error: Failed to load audio: %s", SDL_GetError());
@@ -46,7 +47,7 @@ void Game::Tick(float deltaTime) {
   }
 
   if (GetKeyPressed(SDL_SCANCODE_SPACE)) {
-    Restart();
+    ToCheckpoint();
   }
 
   if (entities->GetDynamicEntities()[0].GetPositionAsRef().x > 55.0f) {
@@ -64,10 +65,10 @@ void Game::Shutdown() {
   SDL_DestroyAudioStream(audioStream);
 }
 
-void Game::Restart() {
+void Game::ToCheckpoint() {
   const auto &dynamicEntitiesPos = checkpoints[checkpointID];
   entities->ToCheckpoint(dynamicEntitiesPos);
-  camera->Restart(entities->ProvideCameraFollow());
-  renderer->Restart();
+  camera->ToCheckpoint(entities->ProvideCameraFollow());
+  renderer->ToCheckpoint();
 }
 } // namespace Tmpl8

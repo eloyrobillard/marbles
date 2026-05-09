@@ -99,6 +99,7 @@ public:
   }
 };
 
+// Node responsible for the partition of space along the forward axis
 class SPNode : public SpacePartition {
   vector<unique_ptr<SpacePartition>> mChildren;
 
@@ -115,6 +116,7 @@ public:
   void print(ostream &os) const override;
 };
 
+// Node holding colliders inside the current slice of space
 class SPLeaf : public SpacePartition {
   vector<TriangleCollider> mPartition;
 
@@ -140,7 +142,7 @@ public:
 };
 
 // Used for spatial partitioning of static colliders
-inline SPNode gSP = SPNode(5.0f, 150.0f, 2, 16);
+inline SPNode gSpatialPartition = SPNode(5.0f, 150.0f, 2, 16);
 
 namespace Physics {
 bool getCollisionImpulse(const SpacePartition &sp,

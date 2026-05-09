@@ -39,12 +39,14 @@ public:
     mVelocity += accel * dt;
     mActualPosition += mVelocity * dt;
 
+    // HACK: Attempt at preventing the camera from getting behind platforms
     mTarget = follow + vec3::forward * mTargetDist;
   }
 
-  void Restart(const vec3 &target) {
+  void ToCheckpoint(const vec3 &target) {
     mVelocity = vec3::zero;
     mTarget = target;
+
     // snap to target
     mActualPosition = mTarget + mIdealOffset;
   }

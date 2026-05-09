@@ -88,7 +88,7 @@ public:
   void Draw3D(float deltaTime, const shared_ptr<const Entities> &entities);
   void SetCamera(const shared_ptr<FollowCamera> &camera);
   void ShowVictoryMessage() { mShowVictoryMessage = true; }
-  void Restart() { mShowVictoryMessage = false; }
+  void ToCheckpoint() { mShowVictoryMessage = false; }
 };
 
 #endif

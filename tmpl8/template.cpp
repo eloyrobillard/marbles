@@ -45,7 +45,7 @@ void timer::reset() { start = get(); }
 void timer::init() {
   LARGE_INTEGER f;
   QueryPerformanceFrequency(&f);
-  // NOTE: changed this from 1000. / double(...)
+  // NOTE: changed this from 1000. to 1.
   // Multiplying by 1000 here led to delta times above 1 sec for 240 frames a
   // second (anyway, logging would show like 242 when less then a second had
   // passed)
@@ -107,6 +107,8 @@ int main(int argc, char **argv) {
 #endif
   int exitapp = 0;
 
+  // TODO: Figure out if this surface is even needed. All it currently does is
+  // provide other objects with the screen's width and height...
   shared_ptr<Surface> surface =
       std::make_shared<Surface>(ScreenWidth, ScreenHeight);
   shared_ptr<Renderer> renderer = std::make_shared<Renderer>(surface);
@@ -136,9 +138,7 @@ int main(int argc, char **argv) {
     if (firstframe) {
       game->Init();
       firstframe = false;
-      // NOTE: Only make game start once init is over.
-      // This is to prevent the physics update from occuring many times before
-      // anything is even shown.
+      // NOTE: Only make game start once things are ready be rendered.
       t.reset();
     }
 

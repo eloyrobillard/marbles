@@ -59,8 +59,10 @@ using std::vector;
 
 #define ALL(v) (v).begin(), (v).end()
 
-// NOTE: giving me trouble on first start of a copy of the project
-// template <typename T> ostream &operator<<(ostream &os, const vector<T> &v) {
+// NOTE: commenting this out because it's giving me trouble on first start of a
+// copy of the project
+// template <typename T> ostream &operator<<(ostream &os,
+// const vector<T> &v) {
 //   copy(ALL(v), ostream_iterator<T>(os, ", "));
 //   return os;
 // }

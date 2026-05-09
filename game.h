@@ -42,7 +42,7 @@ public:
     pressed.reset();
     released.reset();
   }
-  void Restart();
+  void ToCheckpoint();
 
 private:
   shared_ptr<Surface> screen;

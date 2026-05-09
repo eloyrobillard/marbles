@@ -20,7 +20,7 @@ Entities::Entities() {
 
 void Entities::Update(float time, float deltaTime) {
   for (auto &dynamicEntity : mDynamicEntities) {
-    dynamicEntity.Update(time, deltaTime, gSP);
+    dynamicEntity.Update(time, deltaTime, gSpatialPartition);
   }
 }
 
@@ -65,7 +65,7 @@ void Entities::RegisterEntities(
       } else {
         auto triangles = mesh.generateTriangleCollidersFromMesh(
             body, accel, override_impulse, impulse_override);
-        gSP.populate(triangles);
+        gSpatialPartition.populate(triangles);
 
         mStaticEntities.emplace_back(mesh, body);
         mStaticColliders.emplace_back(triangles);
