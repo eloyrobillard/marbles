@@ -548,7 +548,7 @@ void Renderer::Draw3D(float deltaTime,
 #endif // _DEBUG
 
   vec3 lightPos = {60.0f, -5.0f, 5.0f};
-  vec3 lightTgt = {50.0f, 0.0f, -1.0f};
+  vec3 lightTgt = {60.0f, 0.0f, -1.0f};
   mat4 lightProj = mat4::CreateOrtho(40.0f * mAspectRatio, 40.0f, 1.0f, 100.0f);
   mat4 lightView = mat4::CreateLookAt(lightPos, lightTgt, vec3::up);
   mat4 lightSpaceMatrix = lightView * lightProj;
