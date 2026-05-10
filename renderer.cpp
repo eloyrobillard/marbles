@@ -159,7 +159,7 @@ Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
   }
 
   TTF_Font *font =
-      TTF_GetFont("assets/fonts/NotoSansCJKjp-VF.ttf", 30, TTF_STYLE_BOLD);
+      TTF_GetFont("assets/fonts/NotoSansCJKjp-VF.ttf", 30, TTF_STYLE_NORMAL);
 
   // Length can be zero for null-terminated text
   SDL_Surface *commandsSurface = TTF_RenderText_Blended_Wrapped(
