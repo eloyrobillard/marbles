@@ -6,6 +6,8 @@ void SpacePartition::populate(const vector<TriangleCollider> &v) {
   for (const auto &tc : v) {
     float min_x = fmin(fmin(tc.a.x, tc.b.x), tc.c.x);
     float max_x = fmax(fmax(tc.a.x, tc.b.x), tc.c.x);
+    float min_y = fmin(fmin(tc.a.y, tc.b.y), tc.c.y);
+    float max_y = fmax(fmax(tc.a.y, tc.b.y), tc.c.y);
     float min_z = fmin(fmin(tc.a.z, tc.b.z), tc.c.z);
     float max_z = fmax(fmax(tc.a.z, tc.b.z), tc.c.z);
 
@@ -13,20 +15,27 @@ void SpacePartition::populate(const vector<TriangleCollider> &v) {
         std::max((size_t)0, static_cast<size_t>((min_x - mMinX) / mStep));
     auto end_x =
         std::min(mNumX - 1, static_cast<size_t>((max_x - mMinX) / mStep));
+    auto start_y =
+        std::max((size_t)0, static_cast<size_t>((min_y - mMinY) / mStep));
+    auto end_y =
+        std::min(mNumY - 1, static_cast<size_t>((max_y - mMinY) / mStep));
     auto start_z =
         std::max((size_t)0, static_cast<size_t>((min_z - mMinZ) / mStep));
     auto end_z =
         std::min(mNumZ - 1, static_cast<size_t>((max_z - mMinZ) / mStep));
 
     for (size_t x = start_x; x <= end_x; x++) {
-      for (size_t z = start_z; z <= end_z; z++) {
-        mPartition[x * mNumZ + z].emplace_back(tc);
+      for (size_t y = start_y; y <= end_y; y++) {
+        for (size_t z = start_z; z <= end_z; z++) {
+          mPartition[x * mNumY * mNumZ + y * mNumZ + z].emplace_back(tc);
+        }
       }
     }
   }
 }
 
 vector<TriangleCollider> SpacePartition::get_partition(float min_x, float max_x,
+                                                       float min_y, float max_y,
                                                        float min_z,
                                                        float max_z) const {
   vector<TriangleCollider> result{};
@@ -34,15 +43,20 @@ vector<TriangleCollider> SpacePartition::get_partition(float min_x, float max_x,
       std::max((size_t)0, static_cast<size_t>((min_x - mMinX) / mStep));
   size_t end_x =
       std::min(mNumX - 1, static_cast<size_t>((max_x - mMinX) / mStep));
-
+  auto start_y =
+      std::max((size_t)0, static_cast<size_t>((min_y - mMinY) / mStep));
+  size_t end_y =
+      std::min(mNumY - 1, static_cast<size_t>((max_y - mMinY) / mStep));
   auto start_z =
       std::max((size_t)0, static_cast<size_t>((min_z - mMinZ) / mStep));
   size_t end_z =
       std::min(mNumZ - 1, static_cast<size_t>((max_z - mMinZ) / mStep));
 
   for (size_t x = start_x; x <= end_x; x++) {
-    for (size_t z = start_z; z <= end_z; z++) {
-      result.append_range(mPartition[x * mNumZ + z]);
+    for (size_t y = start_y; y <= end_y; y++) {
+      for (size_t z = start_z; z <= end_z; z++) {
+        result.append_range(mPartition[x * mNumY * mNumZ + y * mNumZ + z]);
+      }
     }
   }
 
@@ -143,13 +157,6 @@ bool processCollisions(const vector<TriangleCollider> &triangles,
   bool collision_happened = false;
 
   for (const auto &triangle : triangles) {
-    const float max_x = fmax(fmax(triangle.a.x, triangle.b.x), triangle.c.x);
-    const float min_x = fmin(fmin(triangle.a.x, triangle.b.x), triangle.c.x);
-
-    if (sphere.position.x - sphere.radius > max_x ||
-        sphere.position.x + sphere.radius < min_x)
-      continue;
-
     auto maybe_normal = intersectsTriangle(triangle, sphere);
 
     if (!maybe_normal.has_value())
@@ -184,11 +191,13 @@ bool Physics::getCollisionImpulse(const SpacePartition &sp,
                                   vec3 &velocity) {
   float min_x = collider.position.x - collider.radius;
   float max_x = collider.position.x + collider.radius;
-
+  float min_y = collider.position.y - collider.radius;
+  float max_y = collider.position.y + collider.radius;
   float min_z = collider.position.z - collider.radius;
   float max_z = collider.position.z + collider.radius;
 
-  gCurrent_partition = sp.get_partition(min_x, max_x, min_z, max_z);
+  gCurrent_partition =
+      sp.get_partition(min_x, max_x, min_y, max_y, min_z, max_z);
 
   return processCollisions(gCurrent_partition, collider, velocity);
 }

@@ -80,32 +80,41 @@ public:
 class SpacePartition {
   float mMinX;
   float mMaxX;
+  float mMinY;
+  float mMaxY;
   float mMinZ;
   float mMaxZ;
   float mStep;
   size_t mNumX;
+  size_t mNumY;
   size_t mNumZ;
   vector<vector<TriangleCollider>> mPartition;
 
   void populate(const TriangleCollider &tc, float min_x, float max_x,
-                float min_z, float max_z);
+                float min_y, float max_y, float min_z, float max_z);
 
 public:
-  SpacePartition(float min_x, float max_x, float min_z, float max_z, float step)
-      : mMinX(min_x), mMaxX(max_x), mMinZ(min_z), mMaxZ(max_z), mStep(step) {
+  SpacePartition(float min_x, float max_x, float min_y, float max_y,
+                 float min_z, float max_z, float step)
+      : mMinX(min_x), mMaxX(max_x), mMinY(min_y), mMaxY(max_y), mMinZ(min_z),
+        mMaxZ(max_z), mStep(step) {
     mNumX = ceil((max_x - min_x) / step);
+    mNumY = ceil((max_y - min_y) / step);
     mNumZ = ceil((max_z - min_z) / step);
 
-    mPartition = vector<vector<TriangleCollider>>(mNumX * mNumZ);
+    mPartition = vector<vector<TriangleCollider>>(mNumX * mNumY * mNumZ);
   }
 
-  SpacePartition(float min_x, float max_x, float min_z, float max_z, float step,
+  SpacePartition(float min_x, float max_x, float min_y, float max_y,
+                 float min_z, float max_z, float step,
                  const vector<TriangleCollider> &v)
-      : mMinX(min_x), mMaxX(max_x), mMinZ(min_z), mMaxZ(max_z), mStep(step) {
+      : mMinX(min_x), mMaxX(max_x), mMinY(min_y), mMaxY(max_y), mMinZ(min_z),
+        mMaxZ(max_z), mStep(step) {
     mNumX = ceil((max_x - min_x) / step);
+    mNumY = ceil((max_y - min_y) / step);
     mNumZ = ceil((max_z - min_z) / step);
 
-    mPartition = vector<vector<TriangleCollider>>(mNumX * mNumZ);
+    mPartition = vector<vector<TriangleCollider>>(mNumX * mNumY * mNumZ);
 
     populate(v);
   }
@@ -113,13 +122,15 @@ public:
   ~SpacePartition() = default;
 
   void populate(const vector<TriangleCollider> &v);
-  [[nodiscard]] vector<TriangleCollider>
-  get_partition(float min_x, float max_x, float min_z, float max_z) const;
+  [[nodiscard]] vector<TriangleCollider> get_partition(float min_x, float max_x,
+                                                       float min_y, float max_y,
+                                                       float min_z,
+                                                       float max_z) const;
 };
 
 // Used for spatial partitioning of static colliders
 inline SpacePartition gSpacePartition =
-    SpacePartition(4.0f, 150.0f, -100.0f, 10.0f, 1.0f);
+    SpacePartition(4.0f, 150.0f, -40.0f, 80.0f, -100.0f, 10.0f, 1.0f);
 
 namespace Physics {
 bool getCollisionImpulse(const SpacePartition &sp,
