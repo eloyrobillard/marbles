@@ -78,37 +78,48 @@ public:
 };
 
 class SpacePartition {
-public:
-  float mMax_x;
-  float mMin_x;
+  float mMinX;
+  float mMaxX;
+  float mMinZ;
+  float mMaxZ;
   float mStep;
-  vector<vector<TriangleCollider>> mColliders;
+  size_t mNumX;
+  size_t mNumZ;
+  vector<vector<TriangleCollider>> mPartition;
 
-  SpacePartition(float min_x, float max_x, float step)
-      : mMin_x(min_x), mMax_x(max_x), mStep(step) {
-    mColliders = vector<vector<TriangleCollider>>(ceil((max_x - min_x) / step));
+  void populate(const TriangleCollider &tc, float min_x, float max_x,
+                float min_z, float max_z);
+
+public:
+  SpacePartition(float min_x, float max_x, float min_z, float max_z, float step)
+      : mMinX(min_x), mMaxX(max_x), mMinZ(min_z), mMaxZ(max_z), mStep(step) {
+    mNumX = ceil((max_x - min_x) / step);
+    mNumZ = ceil((max_z - min_z) / step);
+
+    mPartition = vector<vector<TriangleCollider>>(mNumX * mNumZ);
   }
-  SpacePartition(float min_x, float max_x, float step,
+
+  SpacePartition(float min_x, float max_x, float min_z, float max_z, float step,
                  const vector<TriangleCollider> &v)
-      : mMin_x(min_x), mMax_x(max_x), mStep(step) {
-    mColliders = vector<vector<TriangleCollider>>(ceil((max_x - min_x) / step));
+      : mMinX(min_x), mMaxX(max_x), mMinZ(min_z), mMaxZ(max_z), mStep(step) {
+    mNumX = ceil((max_x - min_x) / step);
+    mNumZ = ceil((max_z - min_z) / step);
+
+    mPartition = vector<vector<TriangleCollider>>(mNumX * mNumZ);
+
     populate(v);
   }
+
   ~SpacePartition() = default;
 
-  void populate(const TriangleCollider &tc, float min_x, float max_x);
   void populate(const vector<TriangleCollider> &v);
   [[nodiscard]] vector<TriangleCollider>
-  get_partition(const SphereCollider &s, float min_x, float max_x) const;
-
-  // friend ostream &operator<<(ostream &os, const SpacePartition &n) {
-  //   n.print(os);
-  //   return os;
-  // }
+  get_partition(float min_x, float max_x, float min_z, float max_z) const;
 };
 
 // Used for spatial partitioning of static colliders
-inline SpacePartition gSpacePartition = SpacePartition(4.0f, 150.0f, 1.0f);
+inline SpacePartition gSpacePartition =
+    SpacePartition(4.0f, 150.0f, -100.0f, 10.0f, 1.0f);
 
 namespace Physics {
 bool getCollisionImpulse(const SpacePartition &sp,
