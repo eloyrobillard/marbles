@@ -15,7 +15,6 @@ uniform sampler2D uSamplingTexture;
 uniform sampler2D uDepthMap;
 
 struct DirectionalLight {
-        vec3 direction;
         vec3 diffuseColor;
         vec3 specularColor;
 };
@@ -23,6 +22,7 @@ struct DirectionalLight {
 uniform float uSpecPower;
 uniform vec3 uCameraPos;
 uniform vec3 uLightPos;
+uniform vec3 uLightTarget;
 uniform vec3 uAmbientLight;
 uniform DirectionalLight uDirLight;
 
@@ -40,7 +40,7 @@ float ShadowCalculation(vec4 fragPosLightSpace)
 
         // calculate bias (based on depth map resolution and slope)
         vec3 normal = normalize(fragNormal);
-        vec3 lightDir = normalize(uLightPos - fragWorldPos);
+        vec3 lightDir = normalize(uLightPos - uLightTarget);
         float NdotL = dot(normal, lightDir);
         float bias = max(0.05 * (1.0 - NdotL), 0.005);
 
@@ -77,7 +77,7 @@ void main()
         vec3 ambient = uAmbientLight;
 
         // diffuse
-        vec3 lightDir = -normalize(uDirLight.direction);
+        vec3 lightDir = normalize(uLightPos - uLightTarget);
         float diff = max(dot(lightDir, normal), 0.0);
         vec3 diffuse = diff * uDirLight.diffuseColor;
 

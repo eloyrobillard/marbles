@@ -138,9 +138,6 @@ void Shader::SetLight(mat4 &view) const {
   float ambient[3] = {0.3f, 0.3f, 0.3f};
   SetVec3Uniform("uAmbientLight", ambient);
 
-  float direction[3] = {0.0f, 0.0f, -1.0f};
-  SetVec3Uniform("uDirLight.direction", direction);
-
   float diffuse[3] = {1.0f, 1.0f, 1.0f};
   SetVec3Uniform("uDirLight.diffuseColor", diffuse);
 
