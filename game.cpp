@@ -54,7 +54,7 @@ void Game::Tick(float deltaTime) {
     checkpointID = 1;
   }
 
-  if (entities->GetDynamicEntities()[0].GetPositionAsRef().x > 200.0f) {
+  if (entities->GetDynamicEntities()[0].GetPositionAsRef().x > 180.0f) {
     renderer->ShowVictoryMessage();
     checkpointID = 0;
   }
