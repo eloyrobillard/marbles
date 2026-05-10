@@ -76,8 +76,8 @@ GLuint SDL_GL_LoadTexture(SDL_Surface *surface, shared_ptr<Surface> &screen,
   GLuint texture;
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                image->pixels);
 
@@ -129,6 +129,10 @@ Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
   printf("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
   mTextShader = GetShader("shaders/text.vert", "shaders/text.frag");
+  mTextShader.SetActive();
+  mTextShader.SetIntUniform("text", 0);
+  mTextShader.SetIntUniform("screen", 1);
+
   mMeshShader = GetShader("shaders/basic.vert", "shaders/basic.frag");
   mColliderShader =
       GetShader("shaders/wireframe.vert", "shaders/wireframe.frag");
@@ -167,9 +171,6 @@ Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
 
   SDL_DestroySurface(commandsSurface);
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
   pushHUDTexture(hudTexture);
 
   TTF_SetFontSize(font, 60);
@@ -186,9 +187,6 @@ Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
       loadingSurface, mScreen, mScreen->GetWidth() - loadingSurface->w - 10,
       mScreen->GetHeight() - loadingSurface->h - 10, SDL_FLIP_VERTICAL);
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
   mVictoryTexture = SDL_GL_LoadTexture(
       victorySurface, mScreen, (mScreen->GetWidth() - victorySurface->w) >> 1,
       (mScreen->GetHeight() - victorySurface->h) >> 1, SDL_FLIP_VERTICAL);
@@ -196,13 +194,10 @@ Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
   SDL_DestroySurface(loadingSurface);
   SDL_DestroySurface(victorySurface);
 
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
   // Draw loading screen
   SDL_GL_Enter2DMode();
   float textColor[3] = {1.0f, 1.0f, 1.0f};
-  drawToHUD(hudVAO, mLoadingTexture, textColor);
+  drawToHUD(hudVAO, mLoadingTexture, mScreenTexture, textColor);
   SDL_GL_Leave2DMode();
 
   SDL_GL_SwapWindow(mWindow);
@@ -231,12 +226,15 @@ void Renderer::drawEntity(const Shader &shader, const Entity &entity) {
   }
 }
 
-void Renderer::drawToHUD(GLuint VAO, GLuint texture, const float textColor[3]) {
+void Renderer::drawToHUD(GLuint VAO, GLuint textTexture, GLuint screenTexture,
+                         const float textColor[3]) {
   mTextShader.SetActive();
   mTextShader.SetVec3Uniform("textColor", textColor);
   glBindVertexArray(VAO);
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, texture);
+  glBindTexture(GL_TEXTURE_2D, textTexture);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, screenTexture);
   // use the now resolved color attachment as the quad's texture
   glDrawArrays(GL_TRIANGLES, 0, 6);
 }
@@ -572,29 +570,26 @@ void Renderer::Draw3D(float deltaTime,
   // finally, draw HUD elements
   SDL_GL_Enter2DMode();
   {
-    mTextShader.SetActive();
-    const float textColor[3] = {1.0f, 1.0f, 1.0f};
-    mTextShader.SetVec3Uniform("textColor", textColor);
-    glBindVertexArray(hudVAO);
-    glActiveTexture(GL_TEXTURE0);
-
-    if (!mShowVictoryMessage) {
-      for (auto text : hudTextures) {
-        glBindTexture(GL_TEXTURE_2D, text);
-        glDrawArrays(GL_TRIANGLES, 0, 6);
-      }
-    } else {
-      glBindTexture(GL_TEXTURE_2D, mVictoryTexture);
-      glDrawArrays(GL_TRIANGLES, 0, 6);
-    }
-
-    glBindVertexArray(0);
-
     // 2. now blit multisampled buffer(s) to normal colorbuffer of intermediate
     // FBO. Image is stored in screenTexture
     blitFramebuffer(mMSAAFrameBuffer, mIntermediateFBO, mScreen->GetWidth(),
                     mScreen->GetHeight(), mScreen->GetWidth(),
                     mScreen->GetHeight());
+
+    mTextShader.SetActive();
+    const float textColor[3] = {1.0f, 1.0f, 1.0f};
+    mTextShader.SetVec3Uniform("textColor", textColor);
+    glActiveTexture(GL_TEXTURE0);
+
+    if (!mShowVictoryMessage) {
+      for (auto text : hudTextures) {
+        drawToHUD(hudVAO, text, mScreenTexture, textColor);
+      }
+    } else {
+      drawToHUD(hudVAO, mVictoryTexture, mScreenTexture, textColor);
+    }
+
+    glBindVertexArray(0);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 

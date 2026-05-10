@@ -66,7 +66,8 @@ class Renderer {
   void getMeshes(const vector<pair<string, BodyType>> &meshList);
   void drawSkybox();
   void drawDebug(const mat4 &viewProj);
-  void drawToHUD(GLuint VAO, GLuint texture, const float textColor[3]);
+  void drawToHUD(GLuint VAO, GLuint textTexture, GLuint screenTexture,
+                 const float textColor[3]);
   void configureMultiSampledAntiAliasing();
   void prepareShadowMap(const shared_ptr<const Entities> &entities,
                         const mat4 &viewProj, const mat4 &lightViewProj);
