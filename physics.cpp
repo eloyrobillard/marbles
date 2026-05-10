@@ -1,68 +1,31 @@
 #include "physics.h"
 #include "entities.h"
 #include "pch.h"
-#include "template.h"
 
-void SPNode::print(ostream &os) const {
-  os << "{\n\tFrom " << mMin_x << " to " << mMax_x << ": ";
-  for (const auto &child : mChildren) {
-    child->print(os);
-    os << ", ";
-  }
-  os << "\n}";
-}
-
-void SPLeaf::print(ostream &os) const {
-  os << "{\n\tFrom " << mMin_x << " to " << mMax_x << ": ";
-  for (const auto &coll : mPartition)
-    os << coll << ", ";
-  os << "\n}";
-}
-
-SPNode::SPNode(float min_x, float max_x, int depth, int num_children)
-    : mChildren(vector<unique_ptr<SpacePartition>>()),
-      SpacePartition::SpacePartition(min_x, max_x) {
-  float step =
-      static_cast<float>(max_x - min_x) / static_cast<float>(num_children);
-
-  if (depth > 1) {
-    for (float i = min_x; i < max_x; i += step) {
-      mChildren.emplace_back(
-          new SPNode(i, i + step - 0.0001f, depth - 1, num_children));
-    }
-  } else {
-    for (float i = min_x; i < max_x; i += step) {
-      mChildren.emplace_back(new SPLeaf(i, i + step - 0.0001f));
-    }
-  }
-}
-
-void SPNode::populate(const vector<TriangleCollider> &v) {
+void SpacePartition::populate(const vector<TriangleCollider> &v) {
   for (const auto &tc : v) {
     float min_x = fmin(fmin(tc.a.x, tc.b.x), tc.c.x);
     float max_x = fmax(fmax(tc.a.x, tc.b.x), tc.c.x);
 
-    populate(tc, min_x, max_x);
+    size_t min_idx = floor((min_x - mMin_x) / mStep);
+    size_t max_idx = floor((max_x - mMin_x) / mStep);
+
+    for (size_t i = min_idx; i <= max_idx; i++) {
+      mColliders[i].emplace_back(tc);
+    }
   }
 }
 
-void SPNode::populate(const TriangleCollider &tc, float min_x, float max_x) {
-  for (auto &child : mChildren) {
-    if (max_x < child->mMin_x || min_x > child->mMax_x)
-      continue;
-
-    child->populate(tc, min_x, max_x);
-  }
-}
-
-vector<TriangleCollider> SPNode::get_partition(const SphereCollider &s,
-                                               float min_x, float max_x) const {
+vector<TriangleCollider> SpacePartition::get_partition(const SphereCollider &s,
+                                                       float min_x,
+                                                       float max_x) const {
   vector<TriangleCollider> result{};
-  for (const auto &child : mChildren) {
-    if (max_x <= child->mMin_x || min_x >= child->mMax_x)
-      continue;
+  auto min_idx = static_cast<size_t>((min_x - mMin_x) / mStep);
+  size_t max_idx = std::min(static_cast<size_t>((max_x - mMin_x) / mStep),
+                            mColliders.size() - 1);
 
-    result.append_range(child->get_partition(s, min_x, max_x));
+  for (size_t i = min_idx; i <= max_idx; i++) {
+    result.append_range(mColliders[i]);
   }
 
   return result;

@@ -81,68 +81,34 @@ class SpacePartition {
 public:
   float mMax_x;
   float mMin_x;
+  float mStep;
+  vector<vector<TriangleCollider>> mColliders;
 
-  SpacePartition(float min_x, float max_x) : mMin_x(min_x), mMax_x(max_x) {}
-  virtual ~SpacePartition() = default;
-
-  virtual void populate(const TriangleCollider &tc, float min_x,
-                        float max_x) = 0;
-  virtual void populate(const vector<TriangleCollider> &v) = 0;
-  [[nodiscard]] virtual vector<TriangleCollider>
-  get_partition(const SphereCollider &s, float min_x, float max_x) const = 0;
-
-  virtual void print(ostream &os) const = 0;
-
-  friend ostream &operator<<(ostream &os, const SpacePartition &n) {
-    n.print(os);
-    return os;
+  SpacePartition(float min_x, float max_x, float step)
+      : mMin_x(min_x), mMax_x(max_x), mStep(step) {
+    mColliders = vector<vector<TriangleCollider>>(ceil((max_x - min_x) / step));
   }
-};
-
-// Node responsible for the partition of space along the forward axis
-class SPNode : public SpacePartition {
-  vector<unique_ptr<SpacePartition>> mChildren;
-
-public:
-  using SpacePartition::SpacePartition;
-  SPNode(float min_x, float max_x, int depth, int num_children);
-  ~SPNode() override = default;
-
-  void populate(const TriangleCollider &tc, float min_x, float max_x) override;
-  void populate(const vector<TriangleCollider> &v) override;
-  [[nodiscard]] vector<TriangleCollider>
-  get_partition(const SphereCollider &s, float min_x,
-                float max_x) const override;
-  void print(ostream &os) const override;
-};
-
-// Node holding colliders inside the current slice of space
-class SPLeaf : public SpacePartition {
-  vector<TriangleCollider> mPartition;
-
-public:
-  using SpacePartition::SpacePartition;
-  SPLeaf(float min_x, float max_x)
-      : mPartition(vector<TriangleCollider>()),
-        SpacePartition::SpacePartition(min_x, max_x) {}
-  ~SPLeaf() override = default;
-
-  void populate(const vector<TriangleCollider> &v) override {
-    mPartition.append_range(v);
-  };
-  void populate(const TriangleCollider &tc, float min_x, float max_x) override {
-    mPartition.emplace_back(tc);
+  SpacePartition(float min_x, float max_x, float step,
+                 const vector<TriangleCollider> &v)
+      : mMin_x(min_x), mMax_x(max_x), mStep(step) {
+    mColliders = vector<vector<TriangleCollider>>(ceil((max_x - min_x) / step));
+    populate(v);
   }
+  ~SpacePartition() = default;
+
+  void populate(const TriangleCollider &tc, float min_x, float max_x);
+  void populate(const vector<TriangleCollider> &v);
   [[nodiscard]] vector<TriangleCollider>
-  get_partition(const SphereCollider &s, float min_x,
-                float max_x) const override {
-    return mPartition;
-  };
-  void print(ostream &os) const override;
+  get_partition(const SphereCollider &s, float min_x, float max_x) const;
+
+  // friend ostream &operator<<(ostream &os, const SpacePartition &n) {
+  //   n.print(os);
+  //   return os;
+  // }
 };
 
 // Used for spatial partitioning of static colliders
-inline SPNode gSpatialPartition = SPNode(5.0f, 150.0f, 2, 16);
+inline SpacePartition gSpacePartition = SpacePartition(4.0f, 150.0f, 1.0f);
 
 namespace Physics {
 bool getCollisionImpulse(const SpacePartition &sp,
