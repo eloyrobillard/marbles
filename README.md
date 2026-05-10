@@ -17,6 +17,14 @@ There are only three commands:
 
 These commands are also displayed in the upper left corner of the UI.
 
+### Debug mode
+
+The Debug build has a few visual debug features:
+
+- a wireframe showing colliders currently being tested against;
+- a tint that appears on colliders when a collision just happened;
+- the shadow map used to generate shadows
+
 ## Resources & Attributions
 
 From "Game Programming in C++" by Sanjay Madhav, the code for the following classes/namespaces:
