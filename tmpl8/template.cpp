@@ -10,8 +10,6 @@
 #pragma warning(disable : 4311) // pointer truncation from HANDLE to long
 #endif
 
-// #define FULLSCREEN
-
 #include "template.h"
 #include "camera.h"
 #include "game.h"
@@ -107,7 +105,7 @@ int main(int argc, char **argv) {
 #endif
   int exitapp = 0;
 
-  shared_ptr<Renderer> renderer = std::make_shared<Renderer>(1080, 720);
+  shared_ptr<Renderer> renderer = std::make_shared<Renderer>(true);
 
   shared_ptr<Entities> entities = std::make_shared<Entities>();
   shared_ptr<FollowCamera> camera = std::make_shared<FollowCamera>(

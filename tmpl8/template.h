@@ -14,7 +14,6 @@
 
 #include "pch.h"
 
-// #define FULLSCREEN
 #define ADVANCEDGL // faster if your system supports it. Switches SDL2's texture
                    // buffer out for OpenGL texture buffer with mappings to CPU
                    // Memory.
@@ -51,7 +50,7 @@ struct timer {
   static double inv_freq;
   value_type start;
   timer();
-  float elapsed() const;
+  [[nodiscard]] float elapsed() const;
   static value_type get();
   static double to_time(const value_type vt);
   void reset();

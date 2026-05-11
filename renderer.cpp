@@ -86,12 +86,7 @@ GLuint Renderer::LoadGLTexture(SDL_Surface *surface, int dst_x, int dst_y,
   return texture;
 }
 
-Renderer::Renderer(int screenWidth, int screenHeight)
-    : mScreenWidth(screenWidth), mScreenHeight(screenHeight) {
-  setProjection();
-  mAspectRatio =
-      static_cast<float>(mScreenWidth) / static_cast<float>(mScreenHeight);
-
+Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 
   // Set OpenGL attributes
@@ -111,13 +106,22 @@ Renderer::Renderer(int screenWidth, int screenHeight)
   // Force OpenGL to use hardware acceleration
   SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
 
-#ifdef FULLSCREEN
-  mWindow = SDL_CreateWindow("Marbles", ScreenWidth, ScreenHeight,
-                             SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL);
-#else
-  mWindow = SDL_CreateWindow("Marbles", mScreenWidth, mScreenHeight,
-                             SDL_WINDOW_OPENGL);
-#endif
+  mIsFullscreen = goFullscreen;
+  if (goFullscreen) {
+    mWindow = SDL_CreateWindow("Marbles", screenWidth, screenHeight,
+                               SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL);
+  } else {
+    mWindow = SDL_CreateWindow("Marbles", screenWidth, screenHeight,
+                               SDL_WINDOW_OPENGL);
+  }
+
+  // Save final screen width/height
+  SDL_GetWindowSize(mWindow, &mScreenWidth, &mScreenHeight);
+
+  mAspectRatio =
+      static_cast<float>(mScreenWidth) / static_cast<float>(mScreenHeight);
+
+  setProjection();
 
   mGlContext = SDL_GL_CreateContext(mWindow);
 

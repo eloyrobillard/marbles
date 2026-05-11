@@ -22,6 +22,7 @@ class Renderer {
   int mScreenWidth;
   int mScreenHeight;
   float mAspectRatio;
+  bool mIsFullscreen;
 
   SDL_Window *mWindow;
   SDL_GLContext mGlContext;
@@ -86,7 +87,8 @@ class Renderer {
   static GLuint createColorAttachmentTexture(int width, int height);
 
 public:
-  Renderer(int screenWidth, int screenHeight);
+  Renderer(bool goFullscreen = false, int screenWidth = 1080,
+           int screenHeight = 720);
   ~Renderer();
   void Draw3D(float deltaTime, const shared_ptr<const Entities> &entities);
   void SetCamera(const shared_ptr<FollowCamera> &camera);
