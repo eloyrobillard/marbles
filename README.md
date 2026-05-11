@@ -17,6 +17,10 @@ There are only three commands:
 
 These commands are also displayed in the upper left corner of the UI.
 
+### Toggling fullscreen mode
+
+Contrary to the original template, fullscreen cannot be set with `#define FULLSCREEN`. Instead, you have to pass `true` to the first argument of the `Renderer`'s constructor in template.cpp (the first argument defaults to `false`).
+
 ### Debug mode
 
 The Debug build has a few visual debug features:
