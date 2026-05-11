@@ -33,10 +33,10 @@ void SDL_GL_Leave2DMode() {
 }
 
 // SOURCE: https://lackeyccg.com/glfont.c
-GLuint SDL_GL_LoadTexture(SDL_Surface *surface, shared_ptr<Surface> &screen,
-                          int dst_x, int dst_y, SDL_FlipMode flip_mode) {
-  int w = screen->GetWidth();
-  int h = screen->GetHeight();
+GLuint Renderer::LoadGLTexture(SDL_Surface *surface, int dst_x, int dst_y,
+                               SDL_FlipMode flip_mode) const {
+  int w = mScreenWidth;
+  int h = mScreenHeight;
 
   SDL_Surface *image = SDL_CreateSurface(w, h, SDL_PIXELFORMAT_ARGB32);
 
@@ -86,10 +86,11 @@ GLuint SDL_GL_LoadTexture(SDL_Surface *surface, shared_ptr<Surface> &screen,
   return texture;
 }
 
-Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
-  setProjection(screen);
+Renderer::Renderer(int screenWidth, int screenHeight)
+    : mScreenWidth(screenWidth), mScreenHeight(screenHeight) {
+  setProjection();
   mAspectRatio =
-      static_cast<float>(ScreenWidth) / static_cast<float>(ScreenHeight);
+      static_cast<float>(mScreenWidth) / static_cast<float>(mScreenHeight);
 
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 
@@ -114,8 +115,8 @@ Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
   mWindow = SDL_CreateWindow("Marbles", ScreenWidth, ScreenHeight,
                              SDL_WINDOW_FULLSCREEN | SDL_WINDOW_OPENGL);
 #else
-  mWindow =
-      SDL_CreateWindow("Marbles", ScreenWidth, ScreenHeight, SDL_WINDOW_OPENGL);
+  mWindow = SDL_CreateWindow("Marbles", mScreenWidth, mScreenHeight,
+                             SDL_WINDOW_OPENGL);
 #endif
 
   mGlContext = SDL_GL_CreateContext(mWindow);
@@ -166,8 +167,7 @@ Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
       font, "Left/Right arrows to turn\nSpace to restart", 0,
       {255, 255, 255, 255}, 0);
 
-  GLuint hudTexture =
-      SDL_GL_LoadTexture(commandsSurface, mScreen, 5, 5, SDL_FLIP_VERTICAL);
+  GLuint hudTexture = LoadGLTexture(commandsSurface, 5, 5, SDL_FLIP_VERTICAL);
 
   SDL_DestroySurface(commandsSurface);
 
@@ -183,13 +183,13 @@ Renderer::Renderer(const shared_ptr<Surface> &screen) : mScreen(screen) {
 
   TTF_CloseFont(font);
 
-  mLoadingTexture = SDL_GL_LoadTexture(
-      loadingSurface, mScreen, mScreen->GetWidth() - loadingSurface->w - 10,
-      mScreen->GetHeight() - loadingSurface->h - 10, SDL_FLIP_VERTICAL);
+  mLoadingTexture =
+      LoadGLTexture(loadingSurface, mScreenWidth - loadingSurface->w - 10,
+                    mScreenHeight - loadingSurface->h - 10, SDL_FLIP_VERTICAL);
 
-  mVictoryTexture = SDL_GL_LoadTexture(
-      victorySurface, mScreen, (mScreen->GetWidth() - victorySurface->w) >> 1,
-      (mScreen->GetHeight() - victorySurface->h) >> 1, SDL_FLIP_VERTICAL);
+  mVictoryTexture = LoadGLTexture(
+      victorySurface, (mScreenWidth - victorySurface->w) >> 1,
+      (mScreenHeight - victorySurface->h) >> 1, SDL_FLIP_VERTICAL);
 
   SDL_DestroySurface(loadingSurface);
   SDL_DestroySurface(victorySurface);
@@ -378,8 +378,8 @@ void Renderer::configureMultiSampledAntiAliasing() {
   unsigned int textureColorBufferMultiSampled;
   glGenTextures(1, &textureColorBufferMultiSampled);
   glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, textureColorBufferMultiSampled);
-  glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB,
-                          mScreen->GetWidth(), mScreen->GetHeight(), GL_TRUE);
+  glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 4, GL_RGB, mScreenWidth,
+                          mScreenHeight, GL_TRUE);
   glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, 0);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                          GL_TEXTURE_2D_MULTISAMPLE,
@@ -390,7 +390,7 @@ void Renderer::configureMultiSampledAntiAliasing() {
   glGenRenderbuffers(1, &mMSAARenderBuffer);
   glBindRenderbuffer(GL_RENDERBUFFER, mMSAARenderBuffer);
   glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH24_STENCIL8,
-                                   mScreen->GetWidth(), mScreen->GetHeight());
+                                   mScreenWidth, mScreenHeight);
   glBindRenderbuffer(GL_RENDERBUFFER, 0);
   glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
                             GL_RENDERBUFFER, mMSAARenderBuffer);
@@ -412,8 +412,7 @@ bool Renderer::setupFramebuffers() {
   glBindFramebuffer(GL_FRAMEBUFFER, mIntermediateFBO);
 
   // create a color attachment texture for second framebuffer
-  mScreenTexture =
-      createColorAttachmentTexture(mScreen->GetWidth(), mScreen->GetHeight());
+  mScreenTexture = createColorAttachmentTexture(mScreenWidth, mScreenHeight);
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     cout
@@ -428,8 +427,8 @@ bool Renderer::setupFramebuffers() {
 
   glGenTextures(1, &mDepthMapTexture);
   glBindTexture(GL_TEXTURE_2D, mDepthMapTexture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, mScreen->GetWidth(),
-               mScreen->GetHeight(), 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, mScreenWidth,
+               mScreenHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -573,9 +572,8 @@ void Renderer::Draw3D(float deltaTime,
   {
     // 2. now blit multisampled buffer(s) to normal colorbuffer of intermediate
     // FBO. Image is stored in screenTexture
-    blitFramebuffer(mMSAAFrameBuffer, mIntermediateFBO, mScreen->GetWidth(),
-                    mScreen->GetHeight(), mScreen->GetWidth(),
-                    mScreen->GetHeight());
+    blitFramebuffer(mMSAAFrameBuffer, mIntermediateFBO, mScreenWidth,
+                    mScreenHeight, mScreenWidth, mScreenHeight);
 
     mTextShader.SetActive();
     const float textColor[3] = {1.0f, 1.0f, 1.0f};
@@ -608,7 +606,7 @@ void Renderer::Draw3D(float deltaTime,
     mDebugDepthMapShader.SetFloatUniform("nearPlane", 1.0f);
     mDebugDepthMapShader.SetFloatUniform("farPlane", 100.0f);
     drawQuad(mDebugDepthMapShader, debugDepthMapVAO, mDepthMapTexture);
-    glViewport(0, 0, mScreen->GetWidth(), mScreen->GetHeight());
+    glViewport(0, 0, mScreenWidth, mScreenHeight);
 #endif
   }
   SDL_GL_Leave2DMode();
@@ -637,10 +635,10 @@ void Renderer::setView(const shared_ptr<FollowCamera> &camera) {
       mat4::CreateLookAt(camera->mActualPosition, camera->mTarget, camera->mUp);
 }
 
-void Renderer::setProjection(const shared_ptr<Surface> &screen) {
+void Renderer::setProjection() {
   mProjection = mat4::CreatePerspectiveFOV(
-      fovy, static_cast<float>(screen->GetWidth()),
-      static_cast<float>(screen->GetHeight()), 1.0f, 10000.0f);
+      fovy, static_cast<float>(mScreenWidth), static_cast<float>(mScreenHeight),
+      1.0f, 10000.0f);
 }
 
 Shader Renderer::GetShader(const char *vert, const char *frag) {

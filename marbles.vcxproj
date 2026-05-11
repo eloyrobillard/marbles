@@ -440,8 +440,6 @@
     <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_types.h" />
     <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_version.h" />
     <ClInclude Include="C:\Users\eloyr\Projects\marbles\lib\SDL2-2.0.3\include\SDL_video.h" />
-    <ClCompile Include="C:\Users\eloyr\Projects\marbles\tmpl8\surface.cpp" />
-    <ClInclude Include="C:\Users\eloyr\Projects\marbles\tmpl8\surface.h" />
     <ClCompile Include="C:\Users\eloyr\Projects\marbles\tmpl8\template.cpp" />
     <ClInclude Include="C:\Users\eloyr\Projects\marbles\tmpl8\template.h" />
     <ClCompile Include="C:\Users\eloyr\Projects\marbles\game.cpp" />

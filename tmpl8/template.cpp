@@ -107,11 +107,7 @@ int main(int argc, char **argv) {
 #endif
   int exitapp = 0;
 
-  // TODO: Figure out if this surface is even needed. All it currently does is
-  // provide other objects with the screen's width and height...
-  shared_ptr<Surface> surface =
-      std::make_shared<Surface>(ScreenWidth, ScreenHeight);
-  shared_ptr<Renderer> renderer = std::make_shared<Renderer>(surface);
+  shared_ptr<Renderer> renderer = std::make_shared<Renderer>(1080, 720);
 
   shared_ptr<Entities> entities = std::make_shared<Entities>();
   shared_ptr<FollowCamera> camera = std::make_shared<FollowCamera>(
@@ -121,7 +117,6 @@ int main(int argc, char **argv) {
   renderer->SetCamera(camera);
 
   game = new Game();
-  game->SetTarget(surface);
   game->SetCamera(camera);
   game->SetRenderer(renderer);
   game->SetEntities(entities);

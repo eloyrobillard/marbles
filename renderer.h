@@ -5,7 +5,6 @@
 #include "entities.h"
 #include "maths.hpp"
 #include "pch.h"
-#include "surface.h"
 
 #define GLEW_BUILD
 extern "C" {
@@ -15,17 +14,17 @@ extern "C" {
 
 using Maths::mat4;
 using Maths::PI;
-using Tmpl8::Surface;
 
 class Renderer {
   mat4 mView;
   mat4 mProjection;
   float fovy = 30.0f / 180.0f * PI;
+  int mScreenWidth;
+  int mScreenHeight;
   float mAspectRatio;
 
   SDL_Window *mWindow;
   SDL_GLContext mGlContext;
-  shared_ptr<Surface> mScreen;
   shared_ptr<FollowCamera> mCamera;
 
   vector<GLuint> hudTextures;
@@ -61,7 +60,7 @@ class Renderer {
   bool setupSkybox();
 
   void setView(const shared_ptr<FollowCamera> &camera);
-  void setProjection(const shared_ptr<Surface> &screen);
+  void setProjection();
   void pushHUDTexture(GLuint texture) { hudTextures.push_back(texture); }
   void getMeshes(const vector<pair<string, BodyType>> &meshList);
   void drawSkybox();
@@ -71,6 +70,9 @@ class Renderer {
   void configureMultiSampledAntiAliasing();
   void prepareShadowMap(const shared_ptr<const Entities> &entities,
                         const mat4 &viewProj, const mat4 &lightViewProj);
+  // Load an SDL surface into OpenGL as a screen-sized texture
+  GLuint LoadGLTexture(SDL_Surface *surface, int dst_x, int dst_y,
+                       SDL_FlipMode flip_mode) const;
 
   static void drawScene(const Shader &shader,
                         const shared_ptr<const Entities> &entities,
@@ -84,7 +86,7 @@ class Renderer {
   static GLuint createColorAttachmentTexture(int width, int height);
 
 public:
-  Renderer(const shared_ptr<Surface> &screen);
+  Renderer(int screenWidth, int screenHeight);
   ~Renderer();
   void Draw3D(float deltaTime, const shared_ptr<const Entities> &entities);
   void SetCamera(const shared_ptr<FollowCamera> &camera);

@@ -10,7 +10,6 @@ namespace Tmpl8 {
 class Surface;
 class Game {
 public:
-  void SetTarget(const shared_ptr<Surface> &surface) { screen = surface; }
   void Init();
   void Shutdown();
   void Tick(float deltaTime);
@@ -45,7 +44,6 @@ public:
   void ToCheckpoint();
 
 private:
-  shared_ptr<Surface> screen;
   std::bitset<SDL_SCANCODE_COUNT> keys; // store key states here
   std::bitset<SDL_SCANCODE_COUNT>
       held; // store key states from the previous tick here

@@ -14,8 +14,6 @@
 
 #include "pch.h"
 
-constexpr int ScreenWidth = 1080;
-constexpr int ScreenHeight = 720;
 // #define FULLSCREEN
 #define ADVANCEDGL // faster if your system supports it. Switches SDL2's texture
                    // buffer out for OpenGL texture buffer with mappings to CPU
