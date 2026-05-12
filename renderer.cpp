@@ -586,26 +586,24 @@ void Renderer::Draw3D(float deltaTime,
     mTextShader.SetVec3Uniform("textColor", textColor);
     glActiveTexture(GL_TEXTURE0);
 
-    if (!mShowVictoryMessage) {
-      for (auto text : hudTextures) {
-        drawToHUD(hudVAO, text, mScreenTexture, textColor);
-      }
-
-      SDL_Surface *coordinatesSurface = TTF_RenderText_Blended_Wrapped(
-          mFont,
-          entities->GetDynamicEntities()[0].GetCoordinatesString().c_str(), 0,
-          {255, 255, 255, 255}, 0);
-
-      GLuint texture = LoadGLTexture(coordinatesSurface,
-                                     mScreenWidth - coordinatesSurface->w - 10,
-                                     10, SDL_FLIP_VERTICAL);
-
-      drawToHUD(hudVAO, texture, mScreenTexture, textColor);
-      // Prevent textures from flooding GPU mem
-      glDeleteTextures(1, &texture);
-    } else {
-      drawToHUD(hudVAO, mVictoryTexture, mScreenTexture, textColor);
+    for (auto text : hudTextures) {
+      drawToHUD(hudVAO, text, mScreenTexture, textColor);
     }
+
+    SDL_Surface *coordinatesSurface = TTF_RenderText_Blended_Wrapped(
+        mFont, entities->GetDynamicEntities()[0].GetCoordinatesString().c_str(),
+        0, {255, 255, 255, 255}, 0);
+
+    GLuint texture = LoadGLTexture(coordinatesSurface,
+                                   mScreenWidth - coordinatesSurface->w - 10,
+                                   10, SDL_FLIP_VERTICAL);
+
+    drawToHUD(hudVAO, texture, mScreenTexture, textColor);
+    // Prevent textures from flooding GPU mem
+    glDeleteTextures(1, &texture);
+
+    if (mShowVictoryMessage)
+      drawToHUD(hudVAO, mVictoryTexture, mScreenTexture, textColor);
 
     glBindVertexArray(0);
 
