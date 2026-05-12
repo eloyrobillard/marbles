@@ -590,6 +590,7 @@ void Renderer::Draw3D(float deltaTime,
       drawToHUD(hudVAO, text, mScreenTexture, textColor);
     }
 
+#ifdef _DEBUG
     SDL_Surface *coordinatesSurface = TTF_RenderText_Blended_Wrapped(
         mFont, entities->GetDynamicEntities()[0].GetCoordinatesString().c_str(),
         0, {255, 255, 255, 255}, 0);
@@ -601,6 +602,7 @@ void Renderer::Draw3D(float deltaTime,
     drawToHUD(hudVAO, texture, mScreenTexture, textColor);
     // Prevent textures from flooding GPU mem
     glDeleteTextures(1, &texture);
+#endif
 
     if (mShowVictoryMessage)
       drawToHUD(hudVAO, mVictoryTexture, mScreenTexture, textColor);
