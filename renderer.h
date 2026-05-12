@@ -87,7 +87,7 @@ class Renderer {
   static GLuint createColorAttachmentTexture(int width, int height);
 
 public:
-  Renderer(bool goFullscreen = false, int screenWidth = 1080,
+  Renderer(bool goFullscreen = false, int screenWidth = 1280,
            int screenHeight = 720);
   ~Renderer();
   void Draw3D(float deltaTime, const shared_ptr<const Entities> &entities);
