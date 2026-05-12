@@ -163,12 +163,12 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
     SDL_Log("TTF_Init error: %s\n", SDL_GetError());
   }
 
-  TTF_Font *font =
-      TTF_GetFont("assets/fonts/NotoSansCJKjp-VF.ttf", 30, TTF_STYLE_NORMAL);
+  mFont = TTF_GetFont("assets/fonts/FiraCodeNerdFontMono-Regular.ttf", 30,
+                      TTF_STYLE_NORMAL);
 
   // Length can be zero for null-terminated text
   SDL_Surface *commandsSurface = TTF_RenderText_Blended_Wrapped(
-      font, "Left/Right arrows to turn\nSpace to restart", 0,
+      mFont, "Left/Right arrows to turn\nSpace to restart", 0,
       {255, 255, 255, 255}, 0);
 
   GLuint hudTexture = LoadGLTexture(commandsSurface, 5, 5, SDL_FLIP_VERTICAL);
@@ -177,15 +177,13 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
 
   pushHUDTexture(hudTexture);
 
-  TTF_SetFontSize(font, 60);
+  TTF_SetFontSize(mFont, 60);
   SDL_Surface *loadingSurface = TTF_RenderText_Blended_Wrapped(
-      font, "...Loading", 0, {255, 255, 255, 255}, 0);
+      mFont, "...Loading", 0, {255, 255, 255, 255}, 0);
 
-  TTF_SetFontSize(font, 200);
+  TTF_SetFontSize(mFont, 200);
   SDL_Surface *victorySurface = TTF_RenderText_Blended_Wrapped(
-      font, "You win!", 0, {255, 255, 255, 255}, 0);
-
-  TTF_CloseFont(font);
+      mFont, "You win!", 0, {255, 255, 255, 255}, 0);
 
   mLoadingTexture =
       LoadGLTexture(loadingSurface, mScreenWidth - loadingSurface->w - 10,
@@ -203,6 +201,9 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
   float textColor[3] = {1.0f, 1.0f, 1.0f};
   drawToHUD(hudVAO, mLoadingTexture, mScreenTexture, textColor);
   SDL_GL_Leave2DMode();
+
+  // Font size for marble coordinates HUD
+  TTF_SetFontSize(mFont, 30);
 
   SDL_GL_SwapWindow(mWindow);
 }
@@ -271,6 +272,7 @@ Renderer::~Renderer() {
     tex->Unload();
   }
 
+  TTF_CloseFont(mFont);
   TTF_Quit();
   SDL_GL_DestroyContext(mGlContext);
   SDL_DestroyWindow(mWindow);
@@ -588,6 +590,19 @@ void Renderer::Draw3D(float deltaTime,
       for (auto text : hudTextures) {
         drawToHUD(hudVAO, text, mScreenTexture, textColor);
       }
+
+      SDL_Surface *coordinatesSurface = TTF_RenderText_Blended_Wrapped(
+          mFont,
+          entities->GetDynamicEntities()[0].GetCoordinatesString().c_str(), 0,
+          {255, 255, 255, 255}, 0);
+
+      GLuint texture = LoadGLTexture(coordinatesSurface,
+                                     mScreenWidth - coordinatesSurface->w - 10,
+                                     10, SDL_FLIP_VERTICAL);
+
+      drawToHUD(hudVAO, texture, mScreenTexture, textColor);
+      // Prevent textures from flooding GPU mem
+      glDeleteTextures(1, &texture);
     } else {
       drawToHUD(hudVAO, mVictoryTexture, mScreenTexture, textColor);
     }

@@ -22,6 +22,11 @@ struct Entity {
   [[nodiscard]] tuple<mat4, optional<Texture *>, GLuint, size_t>
   GetDrawData() const;
 
+  [[nodiscard]] string GetCoordinatesString() const {
+    return std::format("x: {:8.3f}\ny: {:8.3f}\nz: {:8.3f}", body.position.x,
+                       body.position.y, body.position.z);
+  }
+
 protected:
   Mesh mesh;
   Body body;

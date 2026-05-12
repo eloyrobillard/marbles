@@ -23,6 +23,7 @@ class Renderer {
   int mScreenHeight;
   float mAspectRatio;
   bool mIsFullscreen;
+  TTF_Font *mFont;
 
   SDL_Window *mWindow;
   SDL_GLContext mGlContext;
