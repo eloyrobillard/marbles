@@ -144,14 +144,9 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
   mCollisionShader = GetShader("shaders/tint.vert", "shaders/tint.frag");
   mPostShader = GetShader("shaders/post.vert", "shaders/post.frag");
   mSkyboxShader = GetShader("shaders/skybox.vert", "shaders/skybox.frag");
-  mDebugDepthMapShader =
-      GetShader("shaders/debugDepthMap.vert", "shaders/debugDepthMap.frag");
-  mShadowMappingShader = GetShader("shaders/shadowMappingDepth.vert",
-                                   "shaders/shadowMappingDepth.frag");
 
   mMeshShader.SetActive();
   mMeshShader.SetIntUniform("uSamplingTexture", 0);
-  mMeshShader.SetIntUniform("uDepthMap", 1);
 
   setupSkybox();
 
@@ -517,18 +512,6 @@ void Renderer::drawScene(const Shader &shader,
   }
 }
 
-void Renderer::prepareShadowMap(const shared_ptr<const Entities> &entities,
-                                const mat4 &viewProj,
-                                const mat4 &lightViewProj) {
-  glBindFramebuffer(GL_FRAMEBUFFER, mDepthMapFBO);
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  mShadowMappingShader.SetActive();
-  mShadowMappingShader.SetMatrixUniform("uLightSpaceMatrix", lightViewProj);
-  drawScene(mShadowMappingShader, entities, viewProj);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
 void Renderer::Draw3D(float deltaTime,
                       const shared_ptr<const Entities> &entities) {
   setView(mCamera);
@@ -555,8 +538,6 @@ void Renderer::Draw3D(float deltaTime,
   mat4 lightProj = mat4::CreateOrtho(40.0f * mAspectRatio, 40.0f, 1.0f, 100.0f);
   mat4 lightView = mat4::CreateLookAt(lightPos, lightTarget, vec3::up);
   mat4 lightSpaceMatrix = lightView * lightProj;
-
-  prepareShadowMap(entities, viewProj, lightSpaceMatrix);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFrameBuffer);
@@ -617,16 +598,6 @@ void Renderer::Draw3D(float deltaTime,
     // draw the result of every other draw
     mPostShader.SetActive();
     drawQuad(mPostShader, quadVAO, mScreenTexture);
-
-#ifdef _DEBUG
-    // draw depth map to quad, for inspection in RenderDoc
-    glViewport(0, 0, 216, 144);
-    mDebugDepthMapShader.SetActive();
-    mDebugDepthMapShader.SetFloatUniform("nearPlane", 1.0f);
-    mDebugDepthMapShader.SetFloatUniform("farPlane", 100.0f);
-    drawQuad(mDebugDepthMapShader, debugDepthMapVAO, mDepthMapTexture);
-    glViewport(0, 0, mScreenWidth, mScreenHeight);
-#endif
   }
   SDL_GL_Leave2DMode();
 
