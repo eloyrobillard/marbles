@@ -52,8 +52,6 @@ class Renderer {
   Shader mCollisionShader;
   Shader mSkyboxShader;
   Shader mPostShader;
-  Shader mDebugDepthMapShader;
-  Shader mShadowMappingShader;
 
   bool mShowVictoryMessage = false;
 
