@@ -12,7 +12,6 @@
 // Uniforms for world transform and view-proj
 uniform mat4 uWorldTransform;
 uniform mat4 uViewProj;
-uniform mat4 uLightSpaceMatrix;
 
 // Attribute 0 is position, 1 is normal, 2 is tex coords.
 layout(location = 0) in vec3 inPosition;
@@ -24,7 +23,6 @@ out vec2 fragTexCoord;
 
 out vec3 fragNormal;
 out vec3 fragWorldPos;
-out vec4 fragPosLightSpace;
 
 void main()
 {
@@ -40,8 +38,6 @@ void main()
 
         // Transform normal into world space
         fragNormal = (vec4(inNormal, 0.0f) * transpose(inverse(uWorldTransform))).xyz;
-
-        fragPosLightSpace = pos * uLightSpaceMatrix;
 
         // Pass along the texture coordinate to frag shader
         fragTexCoord = inTexCoord;

@@ -533,21 +533,12 @@ void Renderer::Draw3D(float deltaTime,
   drawDebug(viewProj);
 #endif // _DEBUG
 
-  vec3 lightPos = {60.0f, -5.0f, 5.0f};
-  vec3 lightTarget = {60.0f, 0.0f, -1.0f};
-  mat4 lightProj = mat4::CreateOrtho(40.0f * mAspectRatio, 40.0f, 1.0f, 100.0f);
-  mat4 lightView = mat4::CreateLookAt(lightPos, lightTarget, vec3::up);
-  mat4 lightSpaceMatrix = lightView * lightProj;
-
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFrameBuffer);
 
   mMeshShader.SetActive();
   mMeshShader.SetMatrixUniform("uViewProj", viewProj);
   mMeshShader.SetLight(mView);
-  mMeshShader.SetVec3Uniform("uLightPos", lightPos);
-  mMeshShader.SetVec3Uniform("uLightTarget", lightTarget);
-  mMeshShader.SetMatrixUniform("uLightSpaceMatrix", lightSpaceMatrix);
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, mDepthMapTexture);
   drawScene(mMeshShader, entities, viewProj);
