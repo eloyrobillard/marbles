@@ -31,16 +31,15 @@ class Renderer {
 
   vector<GLuint> hudTextures;
 
-  GLuint mMSAAFrameBuffer;
+  GLuint mMSAAFBO;
   GLuint mMSAARenderBuffer;
   GLuint mIntermediateFBO;
-  GLuint mDepthMapFBO;
   GLuint mScreenTexture;
-  GLuint skyboxTexture;
-  GLuint skyboxVAO, skyboxVBO;
+  GLuint mBrightnessTexture;
+  // Used for Gaussian blur (bloom effect)
+  GLuint mPingpongFBO[2];
+  GLuint mPingpongColorBuffer[2];
   GLuint quadVAO, quadVBO;
-  GLuint hudVAO, hudVBO;
-  GLuint debugDepthMapVAO, debugDepthMapVBO;
 
   GLuint mLoadingTexture;
   GLuint mVictoryTexture;
@@ -50,20 +49,18 @@ class Renderer {
   Shader mMeshShader;
   Shader mColliderShader;
   Shader mCollisionShader;
-  Shader mSkyboxShader;
   Shader mPostShader;
+  Shader mGaussianBlurShader;
+  Shader mApplyBloomShader;
 
   bool mShowVictoryMessage = false;
 
   bool setupFramebuffers();
-  bool setupSkyboxVAO();
-  bool setupSkybox();
 
   void setView(const shared_ptr<FollowCamera> &camera);
   void setProjection();
   void pushHUDTexture(GLuint texture) { hudTextures.push_back(texture); }
   void getMeshes(const vector<pair<string, BodyType>> &meshList);
-  void drawSkybox();
   void drawDebug(const mat4 &viewProj);
   void drawToHUD(GLuint VAO, GLuint textTexture, GLuint screenTexture,
                  const float textColor[3]);
@@ -77,13 +74,15 @@ class Renderer {
   static void drawScene(const Shader &shader,
                         const shared_ptr<const Entities> &entities,
                         const mat4 &viewProj);
-  static void setupScreenQuadVAO(GLuint &VAO, GLuint &VBO);
+  static void setupQuadVAO(GLuint &VAO, GLuint &VBO);
   static Shader GetShader(const char *vert, const char *frag);
   static void drawQuad(Shader &shader, GLuint VAO, GLuint texture);
   static void blitFramebuffer(GLuint readFB, GLuint drawFB, int readW,
                               int readH, int drawW, int drawH);
   static void drawEntity(const Shader &shader, const Entity &entity);
-  static GLuint createColorAttachmentTexture(int width, int height);
+  static GLuint
+  createColorAttachmentTexture(int width, int height, int colorFormat,
+                               int colorAttachment = GL_COLOR_ATTACHMENT0);
 
 public:
   Renderer(bool goFullscreen = false, int screenWidth = 1280,

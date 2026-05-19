@@ -134,21 +134,30 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
   printf("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
   mTextShader = GetShader("shaders/text.vert", "shaders/text.frag");
-  mTextShader.SetActive();
-  mTextShader.SetIntUniform("text", 0);
-  mTextShader.SetIntUniform("screen", 1);
 
   mMeshShader = GetShader("shaders/basic.vert", "shaders/basic.frag");
   mColliderShader =
       GetShader("shaders/wireframe.vert", "shaders/wireframe.frag");
   mCollisionShader = GetShader("shaders/tint.vert", "shaders/tint.frag");
   mPostShader = GetShader("shaders/post.vert", "shaders/post.frag");
-  mSkyboxShader = GetShader("shaders/skybox.vert", "shaders/skybox.frag");
+  mGaussianBlurShader =
+      GetShader("shaders/gaussianBlur.vert", "shaders/gaussianBlur.frag");
+  mApplyBloomShader =
+      GetShader("shaders/applyBloom.vert", "shaders/applyBloom.frag");
+
+  mTextShader.SetActive();
+  mTextShader.SetIntUniform("text", 0);
+  mTextShader.SetIntUniform("screen", 1);
 
   mMeshShader.SetActive();
   mMeshShader.SetIntUniform("uSamplingTexture", 0);
 
-  setupSkybox();
+  mGaussianBlurShader.SetActive();
+  mGaussianBlurShader.SetIntUniform("brightTexture", 0);
+
+  mApplyBloomShader.SetActive();
+  mApplyBloomShader.SetIntUniform("normalTex", 0);
+  mApplyBloomShader.SetIntUniform("bloomTex", 1);
 
   // Setup AA and depth framebuffers
   setupFramebuffers();
@@ -194,7 +203,7 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
   // Draw loading screen
   SDL_GL_Enter2DMode();
   float textColor[3] = {1.0f, 1.0f, 1.0f};
-  drawToHUD(hudVAO, mLoadingTexture, mScreenTexture, textColor);
+  drawToHUD(quadVAO, mLoadingTexture, mScreenTexture, textColor);
   SDL_GL_Leave2DMode();
 
   // Font size for marble coordinates HUD
@@ -236,18 +245,7 @@ void Renderer::drawToHUD(GLuint VAO, GLuint textTexture, GLuint screenTexture,
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, screenTexture);
   // use the now resolved color attachment as the quad's texture
-  glDrawArrays(GL_TRIANGLES, 0, 6);
-}
-
-bool Renderer::setupSkybox() {
-  vector<std::string> faces{
-      "assets/skybox/right.jpg", "assets/skybox/left.jpg",
-      "assets/skybox/top.jpg",   "assets/skybox/bottom.jpg",
-      "assets/skybox/front.jpg", "assets/skybox/back.jpg"};
-
-  skyboxTexture = Texture::LoadCubemap(faces);
-
-  return setupSkyboxVAO();
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 void Renderer::SetCamera(const shared_ptr<FollowCamera> &camera) {
@@ -261,7 +259,6 @@ Renderer::~Renderer() {
   mCollisionShader.Unload();
   mTextShader.Unload();
   mPostShader.Unload();
-  mSkyboxShader.Unload();
 
   for (const auto &[_, tex] : gAllTextures) {
     tex->Unload();
@@ -274,74 +271,18 @@ Renderer::~Renderer() {
   SDL_Quit();
 }
 
-bool Renderer::setupSkyboxVAO() {
+void Renderer::setupQuadVAO(GLuint &VAO, GLuint &VBO) {
+  // vertex attributes for a quad that fills the entire screen in Normalized
+  // Device Coordinates.
   // clang-format off
-  float skyboxVertices[] = {
-      // positions          
-      -1.0f,  1.0f, -1.0f,
-      -1.0f, -1.0f, -1.0f,
-       1.0f, -1.0f, -1.0f,
-       1.0f, -1.0f, -1.0f,
-       1.0f,  1.0f, -1.0f,
-      -1.0f,  1.0f, -1.0f,
-
-      -1.0f, -1.0f,  1.0f,
-      -1.0f, -1.0f, -1.0f,
-      -1.0f,  1.0f, -1.0f,
-      -1.0f,  1.0f, -1.0f,
-      -1.0f,  1.0f,  1.0f,
-      -1.0f, -1.0f,  1.0f,
-
-       1.0f, -1.0f, -1.0f,
-       1.0f, -1.0f,  1.0f,
-       1.0f,  1.0f,  1.0f,
-       1.0f,  1.0f,  1.0f,
-       1.0f,  1.0f, -1.0f,
-       1.0f, -1.0f, -1.0f,
-
-      -1.0f, -1.0f,  1.0f,
-      -1.0f,  1.0f,  1.0f,
-       1.0f,  1.0f,  1.0f,
-       1.0f,  1.0f,  1.0f,
-       1.0f, -1.0f,  1.0f,
-      -1.0f, -1.0f,  1.0f,
-
-      -1.0f,  1.0f, -1.0f,
-       1.0f,  1.0f, -1.0f,
-       1.0f,  1.0f,  1.0f,
-       1.0f,  1.0f,  1.0f,
-      -1.0f,  1.0f,  1.0f,
-      -1.0f,  1.0f, -1.0f,
-
-      -1.0f, -1.0f, -1.0f,
-      -1.0f, -1.0f,  1.0f,
-       1.0f, -1.0f, -1.0f,
-       1.0f, -1.0f, -1.0f,
-      -1.0f, -1.0f,  1.0f,
-       1.0f, -1.0f,  1.0f
+  float quadVertices[] = {
+      // positions        // texture Coords
+      -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+      -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+       1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+       1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
   };
   // clang-format on
-
-  glGenVertexArrays(1, &skyboxVAO);
-  glGenBuffers(1, &skyboxVBO);
-  glBindVertexArray(skyboxVAO);
-  glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices,
-               GL_STATIC_DRAW);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *)0);
-
-  return (glGetError() == 0);
-}
-
-void Renderer::setupScreenQuadVAO(GLuint &VAO, GLuint &VBO) {
-  // vertex attributes for a quad that fills the entire screen in Normalized
-  // Device Coordinates. (positions, texCoords)
-  float quadVertices[] = {-1.0f, 1.0f, 0.0f, 1.0f,  -1.0f, -1.0f,
-                          0.0f,  0.0f, 1.0f, -1.0f, 1.0f,  0.0f,
-
-                          -1.0f, 1.0f, 0.0f, 1.0f,  1.0f,  -1.0f,
-                          1.0f,  0.0f, 1.0f, 1.0f,  1.0f,  1.0f};
 
   glGenVertexArrays(1, &VAO);
   glGenBuffers(1, &VBO);
@@ -350,21 +291,23 @@ void Renderer::setupScreenQuadVAO(GLuint &VAO, GLuint &VBO) {
   glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices,
                GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
   glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
-                        (void *)(2 * sizeof(float)));
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                        (void *)(3 * sizeof(float)));
 }
 
-GLuint Renderer::createColorAttachmentTexture(int width, int height) {
+GLuint Renderer::createColorAttachmentTexture(int width, int height,
+                                              int colorFormat,
+                                              int colorAttachment) {
   GLuint texture;
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB,
+  glTexImage2D(GL_TEXTURE_2D, 0, colorFormat, width, height, 0, GL_RGB,
                GL_UNSIGNED_BYTE, nullptr);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+  glFramebufferTexture2D(GL_FRAMEBUFFER, colorAttachment, GL_TEXTURE_2D,
                          texture, 0); // we only need a color buffer
 
   return texture;
@@ -373,8 +316,8 @@ GLuint Renderer::createColorAttachmentTexture(int width, int height) {
 void Renderer::configureMultiSampledAntiAliasing() {
   // configure MSAA framebuffer
   // --------------------------
-  glGenFramebuffers(1, &mMSAAFrameBuffer);
-  glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFrameBuffer);
+  glGenFramebuffers(1, &mMSAAFBO);
+  glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFBO);
   // create a multisampled color attachment texture
   unsigned int textureColorBufferMultiSampled;
   glGenTextures(1, &textureColorBufferMultiSampled);
@@ -402,9 +345,7 @@ void Renderer::configureMultiSampledAntiAliasing() {
 
 // SOURCE: https://learnopengl.com/Advanced-OpenGL/Anti-Aliasing
 bool Renderer::setupFramebuffers() {
-  setupScreenQuadVAO(hudVAO, hudVBO);
-  setupScreenQuadVAO(quadVAO, quadVBO);
-  setupScreenQuadVAO(debugDepthMapVAO, debugDepthMapVBO);
+  setupQuadVAO(quadVAO, quadVBO);
 
   configureMultiSampledAntiAliasing();
 
@@ -413,56 +354,43 @@ bool Renderer::setupFramebuffers() {
   glBindFramebuffer(GL_FRAMEBUFFER, mIntermediateFBO);
 
   // create a color attachment texture for second framebuffer
-  mScreenTexture = createColorAttachmentTexture(mScreenWidth, mScreenHeight);
+  mScreenTexture =
+      createColorAttachmentTexture(mScreenWidth, mScreenHeight, GL_RGB);
+  // create a second color attachment, this time for the bloom effect
+  mBrightnessTexture = createColorAttachmentTexture(
+      mScreenWidth, mScreenHeight, GL_RGB, GL_COLOR_ATTACHMENT1);
+
+  // Tell OpenGL to render to both of above buffers
+  unsigned int attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+  glDrawBuffers(2, attachments);
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    cout
-        << "ERROR::FRAMEBUFFER:: Intermediate framebuffer is not complete !\n ";
+    cout << "ERROR::FRAMEBUFFER:: Intermediate framebuffer is not complete !\n";
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-  // configure depth map framebuffer
-  glGenFramebuffers(1, &mDepthMapFBO);
-  glBindFramebuffer(GL_FRAMEBUFFER, mDepthMapFBO);
+  // Used for Gaussian blur (bloom effect)
+  glGenFramebuffers(2, mPingpongFBO);
+  // Textures -> no need for depth buffer
+  glGenTextures(2, mPingpongColorBuffer);
+  for (uint i = 0; i < 2; i++) {
+    glBindFramebuffer(GL_FRAMEBUFFER, mPingpongFBO[i]);
+    glBindTexture(GL_TEXTURE_2D, mPingpongColorBuffer[i]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, mScreenWidth, mScreenHeight, 0,
+                 GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                           mPingpongColorBuffer[i], 0);
 
-  // create texture for shadow map
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+      cout << "ERROR::FRAMEBUFFER:: Ping-pong framebuffer is not complete !\n";
+  }
 
-  glGenTextures(1, &mDepthMapTexture);
-  glBindTexture(GL_TEXTURE_2D, mDepthMapTexture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, mScreenWidth,
-               mScreenHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
-                         mDepthMapTexture, 0);
-  glDrawBuffer(GL_NONE);
-  glReadBuffer(GL_NONE);
-
-  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    cout << "ERROR::FRAMEBUFFER:: Depth map framebuffer is not complete !\n ";
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   return (glGetError() == 0);
-}
-
-void Renderer::drawSkybox() {
-  // draw skybox behind scene
-  glDepthFunc(GL_LEQUAL); // change depth function so depth test passes when
-                          // values are equal to depth buffer's content
-  mSkyboxShader.SetActive();
-  mSkyboxShader.SetMatrixUniform(
-      "view", mat4::CreateLookAtSkybox(mCamera->mActualPosition,
-                                       mCamera->mTarget, mCamera->mUp));
-  mSkyboxShader.SetMatrixUniform("projection", mProjection);
-
-  // skybox cube
-  glBindVertexArray(skyboxVAO);
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_CUBE_MAP, skyboxTexture);
-  glDrawArrays(GL_TRIANGLES, 0, 36);
-  glBindVertexArray(0);
-  glDepthFunc(GL_LESS); // set depth function back to default
 }
 
 void Renderer::drawDebug(const mat4 &viewProj) {
@@ -520,7 +448,7 @@ void Renderer::Draw3D(float deltaTime,
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // 1. draw scene as normal in multisampled buffers
-  glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFrameBuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFBO);
   // Set the clear color
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -529,37 +457,55 @@ void Renderer::Draw3D(float deltaTime,
 
   mat4 viewProj = mView * mProjection;
 
-#ifdef _DEBUG
-  drawDebug(viewProj);
-#endif // _DEBUG
-
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFrameBuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFBO);
+
+  // Turn on wireframe mode
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   mMeshShader.SetActive();
   mMeshShader.SetMatrixUniform("uViewProj", viewProj);
   mMeshShader.SetLight(mView);
-  glActiveTexture(GL_TEXTURE1);
-  glBindTexture(GL_TEXTURE_2D, mDepthMapTexture);
   drawScene(mMeshShader, entities, viewProj);
 
-  drawSkybox();
+  // Turn off wireframe mode
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+#ifdef _DEBUG
+  drawDebug(viewProj);
+#endif // _DEBUG
 
   // finally, draw HUD elements
   SDL_GL_Enter2DMode();
   {
     // 2. now blit multisampled buffer(s) to normal colorbuffer of intermediate
     // FBO. Image is stored in screenTexture
-    blitFramebuffer(mMSAAFrameBuffer, mIntermediateFBO, mScreenWidth,
-                    mScreenHeight, mScreenWidth, mScreenHeight);
+    blitFramebuffer(mMSAAFBO, mIntermediateFBO, mScreenWidth, mScreenHeight,
+                    mScreenWidth, mScreenHeight);
+
+    mGaussianBlurShader.SetActive();
+    bool horizontal = true;
+    glBindFramebuffer(GL_FRAMEBUFFER, mPingpongFBO[horizontal]);
+    drawQuad(mGaussianBlurShader, quadVAO, mBrightnessTexture);
+    for (int i = 0; i < 10; i++) {
+      mGaussianBlurShader.SetBoolUniform("horizontal", horizontal);
+      glBindFramebuffer(GL_FRAMEBUFFER, mPingpongFBO[!horizontal]);
+      drawQuad(mGaussianBlurShader, quadVAO, mPingpongColorBuffer[horizontal]);
+      horizontal = !horizontal;
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, mIntermediateFBO);
+    mApplyBloomShader.SetActive();
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, mPingpongColorBuffer[!horizontal]);
+    drawQuad(mApplyBloomShader, quadVAO, mScreenTexture);
 
     mTextShader.SetActive();
     const float textColor[3] = {1.0f, 1.0f, 1.0f};
     mTextShader.SetVec3Uniform("textColor", textColor);
-    glActiveTexture(GL_TEXTURE0);
 
     for (auto text : hudTextures) {
-      drawToHUD(hudVAO, text, mScreenTexture, textColor);
+      drawToHUD(quadVAO, text, mScreenTexture, textColor);
     }
 
 #ifdef _DEBUG
@@ -571,13 +517,13 @@ void Renderer::Draw3D(float deltaTime,
                                    mScreenWidth - coordinatesSurface->w - 10,
                                    10, SDL_FLIP_VERTICAL);
 
-    drawToHUD(hudVAO, texture, mScreenTexture, textColor);
+    drawToHUD(quadVAO, texture, mScreenTexture, textColor);
     // Prevent textures from flooding GPU mem
     glDeleteTextures(1, &texture);
 #endif
 
     if (mShowVictoryMessage)
-      drawToHUD(hudVAO, mVictoryTexture, mScreenTexture, textColor);
+      drawToHUD(quadVAO, mVictoryTexture, mScreenTexture, textColor);
 
     glBindVertexArray(0);
 
@@ -608,7 +554,7 @@ void Renderer::drawQuad(Shader &shader, GLuint VAO, GLuint texture) {
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture);
   // use the now resolved color attachment as the quad's texture
-  glDrawArrays(GL_TRIANGLES, 0, 6);
+  glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
 void Renderer::setView(const shared_ptr<FollowCamera> &camera) {

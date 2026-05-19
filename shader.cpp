@@ -107,6 +107,11 @@ void Shader::SetMatrixUniform(const char *name,
   glUniformMatrix4fv(static_cast<GLint>(loc), 1, GL_TRUE, matrix.cell);
 }
 
+void Shader::SetBoolUniform(const char *name, bool value) const {
+  GLuint loc = glGetUniformLocation(program, name);
+  glUniform1i(static_cast<GLint>(loc), value);
+}
+
 void Shader::SetIntUniform(const char *name, int value) const {
   GLuint loc = glGetUniformLocation(program, name);
   glUniform1i(static_cast<GLint>(loc), value);
