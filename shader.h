@@ -18,6 +18,7 @@ public:
   void SetActive() const { glUseProgram(program); }
   void SetMatrixUniform(const char *name, const mat4 &matrix) const;
   void SetIntUniform(const char *name, int value) const;
+  void SetBoolUniform(const char *name, bool value) const;
   void SetFloatUniform(const char *name, float value) const;
   void SetVec3Uniform(const char *name, const float values[3]) const;
   void SetVec3Uniform(const char *name, const Maths::vec3 &values) const;
