@@ -1,7 +1,6 @@
 #include "renderer.h"
 #include "camera.h"
 #include "shader.h"
-#include "template.h"
 
 TTF_Font *TTF_GetFont(const char *fontName, float ptsize,
                       TTF_FontStyleFlags fontStyleFlags) {
@@ -259,6 +258,8 @@ Renderer::~Renderer() {
   mCollisionShader.Unload();
   mTextShader.Unload();
   mPostShader.Unload();
+  mGaussianBlurShader.Unload();
+  mApplyBloomShader.Unload();
 
   for (const auto &[_, tex] : gAllTextures) {
     tex->Unload();
@@ -303,7 +304,7 @@ GLuint Renderer::createColorAttachmentTexture(int width, int height,
   GLuint texture;
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
-  glTexImage2D(GL_TEXTURE_2D, 0, colorFormat, width, height, 0, GL_RGB,
+  glTexImage2D(GL_TEXTURE_2D, 0, colorFormat, width, height, 0, GL_RGBA,
                GL_UNSIGNED_BYTE, nullptr);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -357,8 +358,10 @@ bool Renderer::setupFramebuffers() {
   mScreenTexture =
       createColorAttachmentTexture(mScreenWidth, mScreenHeight, GL_RGB);
   // create a second color attachment, this time for the bloom effect
+  // NOTE: using GL_RGB16F format to prevent clamping of values written to
+  // buffer. This is to allow HDR.
   mBrightnessTexture = createColorAttachmentTexture(
-      mScreenWidth, mScreenHeight, GL_RGB, GL_COLOR_ATTACHMENT1);
+      mScreenWidth, mScreenHeight, GL_RGB16F, GL_COLOR_ATTACHMENT1);
 
   // Tell OpenGL to render to both of above buffers
   unsigned int attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
@@ -496,6 +499,7 @@ void Renderer::Draw3D(float deltaTime,
 
     glBindFramebuffer(GL_FRAMEBUFFER, mIntermediateFBO);
     mApplyBloomShader.SetActive();
+    mApplyBloomShader.SetFloatUniform("exposure", 5.0);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, mPingpongColorBuffer[!horizontal]);
     drawQuad(mApplyBloomShader, quadVAO, mScreenTexture);
