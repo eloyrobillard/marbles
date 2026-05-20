@@ -3,7 +3,7 @@
   "vertexformat": "PosNormSkinTex",
   "shader": "Skinned",
   "textures": [
-    "Assets/black.png"
+    "Assets/pink.png"
   ],
   "specularPower": 100.0,
   "rotationEuler": [
