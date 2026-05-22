@@ -134,6 +134,8 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
 
   mDepthMapShader = GetShader("shaders/depthMap.vert", "shaders/depthMap.frag");
   mContourShader = GetShader("shaders/contour.vert", "shaders/contour.frag");
+  mDrawStaticShader =
+      GetShader("shaders/drawStatic.vert", "shaders/drawStatic.frag");
 
   mTextShader = GetShader("shaders/text.vert", "shaders/text.frag");
 
@@ -146,6 +148,10 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
       GetShader("shaders/gaussianBlur.vert", "shaders/gaussianBlur.frag");
   mApplyBloomShader =
       GetShader("shaders/applyBloom.vert", "shaders/applyBloom.frag");
+
+  mDrawStaticShader.SetActive();
+  mDrawStaticShader.SetIntUniform("meshTex", 0);
+  mDrawStaticShader.SetIntUniform("depthTex", 1);
 
   mTextShader.SetActive();
   mTextShader.SetIntUniform("text", 0);
@@ -303,7 +309,7 @@ void Renderer::setupQuadVAO(GLuint &VAO, GLuint &VBO) {
 
 GLuint Renderer::createColorAttachmentTexture(int width, int height,
                                               int colorFormat,
-                                              int colorAttachment) {
+                                              int colorAttachmentNumber) {
   GLuint texture;
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
@@ -313,7 +319,7 @@ GLuint Renderer::createColorAttachmentTexture(int width, int height,
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, colorAttachment, GL_TEXTURE_2D,
+  glFramebufferTexture2D(GL_FRAMEBUFFER, colorAttachmentNumber, GL_TEXTURE_2D,
                          texture, 0);
 
   return texture;
@@ -468,11 +474,19 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
     drawEntity(mDepthMapShader, e);
   }
 
-  glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFBO);
+  glBindFramebuffer(GL_FRAMEBUFFER, mContourFBO);
   mContourShader.SetActive();
   drawQuad(mContourShader, quadVAO, mDepthMapTexture);
 
-  glClear(GL_DEPTH_BUFFER_BIT);
+  glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFBO);
+  mDrawStaticShader.SetActive();
+  mDrawStaticShader.SetMatrixUniform("uViewProj", viewProj);
+  glActiveTexture(GL_TEXTURE1);
+  glBindTexture(GL_TEXTURE_2D, mContourColorBuffer);
+
+  for (const auto &e : entities->GetStaticEntities()) {
+    drawEntity(mDrawStaticShader, e);
+  }
 
   mMeshShader.SetActive();
   mMeshShader.SetMatrixUniform("uViewProj", viewProj);
