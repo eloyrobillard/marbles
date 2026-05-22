@@ -50,6 +50,7 @@ class Renderer {
 
   Shader mDepthMapShader;
   Shader mContourShader;
+  Shader mDrawStaticShader;
   Shader mTextShader;
   Shader mMeshShader;
   Shader mColliderShader;
@@ -84,9 +85,9 @@ class Renderer {
   static void blitFramebuffer(GLuint readFB, GLuint drawFB, int readW,
                               int readH, int drawW, int drawH);
   void drawEntity(const Shader &shader, const Entity &entity);
-  static GLuint
-  createColorAttachmentTexture(int width, int height, int colorFormat,
-                               int colorAttachment = GL_COLOR_ATTACHMENT0);
+  static GLuint createColorAttachmentTexture(
+      int width, int height, int colorFormat,
+      int colorAttachmentNumber = GL_COLOR_ATTACHMENT0);
 
 public:
   Renderer(bool goFullscreen = false, int screenWidth = 1280,
