@@ -132,6 +132,9 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
 
   printf("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
+  mDepthMapShader = GetShader("shaders/depthMap.vert", "shaders/depthMap.frag");
+  mContourShader = GetShader("shaders/contour.vert", "shaders/contour.frag");
+
   mTextShader = GetShader("shaders/text.vert", "shaders/text.frag");
 
   mMeshShader = GetShader("shaders/basic.vert", "shaders/basic.frag");
@@ -317,8 +320,6 @@ GLuint Renderer::createColorAttachmentTexture(int width, int height,
 }
 
 void Renderer::configureMultiSampledAntiAliasing() {
-  // configure MSAA framebuffer
-  // --------------------------
   glGenFramebuffers(1, &mMSAAFBO);
   glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFBO);
   // create a multisampled color attachment texture
@@ -346,9 +347,32 @@ void Renderer::configureMultiSampledAntiAliasing() {
     cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 }
 
-// SOURCE: https://learnopengl.com/Advanced-OpenGL/Anti-Aliasing
 bool Renderer::setupFramebuffers() {
   setupQuadVAO(quadVAO, quadVBO);
+
+  // depth map
+  glGenTextures(1, &mDepthMapTexture);
+  glBindTexture(GL_TEXTURE_2D, mDepthMapTexture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, mScreenWidth,
+               mScreenHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+
+  glGenFramebuffers(1, &mDepthMapFBO);
+  glBindFramebuffer(GL_FRAMEBUFFER, mDepthMapFBO);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
+                         mDepthMapTexture, 0);
+  glDrawBuffer(GL_NONE);
+  glReadBuffer(GL_NONE);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+  // framebuffer to be reused while rendering entity outlines
+  glGenFramebuffers(1, &mContourFBO);
+  glBindFramebuffer(GL_FRAMEBUFFER, mContourFBO);
+  mContourColorBuffer =
+      createColorAttachmentTexture(mScreenWidth, mScreenHeight, GL_RGB);
 
   configureMultiSampledAntiAliasing();
 
@@ -358,7 +382,7 @@ bool Renderer::setupFramebuffers() {
 
   // create a color attachment texture for second framebuffer
   mScreenTexture =
-      createColorAttachmentTexture(mScreenWidth, mScreenHeight, GL_RGB);
+      createColorAttachmentTexture(mScreenWidth, mScreenHeight, GL_RGB16F);
   // create a second color attachment, this time for the bloom effect
   // NOTE: using GL_RGB16F format to prevent clamping of values written to
   // buffer. This is to allow HDR.
@@ -433,15 +457,28 @@ void Renderer::drawDebug(const mat4 &viewProj) {
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-void Renderer::drawScene(const Shader &shader,
-                         const shared_ptr<const Entities> &entities,
+void Renderer::drawScene(const shared_ptr<const Entities> &entities,
                          const mat4 &viewProj) {
+  glBindFramebuffer(GL_FRAMEBUFFER, mDepthMapFBO);
+  glClear(GL_DEPTH_BUFFER_BIT);
+  mDepthMapShader.SetActive();
+  mDepthMapShader.SetMatrixUniform("uViewProj", viewProj);
+
   for (const auto &e : entities->GetStaticEntities()) {
-    drawEntity(shader, e);
+    drawEntity(mDepthMapShader, e);
   }
 
+  glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFBO);
+  mContourShader.SetActive();
+  drawQuad(mContourShader, quadVAO, mDepthMapTexture);
+
+  glClear(GL_DEPTH_BUFFER_BIT);
+
+  mMeshShader.SetActive();
+  mMeshShader.SetMatrixUniform("uViewProj", viewProj);
+
   for (const auto &e : entities->GetDynamicEntities()) {
-    drawEntity(shader, e);
+    drawEntity(mMeshShader, e);
   }
 }
 
@@ -463,18 +500,8 @@ void Renderer::Draw3D(float deltaTime,
   mat4 viewProj = mView * mProjection;
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFBO);
 
-  // Turn on wireframe mode
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-  mMeshShader.SetActive();
-  mMeshShader.SetMatrixUniform("uViewProj", viewProj);
-  mMeshShader.SetLight(mView);
-  drawScene(mMeshShader, entities, viewProj);
-
-  // Turn off wireframe mode
-  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  drawScene(entities, viewProj);
 
 #ifdef _DEBUG
   drawDebug(viewProj);
@@ -501,7 +528,7 @@ void Renderer::Draw3D(float deltaTime,
 
     glBindFramebuffer(GL_FRAMEBUFFER, mIntermediateFBO);
     mApplyBloomShader.SetActive();
-    mApplyBloomShader.SetFloatUniform("exposure", 5.0);
+    mApplyBloomShader.SetFloatUniform("exposure", 3.0);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, mPingpongColorBuffer[!horizontal]);
     drawQuad(mApplyBloomShader, quadVAO, mScreenTexture);

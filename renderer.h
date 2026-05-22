@@ -31,6 +31,9 @@ class Renderer {
 
   vector<GLuint> hudTextures;
 
+  GLuint mDepthMapFBO;
+  GLuint mContourFBO;
+  GLuint mContourColorBuffer;
   GLuint mMSAAFBO;
   GLuint mMSAARenderBuffer;
   GLuint mIntermediateFBO;
@@ -45,6 +48,8 @@ class Renderer {
   GLuint mVictoryTexture;
   GLuint mDepthMapTexture;
 
+  Shader mDepthMapShader;
+  Shader mContourShader;
   Shader mTextShader;
   Shader mMeshShader;
   Shader mColliderShader;
@@ -71,15 +76,14 @@ class Renderer {
   GLuint LoadGLTexture(SDL_Surface *surface, int dst_x, int dst_y,
                        SDL_FlipMode flip_mode) const;
 
-  static void drawScene(const Shader &shader,
-                        const shared_ptr<const Entities> &entities,
-                        const mat4 &viewProj);
+  void drawScene(const shared_ptr<const Entities> &entities,
+                 const mat4 &viewProj);
   static void setupQuadVAO(GLuint &VAO, GLuint &VBO);
   static Shader GetShader(const char *vert, const char *frag);
   static void drawQuad(Shader &shader, GLuint VAO, GLuint texture);
   static void blitFramebuffer(GLuint readFB, GLuint drawFB, int readW,
                               int readH, int drawW, int drawH);
-  static void drawEntity(const Shader &shader, const Entity &entity);
+  void drawEntity(const Shader &shader, const Entity &entity);
   static GLuint
   createColorAttachmentTexture(int width, int height, int colorFormat,
                                int colorAttachment = GL_COLOR_ATTACHMENT0);
