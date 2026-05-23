@@ -133,6 +133,10 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
   printf("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
   mDepthMapShader = GetShader("shaders/depthMap.vert", "shaders/depthMap.frag");
+  mDebugShadowMapShader =
+      GetShader("shaders/debugShadowMap.vert", "shaders/debugShadowMap.frag");
+  mShadowMapShader =
+      GetShader("shaders/shadowMap.vert", "shaders/shadowMap.frag");
   mContourShader = GetShader("shaders/contour.vert", "shaders/contour.frag");
   mDrawStaticShader =
       GetShader("shaders/drawStatic.vert", "shaders/drawStatic.frag");
@@ -380,6 +384,22 @@ bool Renderer::setupFramebuffers() {
   mContourColorBuffer =
       createColorAttachmentTexture(mScreenWidth, mScreenHeight, GL_RGB);
 
+  // configure shadow map framebuffer
+  glGenFramebuffers(1, &mShadowMapFBO);
+  glBindFramebuffer(GL_FRAMEBUFFER, mShadowMapFBO);
+
+  // create texture for shadow map
+  glGenTextures(1, &mShadowMapTexture);
+  glBindTexture(GL_TEXTURE_2D, mShadowMapTexture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, mScreenWidth,
+               mScreenHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
+                         mShadowMapTexture, 0);
+
   configureMultiSampledAntiAliasing();
 
   // configure second post-processing framebuffer
@@ -468,6 +488,21 @@ void Renderer::drawDebug(const mat4 &viewProj) {
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
+void Renderer::drawSceneWithShader(const Shader &shader,
+                                   const shared_ptr<const Entities> &entities,
+                                   const mat4 &viewProj) {
+  shader.SetActive();
+  shader.SetMatrixUniform("uViewProj", viewProj);
+
+  for (const auto &e : entities->GetStaticEntities()) {
+    drawEntity(shader, e);
+  }
+
+  for (const auto &e : entities->GetDynamicEntities()) {
+    drawEntity(shader, e);
+  }
+}
+
 void Renderer::drawScene(const shared_ptr<const Entities> &entities,
                          const mat4 &viewProj) {
   glBindFramebuffer(GL_FRAMEBUFFER, mDepthMapFBO);
@@ -509,9 +544,6 @@ void Renderer::Draw3D(float deltaTime,
                       const shared_ptr<const Entities> &entities) {
   setView(mCamera);
 
-  // Clear the color/depth buffer
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
   // 1. draw scene as normal in multisampled buffers
   glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFBO);
   // Set the clear color
@@ -522,7 +554,17 @@ void Renderer::Draw3D(float deltaTime,
 
   mat4 viewProj = mView * mProjection;
 
+  // Setup light for shadow mapping
+  float near = 1.0f, far = 100.0f;
+  const vec3 lightPos{40.0f, -3.0f, 3.0f};
+  const vec3 lightTarget{40.0f, 0.0f, -1.0f};
+  const mat4 lightView = mat4::CreateLookAt(lightPos, lightTarget, vec3::up);
+  const mat4 lightProj = mat4::CreateOrtho(100 * mAspectRatio, 100, near, far);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, mShadowMapFBO);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  drawSceneWithShader(mShadowMapShader, entities, lightView * lightProj);
 
   drawScene(entities, viewProj);
 
@@ -561,6 +603,7 @@ void Renderer::Draw3D(float deltaTime,
     }
 
 #ifdef _DEBUG
+    // debug marble coordinates
     SDL_Surface *coordinatesSurface = TTF_RenderText_Blended_Wrapped(
         mFont, entities->GetDynamicEntities()[0].GetCoordinatesString().c_str(),
         0, {255, 255, 255, 255}, 0);
@@ -572,6 +615,12 @@ void Renderer::Draw3D(float deltaTime,
     drawToHUD(quadVAO, texture, mScreenTexture, textColor);
     // Prevent textures from flooding GPU mem
     glDeleteTextures(1, &texture);
+
+    // draw shadow map
+    glViewport(0, 0, 216, 144);
+    mDebugShadowMapShader.SetActive();
+    drawQuad(mDebugShadowMapShader, quadVAO, mShadowMapTexture);
+    glViewport(0, 0, mScreenWidth, mScreenHeight);
 #endif
 
     if (mShowVictoryMessage)
