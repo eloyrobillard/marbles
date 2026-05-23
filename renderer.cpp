@@ -429,6 +429,9 @@ bool Renderer::setupFramebuffers() {
 }
 
 void Renderer::drawDebug(const mat4 &viewProj) {
+  // override previous triangle draw no matter what
+  glDisable(GL_DEPTH_TEST);
+
   // Visualize collisions
   mCollisionShader.SetActive();
 
@@ -442,6 +445,8 @@ void Renderer::drawDebug(const mat4 &viewProj) {
 
     gTo_render_as_collided.pop();
   }
+
+  glEnable(GL_DEPTH_TEST);
 
   // Visualize triangle colliders as a wireframe
   mColliderShader.SetActive();
@@ -488,6 +493,10 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
     drawEntity(mDrawStaticShader, e);
   }
 
+#ifdef _DEBUG
+  drawDebug(viewProj);
+#endif // _DEBUG
+
   mMeshShader.SetActive();
   mMeshShader.SetMatrixUniform("uViewProj", viewProj);
 
@@ -516,10 +525,6 @@ void Renderer::Draw3D(float deltaTime,
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   drawScene(entities, viewProj);
-
-#ifdef _DEBUG
-  drawDebug(viewProj);
-#endif // _DEBUG
 
   // finally, draw HUD elements
   SDL_GL_Enter2DMode();
