@@ -21,6 +21,7 @@ class Renderer {
   float fovy = 30.0f / 180.0f * PI;
   int mScreenWidth;
   int mScreenHeight;
+  // Screen width divided by screen height
   float mAspectRatio;
   bool mIsFullscreen;
   TTF_Font *mFont;
@@ -31,6 +32,8 @@ class Renderer {
 
   vector<GLuint> hudTextures;
 
+  GLuint mShadowMapFBO;
+  GLuint mShadowMapTexture;
   GLuint mDepthMapFBO;
   GLuint mContourFBO;
   GLuint mContourColorBuffer;
@@ -48,7 +51,9 @@ class Renderer {
   GLuint mVictoryTexture;
   GLuint mDepthMapTexture;
 
+  Shader mDebugShadowMapShader;
   Shader mDepthMapShader;
+  Shader mShadowMapShader;
   Shader mContourShader;
   Shader mDrawStaticShader;
   Shader mTextShader;
@@ -77,6 +82,9 @@ class Renderer {
   GLuint LoadGLTexture(SDL_Surface *surface, int dst_x, int dst_y,
                        SDL_FlipMode flip_mode) const;
 
+  void drawSceneWithShader(const Shader &shader,
+                           const shared_ptr<const Entities> &entities,
+                           const mat4 &viewProj);
   void drawScene(const shared_ptr<const Entities> &entities,
                  const mat4 &viewProj);
   static void setupQuadVAO(GLuint &VAO, GLuint &VBO);
