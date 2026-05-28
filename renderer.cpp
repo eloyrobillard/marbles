@@ -118,7 +118,7 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
   SDL_GetWindowSize(mWindow, &mScreenWidth, &mScreenHeight);
 
   mAspectRatio =
-      static_cast<float>(mScreenWidth) / static_cast<float>(mScreenHeight);
+      static_cast<float>(mScreenHeight) / static_cast<float>(mScreenWidth);
 
   setProjection();
 
@@ -156,6 +156,7 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
   mDrawStaticShader.SetActive();
   mDrawStaticShader.SetIntUniform("meshTex", 0);
   mDrawStaticShader.SetIntUniform("depthTex", 1);
+  mDrawStaticShader.SetIntUniform("shadowMap", 2);
 
   mTextShader.SetActive();
   mTextShader.SetIntUniform("text", 0);
@@ -504,7 +505,8 @@ void Renderer::drawSceneWithShader(const Shader &shader,
 }
 
 void Renderer::drawScene(const shared_ptr<const Entities> &entities,
-                         const mat4 &viewProj) {
+                         const mat4 &viewProj, const vec3 &lightDir,
+                         const mat4 &lightViewProj, float near, float far) {
   glBindFramebuffer(GL_FRAMEBUFFER, mDepthMapFBO);
   glClear(GL_DEPTH_BUFFER_BIT);
   mDepthMapShader.SetActive();
@@ -520,9 +522,15 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
 
   glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFBO);
   mDrawStaticShader.SetActive();
+  mDrawStaticShader.SetVec3Uniform("lightDir", lightDir.normalized());
+  mDrawStaticShader.SetFloatUniform("near", near);
+  mDrawStaticShader.SetFloatUniform("far", far);
   mDrawStaticShader.SetMatrixUniform("uViewProj", viewProj);
+  mDrawStaticShader.SetMatrixUniform("lightViewProj", lightViewProj);
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, mContourColorBuffer);
+  glActiveTexture(GL_TEXTURE2);
+  glBindTexture(GL_TEXTURE_2D, mShadowMapTexture);
 
   for (const auto &e : entities->GetStaticEntities()) {
     drawEntity(mDrawStaticShader, e);
@@ -556,17 +564,21 @@ void Renderer::Draw3D(float deltaTime,
 
   // Setup light for shadow mapping
   float near = 1.0f, far = 100.0f;
-  const vec3 lightPos{40.0f, -3.0f, 3.0f};
+  const vec3 lightPos{40.0f, -3.0f, 0.0f};
   const vec3 lightTarget{40.0f, 0.0f, -1.0f};
   const mat4 lightView = mat4::CreateLookAt(lightPos, lightTarget, vec3::up);
-  const mat4 lightProj = mat4::CreateOrtho(100 * mAspectRatio, 100, near, far);
+  const mat4 lightProj = mat4::CreateOrtho(100, 100 * mAspectRatio, near, far);
+  const mat4 lightViewProj = lightView * lightProj;
 
+  // Prepare shadow map
   glBindFramebuffer(GL_FRAMEBUFFER, mShadowMapFBO);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  drawSceneWithShader(mShadowMapShader, entities, lightView * lightProj);
+  drawSceneWithShader(mShadowMapShader, entities, lightViewProj);
 
-  drawScene(entities, viewProj);
+  // Draw the final scene, with shadow + bloom + contours
+  drawScene(entities, viewProj, lightTarget - lightPos, lightViewProj, near,
+            far);
 
   // finally, draw HUD elements
   SDL_GL_Enter2DMode();
@@ -617,7 +629,7 @@ void Renderer::Draw3D(float deltaTime,
     glDeleteTextures(1, &texture);
 
     // draw shadow map
-    glViewport(0, 0, 216, 144);
+    glViewport(0, 0, 216, static_cast<int>(216 * mAspectRatio));
     mDebugShadowMapShader.SetActive();
     drawQuad(mDebugShadowMapShader, quadVAO, mShadowMapTexture);
     glViewport(0, 0, mScreenWidth, mScreenHeight);
