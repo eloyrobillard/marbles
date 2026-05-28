@@ -2,8 +2,15 @@
 
 out vec2 texCoords;
 
+out vec4 fragPosLightSpace;
+out vec3 fragWorldPos;
+out vec3 fragNormal;
+
 uniform mat4 uWorldTransform;
 uniform mat4 uViewProj;
+
+uniform mat4 lightViewProj;
+uniform vec3 lightDir;
 
 // Attribute 0 is position, 1 is normal, 2 is tex coords.
 layout(location = 0) in vec3 inPosition;
@@ -14,6 +21,13 @@ void main()
 {
         vec4 pos = vec4(inPosition, 1.0);
         pos = pos * uWorldTransform;
+
+        // Send world position to fragment shader
+        fragWorldPos = pos.xyz;
+        fragPosLightSpace = pos * lightViewProj;
+
+        fragNormal = (vec4(inNormal, 0.0f) * transpose(inverse(uWorldTransform))).xyz;
+
         pos = pos * uViewProj;
 
         // Normalize x, y coordinates to screen range (0 to 1)

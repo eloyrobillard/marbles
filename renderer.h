@@ -21,7 +21,7 @@ class Renderer {
   float fovy = 30.0f / 180.0f * PI;
   int mScreenWidth;
   int mScreenHeight;
-  // Screen width divided by screen height
+  // Screen height divided by screen width
   float mAspectRatio;
   bool mIsFullscreen;
   TTF_Font *mFont;
@@ -86,7 +86,8 @@ class Renderer {
                            const shared_ptr<const Entities> &entities,
                            const mat4 &viewProj);
   void drawScene(const shared_ptr<const Entities> &entities,
-                 const mat4 &viewProj);
+                 const mat4 &viewProj, const vec3 &lightDir,
+                 const mat4 &lightViewProj, float near, float far);
   static void setupQuadVAO(GLuint &VAO, GLuint &VBO);
   static Shader GetShader(const char *vert, const char *frag);
   static void drawQuad(Shader &shader, GLuint VAO, GLuint texture);
