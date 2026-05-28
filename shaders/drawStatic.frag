@@ -22,18 +22,25 @@ float getShadow() {
         vec3 mapCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
         mapCoords = mapCoords * 0.5 + 0.5;
 
-        // Compute depth to check against value saved in shadow map
-        // If the current depth is higher (fragment is farther) then it should receive a shadow
-        float closestDepth = texture(shadowMap, mapCoords.xy).r;
-        float currentDepth = mapCoords.z;
+        float fragDepth = mapCoords.z;
 
-        // TODO: prevent shadow on objects beyond the 'far' side of the orthogonal view
+        // Prevent shadow on objects beyond the 'far' side of the orthogonal view
+        if (fragDepth > 1.0) return 0.0;
 
-        if (currentDepth > closestDepth) {
-                return 1.0;
+        float shadow = 0.0;
+        int shadowSamples = 2;
+        vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+        for (int x = -shadowSamples; x <= shadowSamples; x++) {
+                for (int y = -shadowSamples; y <= shadowSamples; y++) {
+                        float pcfDepth = texture(shadowMap, mapCoords.xy + vec2(x, y) * texelSize).r;
+
+                        if (fragDepth - 0.002 > pcfDepth) {
+                                shadow += 1.0;
+                        }
+                }
         }
 
-        return 0.0;
+        return shadow / pow(shadowSamples + 1, 2);
 }
 
 void main() {
@@ -41,7 +48,7 @@ void main() {
 
         vec4 color = texture(depthTex, texCoords);
         if (shadow > 0.0) {
-                outColor = color + vec4(vec3(0.002), 1.0);
+                outColor = color + vec4(vec3(0.002), 1.0) * shadow;
         } else {
                 // Add shadow if fragment is facing away from light
                 if (dot(lightDir, fragNormal) > 0.0) {
