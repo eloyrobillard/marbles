@@ -105,7 +105,8 @@ int main(int argc, char **argv) {
 #endif
   int exitapp = 0;
 
-  shared_ptr<Renderer> renderer = std::make_shared<Renderer>(true);
+  // NOTE: Must be initiated before entities, because initiates GL context
+  shared_ptr<Renderer> renderer = std::make_shared<Renderer>();
 
   shared_ptr<Entities> entities = std::make_shared<Entities>();
   shared_ptr<FollowCamera> camera = std::make_shared<FollowCamera>(
@@ -113,6 +114,7 @@ int main(int argc, char **argv) {
       Maths::vec3(0, 0, 0.0f), Maths::vec3::up, 20.0f);
 
   renderer->SetCamera(camera);
+  renderer->Init(entities);
 
   game = new Game();
   game->SetCamera(camera);
