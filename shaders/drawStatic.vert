@@ -2,14 +2,16 @@
 
 out vec2 texCoords;
 
-out vec4 fragPosLightSpace;
+out vec4 fragPosLightSpaceStatic;
+out vec4 fragPosLightSpaceMarble;
 out vec3 fragWorldPos;
 out vec3 fragNormal;
 
 uniform mat4 uWorldTransform;
-uniform mat4 uViewProj;
+uniform mat4 viewProj;
 
-uniform mat4 lightViewProj;
+uniform mat4 lightViewProjMarble;
+uniform mat4 lightViewProjStatic;
 uniform vec3 lightDir;
 
 // Attribute 0 is position, 1 is normal, 2 is tex coords.
@@ -24,11 +26,12 @@ void main()
 
         // Send world position to fragment shader
         fragWorldPos = pos.xyz;
-        fragPosLightSpace = pos * lightViewProj;
+        fragPosLightSpaceStatic = pos * lightViewProjStatic;
+        fragPosLightSpaceMarble = pos * lightViewProjMarble;
 
         fragNormal = (vec4(inNormal, 0.0f) * transpose(inverse(uWorldTransform))).xyz;
 
-        pos = pos * uViewProj;
+        pos = pos * viewProj;
 
         // Normalize x, y coordinates to screen range (0 to 1)
         texCoords = (pos.xy / pos.w + vec2(1.0)) / 2;

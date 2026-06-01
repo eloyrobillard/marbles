@@ -156,7 +156,8 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
   mDrawStaticShader.SetActive();
   mDrawStaticShader.SetIntUniform("meshTex", 0);
   mDrawStaticShader.SetIntUniform("depthTex", 1);
-  mDrawStaticShader.SetIntUniform("shadowMap", 2);
+  mDrawStaticShader.SetIntUniform("shadowMapStatic", 2);
+  mDrawStaticShader.SetIntUniform("shadowMapMarble", 3);
 
   mTextShader.SetActive();
   mTextShader.SetIntUniform("text", 0);
@@ -174,7 +175,9 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
 
   // Setup AA and depth framebuffers
   setupFramebuffers();
+}
 
+void Renderer::Init(const shared_ptr<const Entities> &entities) {
   // Setup HUD
   if (!TTF_Init()) {
     SDL_Log("TTF_Init error: %s\n", SDL_GetError());
@@ -221,6 +224,23 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
 
   // Font size for marble coordinates HUD
   TTF_SetFontSize(mFont, 30);
+
+  // Setup light for shadow mapping
+  float near = 1.0f, far = 100.0f;
+  const vec3 lightPos{60.0f, -3.0f, -5.0f};
+  const vec3 lightTarget{60.0f, 0.0f, -7.0f};
+  const mat4 lightView = mat4::CreateLookAt(lightPos, lightTarget, vec3::up);
+  const mat4 lightProj = mat4::CreateOrtho(100, 100 * mAspectRatio, near, far);
+  mLightViewProjStatic = lightView * lightProj;
+
+  // Prepare shadow map
+  glBindFramebuffer(GL_FRAMEBUFFER, mStaticShadowMapFBO);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  glViewport(0, 0, 8 * mScreenWidth, 8 * mScreenHeight);
+  drawSceneWithShader(mShadowMapShader, entities, mLightViewProjStatic);
+  glViewport(0, 0, mScreenWidth, mScreenHeight);
 
   SDL_GL_SwapWindow(mWindow);
 }
@@ -358,6 +378,29 @@ void Renderer::configureMultiSampledAntiAliasing() {
     cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 }
 
+void configureShadowMap(GLuint &fbo, GLuint &texture, int width, int height) {
+  // configure shadow map framebuffer
+  glGenFramebuffers(1, &fbo);
+  glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+  // create texture for shadow map
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0,
+               GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+  // Anything outside of shadow map should not be in shadow
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+  float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+  glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
+                         texture, 0);
+}
+
 bool Renderer::setupFramebuffers() {
   setupQuadVAO(quadVAO, quadVBO);
 
@@ -385,26 +428,12 @@ bool Renderer::setupFramebuffers() {
   mContourColorBuffer =
       createColorAttachmentTexture(mScreenWidth, mScreenHeight, GL_RGB);
 
-  // configure shadow map framebuffer
-  glGenFramebuffers(1, &mShadowMapFBO);
-  glBindFramebuffer(GL_FRAMEBUFFER, mShadowMapFBO);
-
-  // create texture for shadow map
-  glGenTextures(1, &mShadowMapTexture);
-  glBindTexture(GL_TEXTURE_2D, mShadowMapTexture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, mScreenWidth,
-               mScreenHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-  // Anything outside of shadow map should not be in shadow
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-  float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
-  glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
-                         mShadowMapTexture, 0);
+  // configure shadow map for static elements
+  configureShadowMap(mStaticShadowMapFBO, mStaticShadowMapTexture,
+                     8 * mScreenWidth, 8 * mScreenHeight);
+  // configure shadow map for marble area
+  configureShadowMap(mMarbleShadowMapFBO, mMarbleShadowMapTexture, mScreenWidth,
+                     mScreenHeight);
 
   configureMultiSampledAntiAliasing();
 
@@ -530,12 +559,17 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
   mDrawStaticShader.SetVec3Uniform("lightDir", lightDir.normalized());
   mDrawStaticShader.SetFloatUniform("near", near);
   mDrawStaticShader.SetFloatUniform("far", far);
-  mDrawStaticShader.SetMatrixUniform("uViewProj", viewProj);
-  mDrawStaticShader.SetMatrixUniform("lightViewProj", lightViewProj);
+  mDrawStaticShader.SetMatrixUniform("viewProj", viewProj);
+  mDrawStaticShader.SetMatrixUniform("lightViewProjStatic",
+                                     mLightViewProjStatic);
+  mDrawStaticShader.SetMatrixUniform("lightViewProjMarble", lightViewProj);
+
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, mContourColorBuffer);
   glActiveTexture(GL_TEXTURE2);
-  glBindTexture(GL_TEXTURE_2D, mShadowMapTexture);
+  glBindTexture(GL_TEXTURE_2D, mStaticShadowMapTexture);
+  glActiveTexture(GL_TEXTURE3);
+  glBindTexture(GL_TEXTURE_2D, mMarbleShadowMapTexture);
 
   for (const auto &e : entities->GetStaticEntities()) {
     drawEntity(mDrawStaticShader, e);
@@ -557,7 +591,7 @@ void Renderer::Draw3D(float deltaTime,
                       const shared_ptr<const Entities> &entities) {
   setView(mCamera);
 
-  // 1. draw scene as normal in multisampled buffers
+  // clear MSAA buffer
   glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFBO);
   // Set the clear color
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -569,14 +603,16 @@ void Renderer::Draw3D(float deltaTime,
 
   // Setup light for shadow mapping
   float near = 1.0f, far = 100.0f;
-  const vec3 lightPos{40.0f, -3.0f, 0.0f};
-  const vec3 lightTarget{40.0f, 0.0f, -1.0f};
+  const vec3 &lightTarget =
+      entities->GetDynamicEntities()[0].GetPositionAsRef();
+  const vec3 lightPos{lightTarget.x, lightTarget.y - 3.0f,
+                      lightTarget.z + 2.0f};
   const mat4 lightView = mat4::CreateLookAt(lightPos, lightTarget, vec3::up);
-  const mat4 lightProj = mat4::CreateOrtho(100, 100 * mAspectRatio, near, far);
+  const mat4 lightProj = mat4::CreateOrtho(10, 10 * mAspectRatio, near, far);
   const mat4 lightViewProj = lightView * lightProj;
 
   // Prepare shadow map
-  glBindFramebuffer(GL_FRAMEBUFFER, mShadowMapFBO);
+  glBindFramebuffer(GL_FRAMEBUFFER, mMarbleShadowMapFBO);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   drawSceneWithShader(mShadowMapShader, entities, lightViewProj);
@@ -636,7 +672,7 @@ void Renderer::Draw3D(float deltaTime,
     // draw shadow map
     glViewport(0, 0, 216, static_cast<int>(216 * mAspectRatio));
     mDebugShadowMapShader.SetActive();
-    drawQuad(mDebugShadowMapShader, quadVAO, mShadowMapTexture);
+    drawQuad(mDebugShadowMapShader, quadVAO, mStaticShadowMapTexture);
     glViewport(0, 0, mScreenWidth, mScreenHeight);
 #endif
 
@@ -683,7 +719,7 @@ void Renderer::setView(const shared_ptr<FollowCamera> &camera) {
 void Renderer::setProjection() {
   mProjection = mat4::CreatePerspectiveFOV(
       fovy, static_cast<float>(mScreenWidth), static_cast<float>(mScreenHeight),
-      1.0f, 10000.0f);
+      1.0f, 100.0f);
 }
 
 Shader Renderer::GetShader(const char *vert, const char *frag) {

@@ -32,8 +32,12 @@ class Renderer {
 
   vector<GLuint> hudTextures;
 
-  GLuint mShadowMapFBO;
-  GLuint mShadowMapTexture;
+  GLuint mMarbleShadowMapFBO;
+  GLuint mMarbleShadowMapTexture;
+  GLuint mStaticShadowMapFBO;
+  GLuint mStaticShadowMapTexture;
+  // View-projection for light used in shadow map for static elements
+  mat4 mLightViewProjStatic;
   GLuint mDepthMapFBO;
   GLuint mContourFBO;
   GLuint mContourColorBuffer;
@@ -102,6 +106,8 @@ public:
   Renderer(bool goFullscreen = false, int screenWidth = 1280,
            int screenHeight = 720);
   ~Renderer();
+  // Setup HUD and global shadow map
+  void Init(const shared_ptr<const Entities> &entities);
   void Draw3D(float deltaTime, const shared_ptr<const Entities> &entities);
   void SetCamera(const shared_ptr<FollowCamera> &camera);
   void ShowVictoryMessage() { mShowVictoryMessage = true; }
