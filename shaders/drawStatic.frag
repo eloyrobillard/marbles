@@ -19,40 +19,18 @@ uniform sampler2D depthTex;
 uniform sampler2D shadowMapStatic;
 uniform sampler2D shadowMapMarble;
 
-float samples[32] = {
-                -1.5,
-                1.5,
-                -1.5,
-                -0.5,
-                0.5,
-                1.5,
-                0.5,
-                -0.5,
-                -1.5,
-                0.5,
-                -1.5,
-                -1.5,
-                0.5,
-                0.5,
-                0.5,
-                -1.5,
-                -0.5,
-                1.5,
-                -0.5,
-                -0.5,
-                1.5,
-                1.5,
-                1.5,
-                -0.5,
-                -0.5,
-                0.5,
-                -0.5,
-                1.5,
-                1.5,
-                0.5,
-                1.5,
-                -1.5
-        };
+// Define Poisson disk sampling values
+// SOURCE: https://sibras.github.io/OpenGL4-Tutorials/docs/Tutorials/07-Tutorial7/#part-4-percentage-closer-filtering
+const vec2 v2PoissonDisk[9] = vec2[](
+                vec2(-0.01529481f, -0.07395129f),
+                vec2(-0.56232890f, -0.36484920f),
+                vec2(0.95519960f, 0.18418130f),
+                vec2(0.20716880f, 0.49262790f),
+                vec2(-0.01290792f, -0.95755550f),
+                vec2(0.68047200f, -0.51716110f),
+                vec2(-0.60139470f, 0.37665210f),
+                vec2(-0.40243310f, 0.86631060f),
+                vec2(-0.96646290f, -0.04688413f));
 
 float getShadow(vec4 lightSpace, sampler2D shadowMap) {
         vec3 mapCoords = lightSpace.xyz / lightSpace.w;
@@ -65,21 +43,17 @@ float getShadow(vec4 lightSpace, sampler2D shadowMap) {
 
         float shadow = 0.0;
         vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
-        ivec2 pattern = ivec2(lightSpace.xy);
-        pattern = ivec2(mod(pattern, ivec2(2)));
 
-        int si = (pattern.x + pattern.y * 2) * 8;
-        for (int i = 0; i < 4; i++) {
-                float x = samples[si + i * 2];
-                float y = samples[si + i * 2 + 1];
-                float pcfDepth = texture(shadowMap, mapCoords.xy + vec2(x, y) * texelSize).r;
+        for (int i = 0; i < 9; i++) {
+                vec2 offset = v2PoissonDisk[i];
+                float pcfDepth = texture(shadowMap, mapCoords.xy + offset * texelSize).r;
 
                 if (fragDepth - 0.001 > pcfDepth) {
                         shadow += 1.0;
                 }
         }
 
-        return shadow / 4.0;
+        return shadow / 9.0;
 }
 
 void main() {
