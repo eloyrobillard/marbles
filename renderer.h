@@ -76,7 +76,7 @@ class Renderer {
   void setProjection();
   void pushHUDTexture(GLuint texture) { hudTextures.push_back(texture); }
   void getMeshes(const vector<pair<string, BodyType>> &meshList);
-  void drawDebug(const mat4 &viewProj);
+  void drawCollisionDebug(const mat4 &viewProj);
   void drawToHUD(GLuint VAO, GLuint textTexture, GLuint screenTexture,
                  const float textColor[3]);
   void configureMultiSampledAntiAliasing();

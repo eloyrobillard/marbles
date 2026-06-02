@@ -227,8 +227,8 @@ void Renderer::Init(const shared_ptr<const Entities> &entities) {
 
   // Setup light for shadow mapping
   float near = 1.0f, far = 100.0f;
-  const vec3 lightPos{60.0f, -3.0f, -5.0f};
-  const vec3 lightTarget{60.0f, 0.0f, -7.0f};
+  const vec3 lightPos{60.0f, -3.0f, -15.0f};
+  const vec3 lightTarget{60.0f, 0.0f, -17.0f};
   const mat4 lightView = mat4::CreateLookAt(lightPos, lightTarget, vec3::up);
   const mat4 lightProj = mat4::CreateOrtho(100, 100 * mAspectRatio, near, far);
   mLightViewProjStatic = lightView * lightProj;
@@ -483,7 +483,7 @@ bool Renderer::setupFramebuffers() {
   return (glGetError() == 0);
 }
 
-void Renderer::drawDebug(const mat4 &viewProj) {
+void Renderer::drawCollisionDebug(const mat4 &viewProj) {
   // override previous triangle draw no matter what
   glDisable(GL_DEPTH_TEST);
 
@@ -551,12 +551,16 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
   }
 
   glBindFramebuffer(GL_FRAMEBUFFER, mContourFBO);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   mContourShader.SetActive();
   drawQuad(mContourShader, quadVAO, mDepthMapTexture);
 
   glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFBO);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   mDrawStaticShader.SetActive();
-  mDrawStaticShader.SetVec3Uniform("lightDir", lightDir.normalized());
+  mDrawStaticShader.SetVec3Uniform("lightDir", lightDir);
   mDrawStaticShader.SetFloatUniform("near", near);
   mDrawStaticShader.SetFloatUniform("far", far);
   mDrawStaticShader.SetMatrixUniform("viewProj", viewProj);
@@ -576,7 +580,7 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
   }
 
 #ifdef _DEBUG
-  drawDebug(viewProj);
+  drawCollisionDebug(viewProj);
 #endif // _DEBUG
 
   mMeshShader.SetActive();
@@ -603,12 +607,11 @@ void Renderer::Draw3D(float deltaTime,
 
   // Setup light for shadow mapping
   float near = 1.0f, far = 100.0f;
-  const vec3 &lightTarget =
-      entities->GetDynamicEntities()[0].GetPositionAsRef();
+  const vec3 &lightTarget = entities->ProvideCameraFollow();
   const vec3 lightPos{lightTarget.x, lightTarget.y - 3.0f,
                       lightTarget.z + 2.0f};
   const mat4 lightView = mat4::CreateLookAt(lightPos, lightTarget, vec3::up);
-  const mat4 lightProj = mat4::CreateOrtho(10, 10 * mAspectRatio, near, far);
+  const mat4 lightProj = mat4::CreateOrtho(5, 5 * mAspectRatio, near, far);
   const mat4 lightViewProj = lightView * lightProj;
 
   // Prepare shadow map
@@ -624,8 +627,8 @@ void Renderer::Draw3D(float deltaTime,
   // finally, draw HUD elements
   SDL_GL_Enter2DMode();
   {
-    // 2. now blit multisampled buffer(s) to normal colorbuffer of intermediate
-    // FBO. Image is stored in screenTexture
+    // Blit multisampled buffer(s) to normal colorbuffer of intermediate FBO.
+    // Image is stored in screenTexture
     blitFramebuffer(mMSAAFBO, mIntermediateFBO, mScreenWidth, mScreenHeight,
                     mScreenWidth, mScreenHeight);
 
