@@ -43,12 +43,15 @@ public:
     mTarget = follow + vec3::forward * mTargetDist;
   }
 
+  void SnapToTarget(const vec3 &target) {
+    mActualPosition = mTarget + mIdealOffset;
+  }
+
   void ToCheckpoint(const vec3 &target) {
     mVelocity = vec3::zero;
     mTarget = target;
 
-    // snap to target
-    mActualPosition = mTarget + mIdealOffset;
+    SnapToTarget(target);
   }
 };
 

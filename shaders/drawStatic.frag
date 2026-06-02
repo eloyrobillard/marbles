@@ -9,7 +9,6 @@ in vec3 fragNormal;
 
 out vec4 outColor;
 
-// Normalized
 uniform vec3 lightDir;
 
 uniform float near;
@@ -69,7 +68,7 @@ float getShadow(vec4 lightSpace, sampler2D shadowMap) {
         ivec2 pattern = ivec2(lightSpace.xy);
         pattern = ivec2(mod(pattern, ivec2(2)));
 
-        int si = pattern.x + pattern.y * 2;
+        int si = (pattern.x + pattern.y * 2) * 8;
         for (int i = 0; i < 4; i++) {
                 float x = samples[si + i * 2];
                 float y = samples[si + i * 2 + 1];
