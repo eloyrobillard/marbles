@@ -10,7 +10,8 @@ void main() {
         float current = texture(depthTex, texCoords).r;
         vec2 texSize = textureSize(depthTex, 0);
         vec2 offset = 1 / texSize;
-        float threshold = 0.001;
+        // NOTE: Second term prevents extra contouring from happening on surfaces close to the view
+        float threshold = 0.0001 + 0.1 * (1 - current);
 
         // if any of neighboring texels has a vastly different value
         // we're on the contour
