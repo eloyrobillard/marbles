@@ -1,6 +1,4 @@
-#include "shader.h"
-#include "maths.hpp"
-#include "pch.h"
+#include "shader.hpp"
 
 bool isCompiled(GLuint shader) {
   // Query the compile status

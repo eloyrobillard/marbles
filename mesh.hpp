@@ -1,8 +1,8 @@
 #ifndef MESH_H
 #define MESH_H
 #include "pch.h"
-#include "physics.h"
-#include "texture.h"
+#include "physics.hpp"
+#include "texture.hpp"
 
 class Mesh {
   vector<float> verts;

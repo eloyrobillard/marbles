@@ -3,7 +3,7 @@
 #pragma once
 
 #include "maths.hpp"
-#include "physics.h"
+#include "physics.hpp"
 
 using Maths::mat4;
 using Maths::vec3;

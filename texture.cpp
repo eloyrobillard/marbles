@@ -1,4 +1,4 @@
-#include "texture.h"
+#include "texture.hpp"
 
 Texture::Texture(string fileName)
     : filename(std::move(fileName)), textureID(0), width(0), height(0) {}

@@ -1,9 +1,9 @@
-#include "mesh.h"
+#include "mesh.hpp"
 #include "maths.hpp"
 #include "pch.h"
-#include "physics.h"
+#include "physics.hpp"
 #include "rapidjson/document.h"
-#include "texture.h"
+#include "texture.hpp"
 
 using Maths::mat4;
 using Maths::vec3;

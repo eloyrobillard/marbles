@@ -2,10 +2,10 @@
 #define ENTITIES_H
 
 #include "maths.hpp"
-#include "mesh.h"
+#include "mesh.hpp"
 #include "pch.h"
-#include "physics.h"
-#include "shader.h"
+#include "physics.hpp"
+#include "shader.hpp"
 
 using Maths::quat;
 using Maths::vec3;

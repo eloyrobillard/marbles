@@ -1,8 +1,8 @@
 #ifndef RENDERER_H
 #define RENDERER_H
 
-#include "camera.h"
-#include "entities.h"
+#include "camera.hpp"
+#include "entities.hpp"
 #include "maths.hpp"
 #include "pch.h"
 

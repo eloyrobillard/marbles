@@ -1,9 +1,9 @@
 #pragma once
 
-#include "camera.h"
-#include "entities.h"
+#include "camera.hpp"
+#include "entities.hpp"
 #include "pch.h"
-#include "renderer.h"
+#include "renderer.hpp"
 
 namespace Tmpl8 {
 

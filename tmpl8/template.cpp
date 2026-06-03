@@ -10,11 +10,11 @@
 #pragma warning(disable : 4311) // pointer truncation from HANDLE to long
 #endif
 
-#include "template.h"
-#include "camera.h"
-#include "game.h"
-#include "physics.h"
-#include "renderer.h"
+#include "template.hpp"
+#include "camera.hpp"
+#include "game.hpp"
+#include "physics.hpp"
+#include "renderer.hpp"
 #include <corecrt_math.h>
 #include <cstdio>
 #include <fcntl.h>

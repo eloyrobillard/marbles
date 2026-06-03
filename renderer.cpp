@@ -1,6 +1,4 @@
-#include "renderer.h"
-#include "camera.h"
-#include "shader.h"
+#include "renderer.hpp"
 
 TTF_Font *TTF_GetFont(const char *fontName, float ptsize,
                       TTF_FontStyleFlags fontStyleFlags) {
