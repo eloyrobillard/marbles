@@ -41,14 +41,14 @@ float getShadow(vec4 lightSpace, sampler2D shadowMap) {
         // Prevent shadow on objects beyond the 'far' side of the orthogonal view
         if (fragDepth > 1.0) return 0.0;
 
-        float shadow = 0.0;
         vec2 texelSize = 1.0 / textureSize(shadowMap, 0);
+        float shadow = 0.0;
 
         for (int i = 0; i < 9; i++) {
                 vec2 offset = v2PoissonDisk[i];
                 float pcfDepth = texture(shadowMap, mapCoords.xy + offset * texelSize).r;
 
-                if (fragDepth - 0.001 > pcfDepth) {
+                if (fragDepth > pcfDepth) {
                         shadow += 1.0;
                 }
         }

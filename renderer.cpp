@@ -231,6 +231,9 @@ void Renderer::Init(const shared_ptr<const Entities> &entities) {
   const mat4 lightProj = mat4::CreateOrtho(100, 100 * mAspectRatio, near, far);
   mLightViewProjStatic = lightView * lightProj;
 
+  glPolygonOffset(1.75f, 0.0f);
+  glEnable(GL_POLYGON_OFFSET_FILL);
+
   // Prepare shadow map
   glBindFramebuffer(GL_FRAMEBUFFER, mStaticShadowMapFBO);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -239,6 +242,8 @@ void Renderer::Init(const shared_ptr<const Entities> &entities) {
   glViewport(0, 0, 8 * mScreenWidth, 8 * mScreenHeight);
   drawSceneWithShader(mShadowMapShader, entities, mLightViewProjStatic);
   glViewport(0, 0, mScreenWidth, mScreenHeight);
+
+  glDisable(GL_POLYGON_OFFSET_FILL);
 
   SDL_GL_SwapWindow(mWindow);
 }
@@ -613,10 +618,12 @@ void Renderer::Draw3D(float deltaTime,
   const mat4 lightViewProj = lightView * lightProj;
 
   // Prepare shadow map
+  glEnable(GL_POLYGON_OFFSET_FILL);
   glBindFramebuffer(GL_FRAMEBUFFER, mMarbleShadowMapFBO);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   drawSceneWithShader(mShadowMapShader, entities, lightViewProj);
+  glDisable(GL_POLYGON_OFFSET_FILL);
 
   // Draw the final scene, with shadow + bloom + contours
   drawScene(entities, viewProj, lightTarget - lightPos, lightViewProj, near,
