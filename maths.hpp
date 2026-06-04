@@ -367,6 +367,7 @@ public:
 };
 
 inline float lerp(float a, float b, float f) { return a + f * (b - a); }
+inline vec3 lerp(vec3 &a, vec3 &b, float f) { return a + f * (b - a); }
 
 // NOTE: From "Game Programming in C++" by Sanjay Madhav
 class quat {

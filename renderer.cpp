@@ -610,7 +610,7 @@ void Renderer::Draw3D(float deltaTime,
 
   // Setup light for shadow mapping
   float near = 1.0f, far = 100.0f;
-  const vec3 &lightTarget = entities->ProvideCameraFollow();
+  const vec3 &lightTarget = entities->ProvideCameraFollow().GetPositionAsRef();
   const vec3 lightPos{lightTarget.x, lightTarget.y - 3.0f,
                       lightTarget.z + 2.0f};
   const mat4 lightView = mat4::CreateLookAt(lightPos, lightTarget, vec3::up);
@@ -720,8 +720,8 @@ void Renderer::drawQuad(Shader &shader, GLuint VAO, GLuint texture) {
 }
 
 void Renderer::setView(const shared_ptr<FollowCamera> &camera) {
-  mView =
-      mat4::CreateLookAt(camera->mActualPosition, camera->mTarget, camera->mUp);
+  mView = mat4::CreateLookAt(camera->mActualPosition, camera->mActualTarget,
+                             camera->mUp);
 }
 
 void Renderer::setProjection() {

@@ -14,7 +14,7 @@ class FollowCamera {
 
 public:
   vec3 mActualPosition;
-  vec3 mTarget;
+  vec3 mActualTarget;
   vec3 mUp;
   vec3 mVelocity;
   float mTargetDist;
@@ -24,13 +24,21 @@ public:
   FollowCamera(const vec3 &startingFollowPosition, const vec3 &offset,
                const vec3 &target, const vec3 &up, const float spring)
       : mIdealOffset(offset), mActualPosition(startingFollowPosition + offset),
-        mStartingPosition(startingFollowPosition + offset), mTarget(target),
-        mUp(up), mVelocity(vec3::zero), mTargetDist(1.0f),
-        mSpringConstant(spring) {}
+        mStartingPosition(startingFollowPosition + offset),
+        mActualTarget(target), mUp(up), mVelocity(vec3::zero),
+        mTargetDist(3.0f), mSpringConstant(spring) {}
 
-  void Update(float dt, const vec3 &follow) {
-    vec3 idealPosition = follow + mIdealOffset;
+  void Update(float dt, const vec3 &follow, const vec3 &followVelocity) {
+    vec3 followForward = followVelocity.normalized();
+    vec3 followRight = {-followForward.y, followForward.x, 0};
 
+    // TODO: fit offset to follow's forward direction
+    vec3 idealPosition = follow + followForward * mIdealOffset.x +
+                         followRight * mIdealOffset.y +
+                         vec3::up * mIdealOffset.z;
+
+    // A higher value means the camera will take more time to reach the ideal
+    // position
     float dampening = 2.0f * sqrt(mSpringConstant);
 
     vec3 diff = mActualPosition - idealPosition;
@@ -39,17 +47,18 @@ public:
     mVelocity += accel * dt;
     mActualPosition += mVelocity * dt;
 
-    // HACK: Attempt at preventing the camera from getting behind platforms
-    mTarget = follow + vec3::forward * mTargetDist;
+    vec3 idealTarget = follow + followForward * mTargetDist;
+
+    mActualTarget = Maths::lerp(mActualTarget, idealTarget, 3 * dt);
   }
 
   void SnapToTarget(const vec3 &target) {
-    mActualPosition = mTarget + mIdealOffset;
+    mActualPosition = mActualTarget + mIdealOffset;
   }
 
   void ToCheckpoint(const vec3 &target) {
     mVelocity = vec3::zero;
-    mTarget = target;
+    mActualTarget = target;
 
     SnapToTarget(target);
   }

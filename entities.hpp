@@ -53,6 +53,7 @@ public:
     body.velocity += right * 4.0f * dt;
   }
   [[nodiscard]] const vec3 &GetPositionAsRef() const { return body.position; }
+  [[nodiscard]] const vec3 &GetVelocityAsRef() const { return body.velocity; }
 };
 
 // Container for all game objects
@@ -68,8 +69,8 @@ public:
   void RegisterEntities(
       const vector<tuple<string, BodyType, float, bool, vec3>> &entityList);
   [[nodiscard]]
-  const vec3 &ProvideCameraFollow() const {
-    return mDynamicEntities[0].GetPositionAsRef();
+  const DynamicEntity &ProvideCameraFollow() const {
+    return mDynamicEntities[0];
   }
   [[nodiscard]] const vector<Entity> &GetStaticEntities() const {
     return mStaticEntities;

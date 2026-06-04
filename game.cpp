@@ -1,4 +1,4 @@
-#include "game.h"
+#include "game.hpp"
 
 #include <windows.h>
 
@@ -28,7 +28,7 @@ void Game::Init() {
     SDL_Log("Error: Failed to open an audio device stream: %s", SDL_GetError());
   }
 
-  SDL_SetAudioStreamGain(audioStream, 0.5f);
+  SDL_SetAudioStreamGain(audioStream, 0.15f);
 
   if (!SDL_PutAudioStreamData(audioStream, audioBuf, audioLength)) {
     SDL_Log("Error: Failed to put audio in the stream: %s", SDL_GetError());
@@ -50,11 +50,11 @@ void Game::Tick(float deltaTime) {
     ToCheckpoint();
   }
 
-  if (entities->GetDynamicEntities()[0].GetPositionAsRef().x > 55.0f) {
+  if (entities->ProvideCameraFollow().GetPositionAsRef().x > 55.0f) {
     checkpointID = 1;
   }
 
-  if (entities->GetDynamicEntities()[0].GetPositionAsRef().x > 180.0f) {
+  if (entities->ProvideCameraFollow().GetPositionAsRef().x > 180.0f) {
     renderer->ShowVictoryMessage();
     checkpointID = 0;
   }
@@ -68,7 +68,7 @@ void Game::Shutdown() {
 void Game::ToCheckpoint() {
   const auto &dynamicEntitiesPos = checkpoints[checkpointID];
   entities->ToCheckpoint(dynamicEntitiesPos);
-  camera->ToCheckpoint(entities->ProvideCameraFollow());
+  camera->ToCheckpoint(entities->ProvideCameraFollow().GetPositionAsRef());
   renderer->ToCheckpoint();
 }
 } // namespace Tmpl8
