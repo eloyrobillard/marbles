@@ -443,15 +443,17 @@
     <ClCompile Include="C:\Users\eloyr\Projects\marbles\tmpl8\template.cpp" />
     <ClInclude Include="C:\Users\eloyr\Projects\marbles\tmpl8\template.h" />
     <ClCompile Include="C:\Users\eloyr\Projects\marbles\game.cpp" />
-    <ClInclude Include="C:\Users\eloyr\Projects\marbles\game.h" />
-    <ClInclude Include="entities.h" />
+    <ClInclude Include="camera.hpp" />
+    <ClInclude Include="entities.hpp" />
+    <ClInclude Include="game.hpp" />
     <ClInclude Include="maths.hpp" />
-    <ClInclude Include="mesh.h" />
+    <ClInclude Include="mesh.hpp" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="physics.h" />
-    <ClInclude Include="renderer.h" />
-    <ClInclude Include="shader.h" />
-    <ClInclude Include="texture.h" />
+    <ClInclude Include="physics.hpp" />
+    <ClInclude Include="renderer.hpp" />
+    <ClInclude Include="shader.hpp" />
+    <ClInclude Include="texture.hpp" />
+    <ClInclude Include="tmpl8\template.hpp" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <ItemGroup>

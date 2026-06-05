@@ -1,5 +1,5 @@
-#include "physics.h"
-#include "entities.h"
+#include "physics.hpp"
+#include "entities.hpp"
 #include "pch.h"
 
 void SpacePartition::populate(const vector<TriangleCollider> &v) {

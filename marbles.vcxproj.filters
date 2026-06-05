@@ -227,20 +227,20 @@
     <ClInclude Include="C:\Users\eloyr\Projects\marbles\tmpl8\template.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\eloyr\Projects\marbles\game.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="shader.h" />
-    <ClInclude Include="mesh.h" />
-    <ClInclude Include="texture.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="physics.h" />
-    <ClInclude Include="renderer.h" />
-    <ClInclude Include="entities.h" />
     <ClInclude Include="maths.hpp" />
+    <ClInclude Include="tmpl8\template.hpp" />
+    <ClInclude Include="entities.hpp" />
+    <ClInclude Include="game.hpp" />
+    <ClInclude Include="mesh.hpp" />
+    <ClInclude Include="physics.hpp" />
+    <ClInclude Include="renderer.hpp" />
+    <ClInclude Include="shader.hpp" />
+    <ClInclude Include="texture.hpp" />
+    <ClInclude Include="camera.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
