@@ -50,6 +50,10 @@ void Game::Tick(float deltaTime) {
     ToCheckpoint();
   }
 
+  if (GetKeyPressed(SDL_SCANCODE_RETURN)) {
+    entities->ToggleSplitMode();
+  }
+
   if (entities->ProvideCameraFollow().GetPositionAsRef().x > 55.0f) {
     checkpointID = 1;
   }

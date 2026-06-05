@@ -38,7 +38,8 @@ typedef __int64 int64;
 typedef unsigned __int64 uint64;
 typedef unsigned int uint;
 
-using namespace std::views;
+namespace ranges = std::ranges;
+namespace views = ranges::views;
 
 using rapidjson::Value;
 using std::cerr;

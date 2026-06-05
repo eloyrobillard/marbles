@@ -71,6 +71,7 @@ class Entities {
   vector<vector<TriangleCollider>> mStaticColliders;
   vector<DynamicEntity> mDynamicEntities;
   vector<DynamicEntity> mDynamicEntitiesStartingState;
+  bool mSplitMode = false;
 
 public:
   Entities();
@@ -78,19 +79,36 @@ public:
   void RegisterEntities(const vector<EntityData> &entityList);
   [[nodiscard]]
   const DynamicEntity &ProvideCameraFollow() const {
-    return mDynamicEntities[0];
+    if (!mSplitMode)
+      return mDynamicEntities[0];
+    else
+      return mDynamicEntities[1];
   }
   [[nodiscard]] const vector<Entity> &GetStaticEntities() const {
     return mStaticEntities;
   }
-  [[nodiscard]] const vector<DynamicEntity> &GetDynamicEntities() const {
-    return mDynamicEntities;
+
+  [[nodiscard]] auto GetDynamicEntities() const {
+    if (!mSplitMode) {
+      return ranges::subrange{views::take(mDynamicEntities, 1)};
+    } else {
+      return ranges::subrange{views::drop(mDynamicEntities, 1)};
+    }
+  }
+
+  string GetDynamicEntitiesCoordinates() {
+    if (!mSplitMode) {
+      return mDynamicEntities[0].GetCoordinatesString();
+    } else {
+      return mDynamicEntities[1].GetCoordinatesString();
+    }
   }
   // TODO: move input handling somewhere else
   void RegisterInputForward(float dt);
   void RegisterInputLeft(float dt);
   void RegisterInputRight(float dt);
   void ToCheckpoint(const vector<vec3> &positionsAtCheckpoint);
+  void ToggleSplitMode() { mSplitMode = !mSplitMode; };
 };
 
 #endif // ENTITIES_H

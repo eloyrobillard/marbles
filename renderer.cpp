@@ -666,8 +666,8 @@ void Renderer::Draw3D(float deltaTime,
 #ifdef _DEBUG
     // debug marble coordinates
     SDL_Surface *coordinatesSurface = TTF_RenderText_Blended_Wrapped(
-        mFont, entities->GetDynamicEntities()[0].GetCoordinatesString().c_str(),
-        0, {255, 255, 255, 255}, 0);
+        mFont, entities->GetDynamicEntitiesCoordinates(), 0,
+        {255, 255, 255, 255}, 0);
 
     GLuint texture = LoadGLTexture(coordinatesSurface,
                                    mScreenWidth - coordinatesSurface->w - 10,

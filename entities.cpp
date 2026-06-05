@@ -10,26 +10,37 @@ EntityData GenerateEntityData(string meshPath,
 }
 
 Entities::Entities() {
-  RegisterEntities(
-      {{"assets/ramp1.gpmesh"},
-       {"assets/ramp2.gpmesh"},
-       {"assets/ramp3.gpmesh"},
-       {"assets/snake1.gpmesh"},
-       {"assets/plane1.gpmesh"},
-       {"assets/plane2.gpmesh"},
-       {"assets/plane3.gpmesh"},
-       {"assets/plane4.gpmesh"},
-       {"assets/plane5.gpmesh"},
-       {"assets/plane6.gpmesh"},
-       {"assets/plane7.gpmesh"},
-       {"assets/plane8.gpmesh"},
-       {.meshPath = "assets/canon1.gpmesh", .collisionAcceleration = 1.03f},
-       {"assets/sphere.gpmesh", BodyType::Dynamic}});
+  RegisterEntities({
+      {"assets/ramp1.gpmesh"},
+      {"assets/ramp2.gpmesh"},
+      {"assets/ramp3.gpmesh"},
+      {"assets/snake1.gpmesh"},
+      {"assets/plane1.gpmesh"},
+      {"assets/plane2.gpmesh"},
+      {"assets/plane3.gpmesh"},
+      {"assets/plane4.gpmesh"},
+      {"assets/plane5.gpmesh"},
+      {"assets/plane6.gpmesh"},
+      {"assets/plane7.gpmesh"},
+      {"assets/plane8.gpmesh"},
+      {.meshPath = "assets/canon1.gpmesh", .collisionAcceleration = 1.03f},
+      {"assets/sphere.gpmesh", BodyType::Dynamic},
+      {.meshPath = "assets/sphere.gpmesh",
+       .bodyType = BodyType::Dynamic,
+       .scale = vec3(0.5f)},
+      {.meshPath = "assets/sphere.gpmesh",
+       .bodyType = BodyType::Dynamic,
+       .scale = vec3(0.5f)},
+  });
 }
 
 void Entities::Update(float time, float deltaTime) {
-  for (auto &dynamicEntity : mDynamicEntities) {
-    dynamicEntity.Update(time, deltaTime, gSpacePartition);
+  if (!mSplitMode) {
+    mDynamicEntities[0].Update(time, deltaTime, gSpacePartition);
+  } else {
+    for (int i = 1; i < mDynamicEntities.size(); i++) {
+      mDynamicEntities[i].Update(time, deltaTime, gSpacePartition);
+    }
   }
 }
 
@@ -84,11 +95,13 @@ void Entities::RegisterEntities(const vector<EntityData> &entityList) {
 }
 
 void Entities::RegisterInputLeft(float dt) {
-  mDynamicEntities[0].RegisterInputLeft(dt);
+  if (!mSplitMode)
+    mDynamicEntities[0].RegisterInputLeft(dt);
 }
 
 void Entities::RegisterInputRight(float dt) {
-  mDynamicEntities[0].RegisterInputRight(dt);
+  if (!mSplitMode)
+    mDynamicEntities[0].RegisterInputRight(dt);
 }
 
 void Entities::ToCheckpoint(const vector<vec3> &positionsAtCheckpoint) {
