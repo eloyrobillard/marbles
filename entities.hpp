@@ -71,21 +71,12 @@ class Entities {
   vector<vector<TriangleCollider>> mStaticColliders;
   vector<DynamicEntity> mDynamicEntities;
 
-  // HACK: Not even correct: this type works despite missing `take_view`
+  // HACK: Not even correct: this works despite missing `take_view`
   ranges::subrange<
-      ranges::iterator_t<std::ranges::drop_view<std::ranges::ref_view<
-          std::vector<DynamicEntity, std::allocator<DynamicEntity>>>>>,
-      ranges::sentinel_t<std::ranges::drop_view<std::ranges::ref_view<
-          std::vector<DynamicEntity, std::allocator<DynamicEntity>>>>>,
-      (ranges::sized_range<std::ranges::drop_view<
-           std::ranges::ref_view<std::vector<DynamicEntity>>>> ||
-       std::sized_sentinel_for<
-           ranges::sentinel_t<std::ranges::drop_view<std::ranges::ref_view<
-               std::vector<DynamicEntity, std::allocator<DynamicEntity>>>>>,
-           ranges::iterator_t<std::ranges::drop_view<std::ranges::ref_view<
-               std::vector<DynamicEntity, std::allocator<DynamicEntity>>>>>>)
-          ? ranges::subrange_kind::sized
-          : ranges::subrange_kind::unsized>
+      ranges::iterator_t<
+          ranges::drop_view<ranges::ref_view<vector<DynamicEntity>>>>,
+      ranges::sentinel_t<
+          ranges::drop_view<ranges::ref_view<vector<DynamicEntity>>>>>
       mCurrentDynamicEntities;
 
   vector<DynamicEntity> mDynamicEntitiesStartingState;
