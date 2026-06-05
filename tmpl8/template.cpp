@@ -111,7 +111,7 @@ int main(int argc, char **argv) {
   shared_ptr<Entities> entities = std::make_shared<Entities>();
   shared_ptr<FollowCamera> camera = std::make_shared<FollowCamera>(
       entities->ProvideCameraFollow().GetPositionAsRef(),
-      Maths::vec3(-6.0f, 0.0f, 5.0f), Maths::vec3(0.0f), Maths::vec3::up,
+      Maths::vec3(-6.0f, 0.0f, 4.0f), Maths::vec3(0.0f), Maths::vec3::up,
       20.0f);
 
   renderer->SetCamera(camera);

@@ -26,13 +26,13 @@ public:
       : mIdealOffset(offset), mActualPosition(startingFollowPosition + offset),
         mStartingPosition(startingFollowPosition + offset),
         mActualTarget(target), mUp(up), mVelocity(vec3::zero),
-        mTargetDist(3.0f), mSpringConstant(spring) {}
+        mTargetDist(6.0f), mSpringConstant(spring) {}
 
   void Update(float dt, const vec3 &follow, const vec3 &followVelocity) {
     vec3 followForward = followVelocity.normalized();
     vec3 followRight = {-followForward.y, followForward.x, 0};
 
-    // TODO: fit offset to follow's forward direction
+    // Match offset to the follow's forward/right/up directions
     vec3 idealPosition = follow + followForward * mIdealOffset.x +
                          followRight * mIdealOffset.y +
                          vec3::up * mIdealOffset.z;
@@ -49,7 +49,7 @@ public:
 
     vec3 idealTarget = follow + followForward * mTargetDist;
 
-    mActualTarget = Maths::lerp(mActualTarget, idealTarget, 3 * dt);
+    mActualTarget = Maths::lerp(mActualTarget, idealTarget, 2 * dt);
   }
 
   void SnapToTarget(const vec3 &target) {
