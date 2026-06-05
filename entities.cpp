@@ -1,21 +1,30 @@
 #include "entities.hpp"
 
+EntityData GenerateEntityData(string meshPath,
+                              BodyType bodyType = BodyType::Static,
+                              float collisionAcceleration = 1.0f,
+                              bool overrideImpulse = false,
+                              vec3 impulseOverride = vec3::zero) {
+  return {std::move(meshPath), bodyType, collisionAcceleration, overrideImpulse,
+          impulseOverride};
+}
+
 Entities::Entities() {
   RegisterEntities(
-      {{"assets/ramp1.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
-       {"assets/ramp2.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
-       {"assets/ramp3.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
-       {"assets/snake1.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
-       {"assets/plane1.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
-       {"assets/plane2.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
-       {"assets/plane3.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
-       {"assets/plane4.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
-       {"assets/plane5.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
-       {"assets/plane6.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
-       {"assets/plane7.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
-       {"assets/plane8.gpmesh", BodyType::Static, 1.0f, false, vec3::zero},
-       {"assets/canon1.gpmesh", BodyType::Static, 1.03f, true, vec3::up},
-       {"assets/sphere.gpmesh", BodyType::Dynamic, 1.0f, false, vec3::zero}});
+      {{"assets/ramp1.gpmesh"},
+       {"assets/ramp2.gpmesh"},
+       {"assets/ramp3.gpmesh"},
+       {"assets/snake1.gpmesh"},
+       {"assets/plane1.gpmesh"},
+       {"assets/plane2.gpmesh"},
+       {"assets/plane3.gpmesh"},
+       {"assets/plane4.gpmesh"},
+       {"assets/plane5.gpmesh"},
+       {"assets/plane6.gpmesh"},
+       {"assets/plane7.gpmesh"},
+       {"assets/plane8.gpmesh"},
+       {.meshPath = "assets/canon1.gpmesh", .collisionAcceleration = 1.03f},
+       {"assets/sphere.gpmesh", BodyType::Dynamic}});
 }
 
 void Entities::Update(float time, float deltaTime) {
@@ -48,18 +57,17 @@ tuple<mat4, optional<Texture *>, GLuint, size_t> Entity::GetDrawData() const {
           mesh.GetVertexArray(), mesh.GetNumIndices()};
 }
 
-void Entities::RegisterEntities(
-    const vector<tuple<string, BodyType, float, bool, vec3>> &entityList) {
-  for (const auto &[meshName, btype, accel, override_impulse,
-                    impulse_override] : entityList) {
-    auto maybe = Mesh::Load(meshName);
+void Entities::RegisterEntities(const vector<EntityData> &entityList) {
+  for (const auto &[mesh_name, btype, accel, override_impulse, impulse_override,
+                    scale] : entityList) {
+    auto maybe = Mesh::Load(mesh_name);
 
     if (maybe.has_value()) {
       auto [mesh, body] = maybe.value();
 
       if (btype == BodyType::Dynamic) {
         DynamicEntity de(mesh, body,
-                         SphereCollider(body.position, body.scale.x));
+                         SphereCollider(body.position, (body.scale * scale).x));
         mDynamicEntities.emplace_back(de);
         mDynamicEntitiesStartingState.emplace_back(de);
       } else {

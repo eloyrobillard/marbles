@@ -15,6 +15,15 @@ inline vector<TriangleCollider> gCurrent_partition;
 
 enum class BodyType { Dynamic, Static };
 
+struct EntityData {
+  string meshPath;
+  BodyType bodyType = BodyType::Static;
+  float collisionAcceleration = 1.0f;
+  bool overrideImpulse = false;
+  vec3 impulseOverride = vec3::zero;
+  vec3 scale = vec3(1.0f);
+};
+
 // NOTE: As per C.2 section from the C++ Core Guidelines
 // Making Entity a struct to make it clear mesh and body can vary independently
 struct Entity {
@@ -66,8 +75,7 @@ class Entities {
 public:
   Entities();
   void Update(float time, float deltaTime);
-  void RegisterEntities(
-      const vector<tuple<string, BodyType, float, bool, vec3>> &entityList);
+  void RegisterEntities(const vector<EntityData> &entityList);
   [[nodiscard]]
   const DynamicEntity &ProvideCameraFollow() const {
     return mDynamicEntities[0];
