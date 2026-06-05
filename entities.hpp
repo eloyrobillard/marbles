@@ -70,6 +70,24 @@ class Entities {
   vector<Entity> mStaticEntities;
   vector<vector<TriangleCollider>> mStaticColliders;
   vector<DynamicEntity> mDynamicEntities;
+
+  // HACK: Not even correct: this type works despite missing `take_view`
+  ranges::subrange<
+      ranges::iterator_t<std::ranges::drop_view<std::ranges::ref_view<
+          std::vector<DynamicEntity, std::allocator<DynamicEntity>>>>>,
+      ranges::sentinel_t<std::ranges::drop_view<std::ranges::ref_view<
+          std::vector<DynamicEntity, std::allocator<DynamicEntity>>>>>,
+      (ranges::sized_range<std::ranges::drop_view<
+           std::ranges::ref_view<std::vector<DynamicEntity>>>> ||
+       std::sized_sentinel_for<
+           ranges::sentinel_t<std::ranges::drop_view<std::ranges::ref_view<
+               std::vector<DynamicEntity, std::allocator<DynamicEntity>>>>>,
+           ranges::iterator_t<std::ranges::drop_view<std::ranges::ref_view<
+               std::vector<DynamicEntity, std::allocator<DynamicEntity>>>>>>)
+          ? ranges::subrange_kind::sized
+          : ranges::subrange_kind::unsized>
+      mCurrentDynamicEntities;
+
   vector<DynamicEntity> mDynamicEntitiesStartingState;
   bool mSplitMode = false;
 
@@ -79,36 +97,36 @@ public:
   void RegisterEntities(const vector<EntityData> &entityList);
   [[nodiscard]]
   const DynamicEntity &ProvideCameraFollow() const {
-    if (!mSplitMode)
-      return mDynamicEntities[0];
-    else
-      return mDynamicEntities[1];
+    return mCurrentDynamicEntities[0];
   }
+
   [[nodiscard]] const vector<Entity> &GetStaticEntities() const {
     return mStaticEntities;
   }
 
   [[nodiscard]] auto GetDynamicEntities() const {
-    if (!mSplitMode) {
-      return ranges::subrange{views::take(mDynamicEntities, 1)};
-    } else {
-      return ranges::subrange{views::drop(mDynamicEntities, 1)};
-    }
+    return mCurrentDynamicEntities;
   }
 
   string GetDynamicEntitiesCoordinates() {
-    if (!mSplitMode) {
-      return mDynamicEntities[0].GetCoordinatesString();
-    } else {
-      return mDynamicEntities[1].GetCoordinatesString();
-    }
+    return mCurrentDynamicEntities[0].GetCoordinatesString();
   }
   // TODO: move input handling somewhere else
   void RegisterInputForward(float dt);
   void RegisterInputLeft(float dt);
   void RegisterInputRight(float dt);
   void ToCheckpoint(const vector<vec3> &positionsAtCheckpoint);
-  void ToggleSplitMode() { mSplitMode = !mSplitMode; };
+  void ToggleSplitMode() {
+    mSplitMode = !mSplitMode;
+
+    if (!mSplitMode) {
+      mCurrentDynamicEntities =
+          ranges::subrange{views::take(mDynamicEntities, 1)};
+    } else {
+      mCurrentDynamicEntities =
+          ranges::subrange{views::drop(mDynamicEntities, 1)};
+    }
+  };
 };
 
 #endif // ENTITIES_H

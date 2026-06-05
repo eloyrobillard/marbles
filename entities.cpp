@@ -32,6 +32,8 @@ Entities::Entities() {
        .bodyType = BodyType::Dynamic,
        .scale = vec3(0.5f)},
   });
+
+  mCurrentDynamicEntities = ranges::subrange{views::take(mDynamicEntities, 1)};
 }
 
 void Entities::Update(float time, float deltaTime) {
