@@ -64,10 +64,11 @@ void Entities::RegisterEntities(const vector<EntityData> &entityList) {
 
     if (maybe.has_value()) {
       auto [mesh, body] = maybe.value();
+      body.scale *= scale;
 
       if (btype == BodyType::Dynamic) {
         DynamicEntity de(mesh, body,
-                         SphereCollider(body.position, (body.scale * scale).x));
+                         SphereCollider(body.position, body.scale.x));
         mDynamicEntities.emplace_back(de);
         mDynamicEntitiesStartingState.emplace_back(de);
       } else {
