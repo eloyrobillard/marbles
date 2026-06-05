@@ -14,7 +14,7 @@ const vec3 grav_force = vec3(0.0f, 0.0f, -9.81f);
 struct Collider {};
 
 struct SphereCollider : Collider {
-  SphereCollider(vec3 position, float radius)
+  SphereCollider(vec3 &position, float radius)
       : position(position), radius(radius) {}
 
   vec3 position;
@@ -23,8 +23,8 @@ struct SphereCollider : Collider {
 
 // For static objects
 struct TriangleCollider : Collider {
-  TriangleCollider(vec3 normal, vec3 a, vec3 b, vec3 c, float accel,
-                   bool overrideImpulse, vec3 impulseOverride,
+  TriangleCollider(vec3 &normal, vec3 &a, vec3 &b, vec3 &c, float accel,
+                   bool overrideImpulse, vec3 &impulseOverride,
                    GLuint vertexBuffer, GLuint indexBuffer, GLuint vertexArray)
       : normal(normal), a(a), b(b), c(c), accel(accel),
         overrideImpulse(overrideImpulse), impulseOverride(impulseOverride),
@@ -57,16 +57,14 @@ inline ostream &operator<<(ostream &os, const TriangleCollider &coll) {
 
 class Body {
 public:
-  vec3 scale;
+  vec3 scale = vec3(1.0f);
   vec3 position;
   vec3 velocity;
   quat rotation;
   vec3 rotational_velocity;
   vector<Collider> colliders;
 
-  Body()
-      : scale(vec3(1.0f)), position(vec3()), velocity(vec3()), rotation(quat()),
-        rotational_velocity(vec3()), colliders({}) {}
+  Body() = default;
 
   [[nodiscard]] mat4 getWorldTransform() const {
     mat4 s = mat4::CreateScale(scale);
