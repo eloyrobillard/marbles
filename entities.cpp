@@ -111,3 +111,29 @@ void Entities::ToCheckpoint(const vector<vec3> &positionsAtCheckpoint) {
     mDynamicEntities[i].ResetToPosition(positionsAtCheckpoint[i]);
   }
 }
+
+void Entities::ToggleSplitMode() {
+  mSplitMode = !mSplitMode;
+
+  if (!mSplitMode) {
+    const vec3 &pos = mDynamicEntities[1].GetPositionAsRef();
+    const vec3 &vel = mDynamicEntities[1].GetVelocityAsRef();
+
+    mDynamicEntities[0].SetPosition(pos);
+    mDynamicEntities[0].SetVelocity(vel);
+
+    mCurrentDynamicEntities =
+        ranges::subrange{views::take(mDynamicEntities, 1)};
+  } else {
+    const vec3 &pos = mDynamicEntities[0].GetPositionAsRef();
+    const vec3 &vel = mDynamicEntities[0].GetVelocityAsRef();
+
+    for (int i = 1; i < mDynamicEntities.size(); i++) {
+      mDynamicEntities[i].SetPosition(pos);
+      mDynamicEntities[i].SetVelocity(vel);
+    }
+
+    mCurrentDynamicEntities =
+        ranges::subrange{views::drop(mDynamicEntities, 1)};
+  }
+};

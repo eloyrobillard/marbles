@@ -63,6 +63,8 @@ public:
   }
   [[nodiscard]] const vec3 &GetPositionAsRef() const { return body.position; }
   [[nodiscard]] const vec3 &GetVelocityAsRef() const { return body.velocity; }
+  void SetPosition(const vec3 &pos) { body.position = pos; }
+  void SetVelocity(const vec3 &vel) { body.velocity = vel; }
 };
 
 // Container for all game objects
@@ -107,17 +109,7 @@ public:
   void RegisterInputLeft(float dt);
   void RegisterInputRight(float dt);
   void ToCheckpoint(const vector<vec3> &positionsAtCheckpoint);
-  void ToggleSplitMode() {
-    mSplitMode = !mSplitMode;
-
-    if (!mSplitMode) {
-      mCurrentDynamicEntities =
-          ranges::subrange{views::take(mDynamicEntities, 1)};
-    } else {
-      mCurrentDynamicEntities =
-          ranges::subrange{views::drop(mDynamicEntities, 1)};
-    }
-  };
+  void ToggleSplitMode();
 };
 
 #endif // ENTITIES_H
