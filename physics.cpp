@@ -150,8 +150,9 @@ optional<vec3> intersectsTriangle(const TriangleCollider &t,
 }
 
 const float restitution = 0.0f;
-bool processCollisions(const vector<TriangleCollider> &triangles,
-                       const SphereCollider &sphere, vec3 &velocity) {
+bool Physics::processStaticCollisions(const vector<TriangleCollider> &triangles,
+                                      const SphereCollider &sphere,
+                                      vec3 &velocity) {
   vec3 collisions = vec3::zero;
   int num_collisions = 0;
   bool collision_happened = false;
@@ -184,20 +185,4 @@ bool processCollisions(const vector<TriangleCollider> &triangles,
   }
 
   return collision_happened;
-}
-
-bool Physics::getCollisionImpulse(const SpacePartition &sp,
-                                  const SphereCollider &collider,
-                                  vec3 &velocity) {
-  float min_x = collider.position.x - collider.radius;
-  float max_x = collider.position.x + collider.radius;
-  float min_y = collider.position.y - collider.radius;
-  float max_y = collider.position.y + collider.radius;
-  float min_z = collider.position.z - collider.radius;
-  float max_z = collider.position.z + collider.radius;
-
-  gCurrent_partition =
-      sp.get_partition(min_x, max_x, min_y, max_y, min_z, max_z);
-
-  return processCollisions(gCurrent_partition, collider, velocity);
 }

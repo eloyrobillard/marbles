@@ -37,29 +37,56 @@ Entities::Entities() {
 }
 
 void Entities::Update(float time, float deltaTime) {
-  if (!mSplitMode) {
-    mDynamicEntities[0].Update(time, deltaTime, gSpacePartition);
-  } else {
-    for (int i = 1; i < mDynamicEntities.size(); i++) {
-      mDynamicEntities[i].Update(time, deltaTime, gSpacePartition);
-    }
+  for (auto &e : mCurrentDynamicEntities) {
+    // Prepare new body position to test collisions at
+    e.UpdateFirstPass(time, deltaTime);
+  }
+
+  // Instantly apply collisions to the velocity of the body
+  GetCollisionImpulse();
+
+  for (auto &e : mCurrentDynamicEntities) {
+    // Adjust position based on (possibly) updated velocity
+    e.UpdateSecondPass(time, deltaTime);
   }
 }
 
-void DynamicEntity::Update(float t, float dt, const SpacePartition &sp) {
-  const vec3 prev_p = body.position;
+void Entities::GetCollisionImpulse() {
+  for (int i = 0; i < mCurrentDynamicEntities.size(); i++) {
+    float min_x = mCurrentDynamicEntities[i].collider.position.x -
+                  mCurrentDynamicEntities[i].collider.radius;
+    float max_x = mCurrentDynamicEntities[i].collider.position.x +
+                  mCurrentDynamicEntities[i].collider.radius;
+    float min_y = mCurrentDynamicEntities[i].collider.position.y -
+                  mCurrentDynamicEntities[i].collider.radius;
+    float max_y = mCurrentDynamicEntities[i].collider.position.y +
+                  mCurrentDynamicEntities[i].collider.radius;
+    float min_z = mCurrentDynamicEntities[i].collider.position.z -
+                  mCurrentDynamicEntities[i].collider.radius;
+    float max_z = mCurrentDynamicEntities[i].collider.position.z +
+                  mCurrentDynamicEntities[i].collider.radius;
+
+    gCurrentPartition =
+        gSpacePartition.get_partition(min_x, max_x, min_y, max_y, min_z, max_z);
+
+    Physics::processStaticCollisions(
+        gCurrentPartition, mCurrentDynamicEntities[i].collider,
+        mCurrentDynamicEntities[i].GetVelocityAsRef());
+  }
+}
+
+void DynamicEntity::UpdateFirstPass(float t, float dt) {
+  mPrevPos = body.position;
 
   body.velocity += dt * grav_force;
   body.position += dt * body.velocity;
 
-  // Test collisions at new body position
   collider.position = body.position;
+}
 
-  // Instantly apply collisions to the velocity of the body
-  Physics::getCollisionImpulse(sp, collider, body.velocity);
-
+void DynamicEntity::UpdateSecondPass(float t, float dt) {
   // Adjust position based on (possibly) updated velocity
-  body.position = prev_p + dt * body.velocity;
+  body.position = mPrevPos + dt * body.velocity;
 
   // Match body's position with collider's
   collider.position = body.position;

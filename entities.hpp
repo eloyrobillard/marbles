@@ -11,7 +11,7 @@ using Maths::quat;
 using Maths::vec3;
 
 inline stack<GLuint> gTo_render_as_collided;
-inline vector<TriangleCollider> gCurrent_partition;
+inline vector<TriangleCollider> gCurrentPartition;
 
 enum class BodyType { Dynamic, Static };
 
@@ -36,18 +36,20 @@ struct Entity {
                        body.position.y, body.position.z);
   }
 
-protected:
   Mesh mesh;
   Body body;
 };
 
 class DynamicEntity : public Entity {
-  SphereCollider collider;
+  vec3 mPrevPos;
 
 public:
+  SphereCollider collider;
+
   DynamicEntity(const Mesh &mesh, const Body &body, SphereCollider collider)
       : Entity(mesh, body), collider(collider) {}
-  void Update(float t, float dt, const SpacePartition &sp);
+  void UpdateFirstPass(float t, float dt);
+  void UpdateSecondPass(float t, float dt);
   void ResetToPosition(const vec3 &pos) {
     body.position = pos;
     body.velocity = vec3::zero;
@@ -62,7 +64,7 @@ public:
     body.velocity += right * 4.0f * dt;
   }
   [[nodiscard]] const vec3 &GetPositionAsRef() const { return body.position; }
-  [[nodiscard]] const vec3 &GetVelocityAsRef() const { return body.velocity; }
+  [[nodiscard]] vec3 &GetVelocityAsRef() { return body.velocity; }
   void SetPosition(const vec3 &pos) { body.position = pos; }
   void SetVelocity(const vec3 &vel) { body.velocity = vel; }
 };
@@ -110,6 +112,8 @@ public:
   void RegisterInputRight(float dt);
   void ToCheckpoint(const vector<vec3> &positionsAtCheckpoint);
   void ToggleSplitMode();
+
+  void GetCollisionImpulse();
 };
 
 #endif // ENTITIES_H

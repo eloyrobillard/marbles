@@ -131,8 +131,8 @@ inline SpacePartition gSpacePartition =
     SpacePartition(4.0f, 150.0f, -40.0f, 80.0f, -100.0f, 10.0f, 1.0f);
 
 namespace Physics {
-bool getCollisionImpulse(const SpacePartition &sp,
-                         const SphereCollider &collider, vec3 &velocity);
+bool processStaticCollisions(const vector<TriangleCollider> &triangles,
+                             const SphereCollider &sphere, vec3 &velocity);
 
 inline float physicsTicksPerSecond = 120.0;
 inline float physicsDeltaTime = 1.0f / physicsTicksPerSecond;

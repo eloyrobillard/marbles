@@ -515,7 +515,7 @@ void Renderer::drawCollisionDebug(const mat4 &viewProj) {
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   // Only show triangles currently tested against
-  for (const auto &triangle : gCurrent_partition) {
+  for (const auto &triangle : gCurrentPartition) {
     Shader::SetVerticesActive(triangle.vertexArray);
 
     // Draw triangles
