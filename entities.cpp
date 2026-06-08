@@ -1,4 +1,5 @@
 #include "entities.hpp"
+#include "physics.hpp"
 
 EntityData GenerateEntityData(string meshPath,
                               BodyType bodyType = BodyType::Static,
@@ -31,6 +32,18 @@ Entities::Entities() {
       {.meshPath = "assets/sphere.gpmesh",
        .bodyType = BodyType::Dynamic,
        .scale = vec3(0.5f)},
+      {.meshPath = "assets/sphere.gpmesh",
+       .bodyType = BodyType::Dynamic,
+       .scale = vec3(0.5f)},
+      {.meshPath = "assets/sphere.gpmesh",
+       .bodyType = BodyType::Dynamic,
+       .scale = vec3(0.5f)},
+      {.meshPath = "assets/sphere.gpmesh",
+       .bodyType = BodyType::Dynamic,
+       .scale = vec3(0.5f)},
+      {.meshPath = "assets/sphere.gpmesh",
+       .bodyType = BodyType::Dynamic,
+       .scale = vec3(0.5f)},
   });
 
   mCurrentDynamicEntities = ranges::subrange{views::take(mDynamicEntities, 1)};
@@ -43,7 +56,14 @@ void Entities::Update(float time, float deltaTime) {
   }
 
   // Instantly apply collisions to the velocity of the body
-  GetCollisionImpulse();
+  GetDynamicCollisionImpulse();
+
+  for (auto &e : mCurrentDynamicEntities) {
+    // Adjust position based on (possibly) updated velocity
+    e.UpdateSecondPass(time, deltaTime);
+  }
+
+  GetStaticCollisionImpulse();
 
   for (auto &e : mCurrentDynamicEntities) {
     // Adjust position based on (possibly) updated velocity
@@ -51,27 +71,26 @@ void Entities::Update(float time, float deltaTime) {
   }
 }
 
-void Entities::GetCollisionImpulse() {
+void Entities::GetDynamicCollisionImpulse() {
   for (int i = 0; i < mCurrentDynamicEntities.size(); i++) {
-    float min_x = mCurrentDynamicEntities[i].collider.position.x -
-                  mCurrentDynamicEntities[i].collider.radius;
-    float max_x = mCurrentDynamicEntities[i].collider.position.x +
-                  mCurrentDynamicEntities[i].collider.radius;
-    float min_y = mCurrentDynamicEntities[i].collider.position.y -
-                  mCurrentDynamicEntities[i].collider.radius;
-    float max_y = mCurrentDynamicEntities[i].collider.position.y +
-                  mCurrentDynamicEntities[i].collider.radius;
-    float min_z = mCurrentDynamicEntities[i].collider.position.z -
-                  mCurrentDynamicEntities[i].collider.radius;
-    float max_z = mCurrentDynamicEntities[i].collider.position.z +
-                  mCurrentDynamicEntities[i].collider.radius;
+    Physics::processDynamicCollisions(mCurrentDynamicEntities, i);
+  }
+}
+
+void Entities::GetStaticCollisionImpulse() {
+  for (auto &e : mCurrentDynamicEntities) {
+    float min_x = e.collider.position.x - e.collider.radius;
+    float max_x = e.collider.position.x + e.collider.radius;
+    float min_y = e.collider.position.y - e.collider.radius;
+    float max_y = e.collider.position.y + e.collider.radius;
+    float min_z = e.collider.position.z - e.collider.radius;
+    float max_z = e.collider.position.z + e.collider.radius;
 
     gCurrentPartition =
         gSpacePartition.get_partition(min_x, max_x, min_y, max_y, min_z, max_z);
 
-    Physics::processStaticCollisions(
-        gCurrentPartition, mCurrentDynamicEntities[i].collider,
-        mCurrentDynamicEntities[i].GetVelocityAsRef());
+    Physics::processStaticCollisions(gCurrentPartition, e.collider,
+                                     e.GetVelocityAsRef());
   }
 }
 

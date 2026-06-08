@@ -1,10 +1,10 @@
 #ifndef ENTITIES_H
 #define ENTITIES_H
 
+#include "colliders.hpp"
 #include "maths.hpp"
 #include "mesh.hpp"
 #include "pch.h"
-#include "physics.hpp"
 #include "shader.hpp"
 
 using Maths::quat;
@@ -69,19 +69,22 @@ public:
   void SetVelocity(const vec3 &vel) { body.velocity = vel; }
 };
 
+// HACK: Used to represent a slice of the dynamic entities vector.
+// Besides, it's not even correct: this works despite missing `take_view`
+typedef ranges::subrange<
+    ranges::iterator_t<
+        ranges::drop_view<ranges::ref_view<vector<DynamicEntity>>>>,
+    ranges::sentinel_t<
+        ranges::drop_view<ranges::ref_view<vector<DynamicEntity>>>>>
+    currentDynEntities;
+
 // Container for all game objects
 class Entities {
   vector<Entity> mStaticEntities;
   vector<vector<TriangleCollider>> mStaticColliders;
   vector<DynamicEntity> mDynamicEntities;
 
-  // HACK: Not even correct: this works despite missing `take_view`
-  ranges::subrange<
-      ranges::iterator_t<
-          ranges::drop_view<ranges::ref_view<vector<DynamicEntity>>>>,
-      ranges::sentinel_t<
-          ranges::drop_view<ranges::ref_view<vector<DynamicEntity>>>>>
-      mCurrentDynamicEntities;
+  currentDynEntities mCurrentDynamicEntities;
 
   vector<DynamicEntity> mDynamicEntitiesStartingState;
   bool mSplitMode = false;
@@ -113,7 +116,8 @@ public:
   void ToCheckpoint(const vector<vec3> &positionsAtCheckpoint);
   void ToggleSplitMode();
 
-  void GetCollisionImpulse();
+  void GetDynamicCollisionImpulse();
+  void GetStaticCollisionImpulse();
 };
 
 #endif // ENTITIES_H

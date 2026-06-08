@@ -1,7 +1,7 @@
 #ifndef MESH_H
 #define MESH_H
+#include "colliders.hpp"
 #include "pch.h"
-#include "physics.hpp"
 #include "texture.hpp"
 
 class Mesh {

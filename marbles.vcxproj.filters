@@ -241,6 +241,7 @@
     <ClInclude Include="shader.hpp" />
     <ClInclude Include="texture.hpp" />
     <ClInclude Include="camera.hpp" />
+    <ClInclude Include="colliders.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">
