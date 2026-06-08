@@ -594,8 +594,7 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
   }
 }
 
-void Renderer::Draw3D(float deltaTime,
-                      const shared_ptr<const Entities> &entities) {
+void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities) {
   setView(mCamera);
 
   // clear MSAA buffer
@@ -666,7 +665,7 @@ void Renderer::Draw3D(float deltaTime,
 #ifdef _DEBUG
     // debug marble coordinates
     SDL_Surface *coordinatesSurface = TTF_RenderText_Blended_Wrapped(
-        mFont, entities->GetDynamicEntitiesCoordinates(), 0,
+        mFont, entities->GetDynamicEntitiesCoordinates().c_str(), 0,
         {255, 255, 255, 255}, 0);
 
     GLuint texture = LoadGLTexture(coordinatesSurface,

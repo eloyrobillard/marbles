@@ -108,7 +108,7 @@ public:
   ~Renderer();
   // Setup HUD and global shadow map
   void Init(const shared_ptr<const Entities> &entities);
-  void Draw3D(float deltaTime, const shared_ptr<const Entities> &entities);
+  void Draw3D(float deltaTime, const shared_ptr<Entities> &entities);
   void SetCamera(const shared_ptr<FollowCamera> &camera);
   void ShowVictoryMessage() { mShowVictoryMessage = true; }
   void ToCheckpoint() { mShowVictoryMessage = false; }
