@@ -121,6 +121,10 @@ public:
     z *= a;
   }
 
+  static vec3 rand(float xRange, float yRange, float zRange) {
+    return {Rand(xRange), Rand(yRange), Rand(zRange)};
+  }
+
   float operator[](const uint &idx) const { return cell[idx]; }
   float &operator[](const uint &idx) { return cell[idx]; }
   [[nodiscard]] float length() const { return sqrtf(x * x + y * y + z * z); }

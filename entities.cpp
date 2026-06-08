@@ -156,7 +156,7 @@ void Entities::ToggleSplitMode() {
     const vec3 &vel = mDynamicEntities[0].GetVelocityAsRef();
 
     for (int i = 1; i < mDynamicEntities.size(); i++) {
-      mDynamicEntities[i].SetPosition(pos);
+      mDynamicEntities[i].SetPosition(pos + vec3::rand(0.5f, 0.5f, 0.0f));
       mDynamicEntities[i].SetVelocity(vel);
     }
 
