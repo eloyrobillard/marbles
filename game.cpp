@@ -54,11 +54,11 @@ void Game::Tick(float deltaTime) {
     entities->ToggleSplitMode();
   }
 
-  if (entities->ProvideCameraFollow().GetPositionAsRef().x > 55.0f) {
+  if (entities->ProvideCameraFollow().x > 55.0f) {
     checkpointID = 1;
   }
 
-  if (entities->ProvideCameraFollow().GetPositionAsRef().x > 180.0f) {
+  if (entities->ProvideCameraFollow().x > 180.0f) {
     renderer->ShowVictoryMessage();
     checkpointID = 0;
   }
@@ -72,7 +72,7 @@ void Game::Shutdown() {
 void Game::ToCheckpoint() {
   const auto &dynamicEntitiesPos = checkpoints[checkpointID];
   entities->ToCheckpoint(dynamicEntitiesPos);
-  camera->ToCheckpoint(entities->ProvideCameraFollow().GetPositionAsRef());
+  camera->ToCheckpoint(entities->ProvideCameraFollow());
   renderer->ToCheckpoint();
 }
 } // namespace Tmpl8

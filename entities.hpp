@@ -88,14 +88,42 @@ class Entities {
 
   vector<DynamicEntity> mDynamicEntitiesStartingState;
   bool mSplitMode = false;
+  vec3 mAveragePos;
+  vec3 mAverageVel;
+
+  void computeAveragePos() {
+    vec3 res = vec3(0.0f);
+
+    for (const auto &v : mCurrentDynamicEntities) {
+      res += v.GetPositionAsRef();
+    }
+
+    mAveragePos = res / static_cast<float>(mCurrentDynamicEntities.size());
+  }
+
+  void computeAverageVel() {
+    vec3 res = vec3(0.0f);
+
+    for (auto &v : mCurrentDynamicEntities) {
+      res += v.GetVelocityAsRef();
+    }
+
+    mAverageVel = res / static_cast<float>(mCurrentDynamicEntities.size());
+  }
 
 public:
   Entities();
   void Update(float time, float deltaTime);
   void RegisterEntities(const vector<EntityData> &entityList);
+
   [[nodiscard]]
-  const DynamicEntity &ProvideCameraFollow() const {
-    return mCurrentDynamicEntities[0];
+  vec3 ProvideCameraFollow() const {
+    return mAveragePos;
+  }
+
+  [[nodiscard]]
+  vec3 ProvideCameraForward() const {
+    return mAverageVel.normalized();
   }
 
   [[nodiscard]] const vector<Entity> &GetStaticEntities() const {
@@ -107,7 +135,8 @@ public:
   }
 
   string GetDynamicEntitiesCoordinates() {
-    return mCurrentDynamicEntities[0].GetCoordinatesString();
+    return std::format("x: {:8.3f}\ny: {:8.3f}\nz: {:8.3f}", mAveragePos.x,
+                       mAveragePos.y, mAveragePos.z);
   }
   // TODO: move input handling somewhere else
   void RegisterInputForward(float dt);

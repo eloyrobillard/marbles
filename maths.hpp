@@ -89,15 +89,16 @@ public:
   vec3(float v) : x(v), y(v), z(v) {}
   vec3(vec4 v);
   vec3(float x, float y, float z) : x(x), y(y), z(z) {}
-  vec3 operator-() const { return vec3(-x, -y, -z); }
+  vec3 operator/(float f) const { return {x / f, y / f, z / f}; }
+  vec3 operator-() const { return {-x, -y, -z}; }
   vec3 operator+(const vec3 &addOperand) const {
-    return vec3(x + addOperand.x, y + addOperand.y, z + addOperand.z);
+    return {x + addOperand.x, y + addOperand.y, z + addOperand.z};
   }
   vec3 operator-(const vec3 &operand) const {
-    return vec3(x - operand.x, y - operand.y, z - operand.z);
+    return {x - operand.x, y - operand.y, z - operand.z};
   }
   vec3 operator*(const vec3 &operand) const {
-    return vec3(x * operand.x, y * operand.y, z * operand.z);
+    return {x * operand.x, y * operand.y, z * operand.z};
   }
   void operator-=(const vec3 &a) {
     x -= a.x;
@@ -123,6 +124,16 @@ public:
 
   static vec3 rand(float xRange, float yRange, float zRange) {
     return {Rand(xRange), Rand(yRange), Rand(zRange)};
+  }
+
+  static vec3 average(const vector<vec3> &vs) {
+    vec3 res = vec3(0.0f);
+
+    for (const auto &v : vs) {
+      res += v;
+    }
+
+    return res / static_cast<float>(vs.size());
   }
 
   float operator[](const uint &idx) const { return cell[idx]; }

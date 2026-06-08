@@ -50,6 +50,10 @@ Entities::Entities() {
 }
 
 void Entities::Update(float time, float deltaTime) {
+  // MUST BE DONE HERE
+  computeAveragePos();
+  computeAverageVel();
+
   for (auto &e : mCurrentDynamicEntities) {
     // Prepare new body position to test collisions at
     e.UpdateFirstPass(time, deltaTime);
@@ -162,11 +166,8 @@ void Entities::ToggleSplitMode() {
   mSplitMode = !mSplitMode;
 
   if (!mSplitMode) {
-    const vec3 &pos = mDynamicEntities[1].GetPositionAsRef();
-    const vec3 &vel = mDynamicEntities[1].GetVelocityAsRef();
-
-    mDynamicEntities[0].SetPosition(pos);
-    mDynamicEntities[0].SetVelocity(vel);
+    mDynamicEntities[0].SetPosition(mAveragePos);
+    mDynamicEntities[0].SetVelocity(mAverageVel);
 
     mCurrentDynamicEntities =
         ranges::subrange{views::take(mDynamicEntities, 1)};

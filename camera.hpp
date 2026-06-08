@@ -28,8 +28,7 @@ public:
         mActualTarget(target), mUp(up), mVelocity(vec3::zero),
         mTargetDist(6.0f), mSpringConstant(spring) {}
 
-  void Update(float dt, const vec3 &follow, const vec3 &followVelocity) {
-    vec3 followForward = followVelocity.normalized();
+  void Update(float dt, const vec3 &follow, const vec3 &followForward) {
     vec3 followRight = {-followForward.y, followForward.x, 0};
 
     // Match offset to the follow's forward/right/up directions

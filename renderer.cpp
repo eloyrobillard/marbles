@@ -609,7 +609,7 @@ void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities) {
 
   // Setup light for shadow mapping
   float near = 1.0f, far = 100.0f;
-  const vec3 &lightTarget = entities->ProvideCameraFollow().GetPositionAsRef();
+  const vec3 &lightTarget = entities->ProvideCameraFollow();
   const vec3 lightPos{lightTarget.x, lightTarget.y - 3.0f,
                       lightTarget.z + 2.0f};
   const mat4 lightView = mat4::CreateLookAt(lightPos, lightTarget, vec3::up);
