@@ -102,6 +102,20 @@ class Entities {
     mAveragePos = res / static_cast<float>(mCurrentDynamicEntities.size());
   }
 
+  void computeAveragePositionWithoutOutliers() {
+    vec3 res = vec3(0.0f);
+
+    for (const auto &e : mCurrentDynamicEntities) {
+      float distSqrd = mAveragePos.distanceSqrd(e.body.position);
+
+      if (distSqrd <= 3 * mPositionalVariance) {
+        res += e.GetPositionAsRef();
+      }
+    }
+
+    mAveragePos = res / static_cast<float>(mCurrentDynamicEntities.size());
+  }
+
   void computePositionalVariance() {
     mPositionalVariance = 0;
 
