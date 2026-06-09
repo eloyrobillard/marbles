@@ -83,14 +83,118 @@ GLuint Renderer::LoadGLTexture(SDL_Surface *surface, int dst_x, int dst_y,
   return texture;
 }
 
+static string gp_cSeverity[] = {"High", "Medium", "Low", "Notification"};
+static string gp_cType[] = {"Error",       "Deprecated",  "Undefined",
+                            "Portability", "Performance", "Other"};
+static string gp_cSource[] = {"OpenGL",    "OS",          "GLSL Compiler",
+                              "3rd Party", "Application", "Other"};
+
+void debugCallback(uint32_t uiSource, uint32_t uiType, uint32_t uiID,
+                   uint32_t uiSeverity, int32_t iLength, const char *p_cMessage,
+                   void *p_UserParam) {
+  // Get the severity
+  uint32_t uiSevID = 3;
+  switch (uiSeverity) {
+  case GL_DEBUG_SEVERITY_HIGH:
+    uiSevID = 0;
+    break;
+  case GL_DEBUG_SEVERITY_MEDIUM:
+    uiSevID = 1;
+    break;
+  case GL_DEBUG_SEVERITY_LOW:
+    uiSevID = 2;
+    break;
+  case GL_DEBUG_SEVERITY_NOTIFICATION:
+  default:
+    uiSevID = 3;
+    break;
+  }
+
+  // Get the type
+  uint32_t uiTypeID = 5;
+  switch (uiType) {
+  case GL_DEBUG_TYPE_ERROR:
+    uiTypeID = 0;
+    break;
+  case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+    uiTypeID = 1;
+    break;
+  case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+    uiTypeID = 2;
+    break;
+  case GL_DEBUG_TYPE_PORTABILITY:
+    uiTypeID = 3;
+    break;
+  case GL_DEBUG_TYPE_PERFORMANCE:
+    uiTypeID = 4;
+    break;
+  case GL_DEBUG_TYPE_OTHER:
+  default:
+    uiTypeID = 5;
+    break;
+  }
+
+  // Get the source
+  uint32_t uiSourceID = 5;
+  switch (uiSource) {
+  case GL_DEBUG_SOURCE_API:
+    uiSourceID = 0;
+    break;
+  case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+    uiSourceID = 1;
+    break;
+  case GL_DEBUG_SOURCE_SHADER_COMPILER:
+    uiSourceID = 2;
+    break;
+  case GL_DEBUG_SOURCE_THIRD_PARTY:
+    uiSourceID = 3;
+    break;
+  case GL_DEBUG_SOURCE_APPLICATION:
+    uiSourceID = 4;
+    break;
+  case GL_DEBUG_SOURCE_OTHER:
+  default:
+    uiSourceID = 5;
+    break;
+  }
+
+  // Output to the Log
+  SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION,
+                  "OpenGL Debug: Severity=%s, Type=%s, Source=%s - %s",
+                  gp_cSeverity[uiSevID].c_str(), gp_cType[uiTypeID].c_str(),
+                  gp_cSource[uiSourceID].c_str(), p_cMessage);
+  if (uiSeverity == GL_DEBUG_SEVERITY_HIGH) {
+    // This a serious error so we need to shutdown the program
+    SDL_Event event;
+    event.type = SDL_EVENT_QUIT;
+    SDL_PushEvent(&event);
+  }
+}
+
+void GLDebug_Init() {
+  // Allow for synchronous callbacks.
+  glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+
+  // Set up the debug info callback
+  glDebugMessageCallback((GLDEBUGPROC)&debugCallback, nullptr);
+
+  // Set up the type of debug information we want to receive
+  uint32_t uiUnusedIDs = 0;
+  glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0,
+                        &uiUnusedIDs, GL_TRUE); // Enable all
+  glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE,
+                        GL_DEBUG_SEVERITY_NOTIFICATION, 0, nullptr,
+                        GL_FALSE); // Disable notifications
+}
+
 Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
 
   // Set OpenGL attributes
   // Use the core OpenGL profile
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-  // Specify version 3.3
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+  // Specify version 4.3
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
   // Request a color buffer with 8-bits per RGBA channel
   SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -102,6 +206,9 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
   // Force OpenGL to use hardware acceleration
   SDL_GL_SetAttribute(SDL_GL_ACCELERATED_VISUAL, 1);
+#ifdef _DEBUG
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
+#endif
 
   mIsFullscreen = goFullscreen;
   if (goFullscreen) {
@@ -129,6 +236,11 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
   }
 
   printf("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+
+#ifdef _DEBUG
+  // Initialise debug callback (OpenGL 4.3+)
+  GLDebug_Init();
+#endif
 
   mDepthMapShader = GetShader("shaders/depthMap.vert", "shaders/depthMap.frag");
   mDebugShadowMapShader =

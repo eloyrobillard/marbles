@@ -1,5 +1,5 @@
 // SOURCE: https://learnopengl.com/In-Practice/Text-Rendering
-#version 330 core
+#version 430
 in vec2 TexCoords;
 out vec4 color;
 

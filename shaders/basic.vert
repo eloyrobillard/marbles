@@ -1,4 +1,4 @@
-#version 330
+#version 430
 
 // Uniforms for world transform and view-proj
 uniform mat4 uWorldTransform;
