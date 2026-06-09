@@ -535,7 +535,6 @@ bool Renderer::setupFramebuffers() {
                          mDepthMapTexture, 0);
   glDrawBuffer(GL_NONE);
   glReadBuffer(GL_NONE);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // framebuffer to be reused while rendering entity outlines
   glGenFramebuffers(1, &mContourFBO);
@@ -571,7 +570,6 @@ bool Renderer::setupFramebuffers() {
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     cout << "ERROR::FRAMEBUFFER:: Intermediate framebuffer is not complete !\n";
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // Used for Gaussian blur (bloom effect)
   glGenFramebuffers(2, mPingpongFBO);
@@ -592,8 +590,6 @@ bool Renderer::setupFramebuffers() {
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
       cout << "ERROR::FRAMEBUFFER:: Ping-pong framebuffer is not complete !\n";
   }
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   return (glGetError() == 0);
 }
@@ -709,12 +705,6 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
 void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities) {
   setView(mCamera);
 
-  // clear MSAA buffer
-  glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFBO);
-  // Set the clear color
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
   glEnable(GL_DEPTH_TEST);
 
   mat4 viewProj = mView * mProjection;
@@ -743,6 +733,8 @@ void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities) {
   // finally, draw HUD elements
   SDL_GL_Enter2DMode();
   {
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     // Blit multisampled buffer(s) to normal colorbuffer of intermediate FBO.
     // Image is stored in screenTexture
     blitFramebuffer(mMSAAFBO, mIntermediateFBO, mScreenWidth, mScreenHeight,
