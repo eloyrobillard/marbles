@@ -176,6 +176,11 @@ public:
     return x * operand.x + y * operand.y + z * operand.z;
   }
 
+  [[nodiscard]] float distanceSqrd(const vec3 &operand) const {
+    const vec3 diff = {x - operand.x, y - operand.y, z - operand.z};
+    return diff.dot(diff);
+  }
+
   [[nodiscard]] float distance(const vec3 &operand) const {
     const vec3 diff = {x - operand.x, y - operand.y, z - operand.z};
     return sqrt(diff.dot(diff));

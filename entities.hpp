@@ -89,19 +89,40 @@ class Entities {
   vector<DynamicEntity> mDynamicEntitiesStartingState;
   bool mSplitMode = false;
   vec3 mAveragePos;
+  float mPositionalVariance;
   vec3 mAverageVel;
 
-  void computeAveragePos() {
+  void computeAveragePosition() {
     vec3 res = vec3(0.0f);
 
-    for (const auto &v : mCurrentDynamicEntities) {
-      res += v.GetPositionAsRef();
+    for (const auto &e : mCurrentDynamicEntities) {
+      res += e.GetPositionAsRef();
     }
 
     mAveragePos = res / static_cast<float>(mCurrentDynamicEntities.size());
   }
 
-  void computeAverageVel() {
+  void computePositionalVariance() {
+    mPositionalVariance = 0;
+
+    for (const auto &e : mCurrentDynamicEntities) {
+      mPositionalVariance += mAveragePos.distanceSqrd(e.body.position);
+    }
+
+    mPositionalVariance /= static_cast<float>(mCurrentDynamicEntities.size());
+  }
+
+  void repositionUsingVariance() {
+    for (auto &e : mCurrentDynamicEntities) {
+      float distSqrd = mAveragePos.distanceSqrd(e.body.position);
+
+      if (distSqrd > 3 * mPositionalVariance) {
+        e.SetPosition(mAveragePos + vec3::rand(0.5f, 0.5f, 0.0f));
+      }
+    }
+  }
+
+  void computeAverageVelocity() {
     vec3 res = vec3(0.0f);
 
     for (auto &v : mCurrentDynamicEntities) {

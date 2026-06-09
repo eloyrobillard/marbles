@@ -54,8 +54,10 @@ Entities::Entities() {
 
 void Entities::Update(float time, float deltaTime) {
   // MUST BE DONE HERE
-  computeAveragePos();
-  computeAverageVel();
+  computeAveragePosition();
+  computeAverageVelocity();
+  computePositionalVariance();
+  repositionUsingVariance();
 
   for (auto &e : mCurrentDynamicEntities) {
     // Prepare new body position to test collisions at
