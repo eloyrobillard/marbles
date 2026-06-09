@@ -24,7 +24,10 @@ Entities::Entities() {
       {"assets/plane6.gpmesh"},
       {"assets/plane7.gpmesh"},
       {"assets/plane8.gpmesh"},
-      {.meshPath = "assets/canon1.gpmesh", .collisionAcceleration = 1.03f},
+      {.meshPath = "assets/canon1.gpmesh",
+       .collisionAcceleration = 1.03f,
+       .overrideImpulse = true,
+       .impulseOverride = vec3::up},
       {"assets/sphere.gpmesh", BodyType::Dynamic},
       {.meshPath = "assets/sphere.gpmesh",
        .bodyType = BodyType::Dynamic,
@@ -75,12 +78,14 @@ void Entities::Update(float time, float deltaTime) {
   }
 }
 
+// TODO: Put in Physics
 void Entities::GetDynamicCollisionImpulse() {
   for (int i = 0; i < mCurrentDynamicEntities.size(); i++) {
     Physics::processDynamicCollisions(mCurrentDynamicEntities, i);
   }
 }
 
+// TODO: Put in Physics
 void Entities::GetStaticCollisionImpulse() {
   for (auto &e : mCurrentDynamicEntities) {
     float min_x = e.collider.position.x - e.collider.radius;
@@ -108,7 +113,6 @@ void DynamicEntity::UpdateFirstPass(float t, float dt) {
 }
 
 void DynamicEntity::UpdateSecondPass(float t, float dt) {
-  // Adjust position based on (possibly) updated velocity
   body.position = mPrevPos + dt * body.velocity;
 
   // Match body's position with collider's
