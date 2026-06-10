@@ -96,13 +96,9 @@ void debugCallback(uint32_t uiSource, uint32_t uiType, uint32_t uiID,
   uint32_t uiSevID = 3;
   switch (uiSeverity) {
   case GL_DEBUG_SEVERITY_HIGH:
-    uiSevID = 0;
-    break;
   case GL_DEBUG_SEVERITY_MEDIUM:
-    uiSevID = 1;
-    break;
   case GL_DEBUG_SEVERITY_LOW:
-    uiSevID = 2;
+    uiSevID = uiSeverity - GL_DEBUG_SEVERITY_HIGH;
     break;
   case GL_DEBUG_SEVERITY_NOTIFICATION:
   default:
@@ -111,52 +107,10 @@ void debugCallback(uint32_t uiSource, uint32_t uiType, uint32_t uiID,
   }
 
   // Get the type
-  uint32_t uiTypeID = 5;
-  switch (uiType) {
-  case GL_DEBUG_TYPE_ERROR:
-    uiTypeID = 0;
-    break;
-  case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-    uiTypeID = 1;
-    break;
-  case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-    uiTypeID = 2;
-    break;
-  case GL_DEBUG_TYPE_PORTABILITY:
-    uiTypeID = 3;
-    break;
-  case GL_DEBUG_TYPE_PERFORMANCE:
-    uiTypeID = 4;
-    break;
-  case GL_DEBUG_TYPE_OTHER:
-  default:
-    uiTypeID = 5;
-    break;
-  }
+  uint32_t uiTypeID = std::min(uiType - GL_DEBUG_TYPE_ERROR, (uint32_t)5);
 
   // Get the source
-  uint32_t uiSourceID = 5;
-  switch (uiSource) {
-  case GL_DEBUG_SOURCE_API:
-    uiSourceID = 0;
-    break;
-  case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
-    uiSourceID = 1;
-    break;
-  case GL_DEBUG_SOURCE_SHADER_COMPILER:
-    uiSourceID = 2;
-    break;
-  case GL_DEBUG_SOURCE_THIRD_PARTY:
-    uiSourceID = 3;
-    break;
-  case GL_DEBUG_SOURCE_APPLICATION:
-    uiSourceID = 4;
-    break;
-  case GL_DEBUG_SOURCE_OTHER:
-  default:
-    uiSourceID = 5;
-    break;
-  }
+  uint32_t uiSourceID = std::min(uiSource - GL_DEBUG_SOURCE_API, (uint32_t)5);
 
   // Output to the Log
   SDL_LogCritical(SDL_LOG_CATEGORY_APPLICATION,
