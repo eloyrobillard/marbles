@@ -137,8 +137,10 @@ void Entities::RegisterInputRight(float dt) {
 }
 
 void Entities::ToCheckpoint(const vector<vec3> &positionsAtCheckpoint) {
-  mSplitMode = false;
-  join();
+  if (mSplitMode) {
+    join();
+    mSplitMode = false;
+  }
 
   mMarbles[0].ResetToPosition(positionsAtCheckpoint[0]);
 }
@@ -153,13 +155,18 @@ void Entities::split() {
     mMarbles[i].position = pos + vec3::rand(0.5f, 0.5f, 0.5f);
     mMarbles[i].velocity = vel;
     mMarbles[i].collider.radius = radius;
+    mMarbles[i].scale = vec3(radius);
   }
 }
 
 void Entities::join() {
   mMarbles[0].position = mAveragePos;
   mMarbles[0].velocity = mAverageVel;
-  mMarbles[0].collider.radius *= static_cast<float>(mCurNumMarbles);
+
+  float newRadius =
+      mMarbles[0].collider.radius * static_cast<float>(mCurNumMarbles);
+  mMarbles[0].collider.radius = newRadius;
+  mMarbles[0].scale = vec3(newRadius);
 }
 
 void Entities::ToggleSplitMode() {
