@@ -152,7 +152,8 @@ void Entities::split() {
       mMarbles[0].collider.radius / static_cast<float>(mCurNumMarbles);
 
   for (int i = 0; i < mCurNumMarbles; i++) {
-    mMarbles[i].position = pos + vec3::rand(0.5f, 0.5f, 0.5f);
+    mMarbles[i].position =
+        pos + vec3::rand(1.0f, 1.0f, 0.5f) - vec3(0.5f, 0.5f, 0.0f);
     mMarbles[i].velocity = vel;
     mMarbles[i].collider.radius = radius;
     mMarbles[i].scale = vec3(radius);
