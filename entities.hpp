@@ -10,146 +10,152 @@
 using Maths::quat;
 using Maths::vec3;
 
-inline stack<GLuint> gTo_render_as_collided;
+inline stack<GLuint> gToRenderAsCollided;
 inline vector<TriangleCollider> gCurrentPartition;
 
-enum class BodyType { Dynamic, Static };
-
-struct EntityData {
+struct DynamicEntityData {
   string meshPath;
-  BodyType bodyType = BodyType::Static;
+  vec3 scale = vec3(1.0f);
+};
+
+struct StaticEntityData {
+  string meshPath;
   float collisionAcceleration = 1.0f;
   bool overrideImpulse = false;
   vec3 impulseOverride = vec3::zero;
   vec3 scale = vec3(1.0f);
 };
 
-// NOTE: As per C.2 section from the C++ Core Guidelines
-// Making Entity a struct to make it clear mesh and body can vary independently
 struct Entity {
-  Entity(Mesh mesh, Body body) : mesh(std::move(mesh)), body(std::move(body)) {}
-  [[nodiscard]] tuple<mat4, optional<Texture *>, GLuint, size_t>
-  GetDrawData() const;
+  Entity(Mesh mesh) : mesh(std::move(mesh)) {}
+
+  Mesh mesh;
+};
+
+struct StaticEntity : Entity {
+  StaticEntity(const Mesh &mesh, StaticBody &body) : Entity(mesh), body(body) {}
 
   [[nodiscard]] string GetCoordinatesString() const {
     return std::format("x: {:8.3f}\ny: {:8.3f}\nz: {:8.3f}", body.position.x,
                        body.position.y, body.position.z);
   }
 
-  Mesh mesh;
-  Body body;
+  [[nodiscard]] tuple<mat4, optional<Texture *>, GLuint, size_t>
+  GetDrawData() const {
+    return {body.getWorldTransform(), mesh.lookTextureUp(0),
+            mesh.GetVertexArray(), mesh.GetNumIndices()};
+  }
+
+  StaticBody body;
 };
 
-class DynamicEntity : public Entity {
+struct DynamicEntity : public Entity {
   vec3 mPrevPos;
-
-public:
   SphereCollider collider;
+  DynamicBody body;
 
-  DynamicEntity(const Mesh &mesh, const Body &body, SphereCollider collider)
-      : Entity(mesh, body), collider(collider) {}
+  [[nodiscard]] string GetCoordinatesString() const {
+    return std::format("x: {:8.3f}\ny: {:8.3f}\nz: {:8.3f}", body.position.x,
+                       body.position.y, body.position.z);
+  }
+
+  DynamicEntity(const Mesh &mesh, const DynamicBody &body,
+                SphereCollider &collider)
+      : Entity(mesh), body(body), collider(collider) {}
   void UpdateFirstPass(float t, float dt);
   void UpdateSecondPass(float t, float dt);
-  void ResetToPosition(const vec3 &pos) {
-    body.position = pos;
-    body.velocity = vec3::zero;
-    body.rotational_velocity = vec3::zero;
-  }
-  void RegisterInputLeft(float dt) {
-    vec3 left = body.velocity.cross(vec3::up).normalized();
-    body.velocity += left * 4.0f * dt;
-  }
-  void RegisterInputRight(float dt) {
-    vec3 right = vec3::up.cross(body.velocity).normalized();
-    body.velocity += right * 4.0f * dt;
-  }
   [[nodiscard]] const vec3 &GetPositionAsRef() const { return body.position; }
   [[nodiscard]] vec3 &GetVelocityAsRef() { return body.velocity; }
   void SetPosition(const vec3 &pos) { body.position = pos; }
   void SetVelocity(const vec3 &vel) { body.velocity = vel; }
 };
 
-// HACK: Used to represent a slice of the dynamic entities vector.
-// Besides, it's not even correct: this works despite missing `take_view`
-typedef ranges::subrange<
-    ranges::iterator_t<
-        ranges::drop_view<ranges::ref_view<vector<DynamicEntity>>>>,
-    ranges::sentinel_t<
-        ranges::drop_view<ranges::ref_view<vector<DynamicEntity>>>>>
-    currentDynEntities;
-
 // Container for all game objects
 class Entities {
-  vector<Entity> mStaticEntities;
+  vector<StaticEntity> mStaticEntities;
   vector<vector<TriangleCollider>> mStaticColliders;
-  vector<DynamicEntity> mDynamicEntities;
 
-  currentDynEntities mCurrentDynamicEntities;
+  Mesh mMarbleMesh;
+  vector<DynamicBody> mMarbles;
+  vector<DynamicBody> mDynamicEntitiesStartingState;
+  vector<vec3> mPreviousPositions;
 
-  vector<DynamicEntity> mDynamicEntitiesStartingState;
+  int mMaxNumMarbles = 6;
+  int mCurNumMarbles = 6;
   bool mSplitMode = false;
   vec3 mAveragePos;
-  float mPositionalVariance;
+  float mPositionalVariance = 0.0f;
   vec3 mAverageVel;
+
+  void split();
+  void join();
 
   void computeAveragePosition() {
     vec3 res = vec3(0.0f);
 
-    for (const auto &e : mCurrentDynamicEntities) {
-      res += e.GetPositionAsRef();
+    int numMarbles = getNumMarbles();
+
+    for (int i = 0; i < numMarbles; i++) {
+      res += mMarbles[i].position;
     }
 
-    mAveragePos = res / static_cast<float>(mCurrentDynamicEntities.size());
+    mAveragePos = res / static_cast<float>(numMarbles);
   }
 
   void computeAveragePositionWithoutOutliers() {
     vec3 res = vec3(0.0f);
 
-    for (const auto &e : mCurrentDynamicEntities) {
-      float distSqrd = mAveragePos.distanceSqrd(e.body.position);
+    int numMarbles = getNumMarbles();
+
+    for (int i = 0; i < numMarbles; i++) {
+      float distSqrd = mAveragePos.distanceSqrd(mMarbles[i].position);
 
       if (distSqrd <= 3 * mPositionalVariance) {
-        res += e.GetPositionAsRef();
+        res += mMarbles[i].position;
       }
     }
 
-    mAveragePos = res / static_cast<float>(mCurrentDynamicEntities.size());
+    mAveragePos = res / static_cast<float>(numMarbles);
   }
 
   void computePositionalVariance() {
     mPositionalVariance = 0;
 
-    for (const auto &e : mCurrentDynamicEntities) {
-      mPositionalVariance += mAveragePos.distanceSqrd(e.body.position);
+    int numMarbles = getNumMarbles();
+
+    for (int i = 0; i < numMarbles; i++) {
+      mPositionalVariance += mAveragePos.distanceSqrd(mMarbles[i].position);
     }
 
-    mPositionalVariance /= static_cast<float>(mCurrentDynamicEntities.size());
-  }
-
-  void repositionUsingVariance() {
-    for (auto &e : mCurrentDynamicEntities) {
-      float distSqrd = mAveragePos.distanceSqrd(e.body.position);
-
-      if (distSqrd > 3 * mPositionalVariance) {
-        e.SetPosition(mAveragePos + vec3::rand(0.5f, 0.5f, 0.0f));
-      }
-    }
+    mPositionalVariance /= static_cast<float>(numMarbles);
   }
 
   void computeAverageVelocity() {
     vec3 res = vec3(0.0f);
 
-    for (auto &v : mCurrentDynamicEntities) {
-      res += v.GetVelocityAsRef();
+    int numMarbles = getNumMarbles();
+
+    for (int i = 0; i < numMarbles; i++) {
+      res += mMarbles[i].velocity;
     }
 
-    mAverageVel = res / static_cast<float>(mCurrentDynamicEntities.size());
+    mAverageVel = res / static_cast<float>(numMarbles);
   }
+
+  [[nodiscard]] int getNumMarbles() const {
+    return mSplitMode ? mCurNumMarbles : 1;
+  }
+
+  static void updateFirstPass(DynamicBody &body, float t, float dt);
+  static void updateSecondPass(DynamicBody &body, float t, float dt);
 
 public:
   Entities();
   void Update(float time, float deltaTime);
-  void RegisterEntities(const vector<EntityData> &entityList);
+  // Register the mesh/textures for the marbles.
+  // Only one mesh/textures set can be active at a time.
+  void RegisterMarble(const DynamicEntityData &entity);
+  void RegisterStaticEntities(const vector<StaticEntityData> &entityList);
 
   [[nodiscard]]
   vec3 ProvideCameraFollow() const {
@@ -161,18 +167,20 @@ public:
     return mAverageVel.normalized();
   }
 
-  [[nodiscard]] const vector<Entity> &GetStaticEntities() const {
+  [[nodiscard]] const vector<StaticEntity> &GetStaticEntities() const {
     return mStaticEntities;
   }
 
-  [[nodiscard]] auto GetDynamicEntities() const {
-    return mCurrentDynamicEntities;
+  [[nodiscard]] tuple<Mesh, vector<DynamicBody>, int>
+  GetDynamicEntities() const {
+    return {mMarbleMesh, mMarbles, getNumMarbles()};
   }
 
   string GetDynamicEntitiesCoordinates() {
     return std::format("x: {:8.3f}\ny: {:8.3f}\nz: {:8.3f}", mAveragePos.x,
                        mAveragePos.y, mAveragePos.z);
   }
+
   // TODO: move input handling somewhere else
   void RegisterInputForward(float dt);
   void RegisterInputLeft(float dt);

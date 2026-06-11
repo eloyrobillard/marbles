@@ -75,7 +75,6 @@ class Renderer {
   void setView(const shared_ptr<FollowCamera> &camera);
   void setProjection();
   void pushHUDTexture(GLuint texture) { hudTextures.push_back(texture); }
-  void getMeshes(const vector<pair<string, BodyType>> &meshList);
   void drawCollisionDebug(const mat4 &viewProj);
   void drawToHUD(GLuint VAO, GLuint textTexture, GLuint screenTexture,
                  const float textColor[3]);
@@ -86,9 +85,9 @@ class Renderer {
   GLuint LoadGLTexture(SDL_Surface *surface, int dst_x, int dst_y,
                        SDL_FlipMode flip_mode) const;
 
-  void drawSceneWithShader(const Shader &shader,
-                           const shared_ptr<const Entities> &entities,
-                           const mat4 &viewProj);
+  static void drawSceneWithShader(const Shader &shader,
+                                  const shared_ptr<const Entities> &entities,
+                                  const mat4 &viewProj);
   void drawScene(const shared_ptr<const Entities> &entities,
                  const mat4 &viewProj, const vec3 &lightDir,
                  const mat4 &lightViewProj, float near, float far);
@@ -97,7 +96,10 @@ class Renderer {
   static void drawQuad(Shader &shader, GLuint VAO, GLuint texture);
   static void blitFramebuffer(GLuint readFB, GLuint drawFB, int readW,
                               int readH, int drawW, int drawH);
-  void drawEntity(const Shader &shader, const Entity &entity);
+  static void drawStaticEntity(const Shader &shader,
+                               const StaticEntity &entity);
+  static void drawDynamicEntity(const Shader &shader, const DynamicBody &body,
+                                const Mesh &mesh);
   static GLuint createColorAttachmentTexture(
       int width, int height, int colorFormat,
       int colorAttachmentNumber = GL_COLOR_ATTACHMENT0);

@@ -314,14 +314,38 @@ void Renderer::Init(const shared_ptr<const Entities> &entities) {
   SDL_GL_SwapWindow(mWindow);
 }
 
-void Renderer::drawEntity(const Shader &shader, const Entity &entity) {
-  const auto &[worldTransform, maybe_tex, vertexArray, numIndices] =
+void Renderer::drawDynamicEntity(const Shader &shader, const DynamicBody &body,
+                                 const Mesh &mesh) {
+  shader.SetMatrixUniform("uWorldTransform", body.getWorldTransform());
+
+  auto maybeTex = mesh.lookTextureUp(0);
+  if (maybeTex.has_value()) {
+    glActiveTexture(GL_TEXTURE0);
+    maybeTex.value()->SetActive();
+  }
+
+  Shader::SetVerticesActive(mesh.GetVertexArray());
+
+  // Draw triangles
+  glDrawElements(GL_TRIANGLES, static_cast<int>(mesh.GetNumIndices()),
+                 GL_UNSIGNED_INT, nullptr);
+
+  GLenum err_code = glGetError();
+  while (GL_NO_ERROR != err_code) {
+    printf("OpenGL Error @ %s: %i", "mesh draw", err_code);
+    err_code = glGetError();
+  }
+}
+
+void Renderer::drawStaticEntity(const Shader &shader,
+                                const StaticEntity &entity) {
+  const auto &[worldTransform, maybeTex, vertexArray, numIndices] =
       entity.GetDrawData();
   shader.SetMatrixUniform("uWorldTransform", worldTransform);
 
-  if (maybe_tex.has_value()) {
+  if (maybeTex.has_value()) {
     glActiveTexture(GL_TEXTURE0);
-    maybe_tex.value()->SetActive();
+    maybeTex.value()->SetActive();
   }
 
   Shader::SetVerticesActive(vertexArray);
@@ -395,7 +419,8 @@ void Renderer::setupQuadVAO(GLuint &VAO, GLuint &VBO) {
   glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices,
                GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
+                        (void *)nullptr);
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
                         (void *)(3 * sizeof(float)));
@@ -533,7 +558,7 @@ bool Renderer::setupFramebuffers() {
     glBindFramebuffer(GL_FRAMEBUFFER, mPingpongFBO[i]);
     glBindTexture(GL_TEXTURE_2D, mPingpongColorBuffer[i]);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, mScreenWidth, mScreenHeight, 0,
-                 GL_RGBA, GL_FLOAT, NULL);
+                 GL_RGBA, GL_FLOAT, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -557,13 +582,13 @@ void Renderer::drawCollisionDebug(const mat4 &viewProj) {
 
   mCollisionShader.SetMatrixUniform("uViewProj", viewProj);
 
-  while (!gTo_render_as_collided.empty()) {
-    Shader::SetVerticesActive(gTo_render_as_collided.top());
+  while (!gToRenderAsCollided.empty()) {
+    Shader::SetVerticesActive(gToRenderAsCollided.top());
 
     // Draw triangles
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
 
-    gTo_render_as_collided.pop();
+    gToRenderAsCollided.pop();
   }
 
   glEnable(GL_DEPTH_TEST);
@@ -595,11 +620,13 @@ void Renderer::drawSceneWithShader(const Shader &shader,
   shader.SetMatrixUniform("uViewProj", viewProj);
 
   for (const auto &e : entities->GetStaticEntities()) {
-    drawEntity(shader, e);
+    drawStaticEntity(shader, e);
   }
 
-  for (const auto &e : entities->GetDynamicEntities()) {
-    drawEntity(shader, e);
+  const auto &[marbleMesh, marbles, numMarbles] =
+      entities->GetDynamicEntities();
+  for (int i = 0; i < numMarbles; i++) {
+    drawDynamicEntity(shader, marbles[i], marbleMesh);
   }
 }
 
@@ -612,7 +639,7 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
   mDepthMapShader.SetMatrixUniform("uViewProj", viewProj);
 
   for (const auto &e : entities->GetStaticEntities()) {
-    drawEntity(mDepthMapShader, e);
+    drawStaticEntity(mDepthMapShader, e);
   }
 
   glBindFramebuffer(GL_FRAMEBUFFER, mContourFBO);
@@ -641,7 +668,7 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
   glBindTexture(GL_TEXTURE_2D, mMarbleShadowMapTexture);
 
   for (const auto &e : entities->GetStaticEntities()) {
-    drawEntity(mDrawStaticShader, e);
+    drawStaticEntity(mDrawStaticShader, e);
   }
 
 #ifdef _DEBUG
@@ -651,8 +678,10 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
   mMeshShader.SetActive();
   mMeshShader.SetMatrixUniform("uViewProj", viewProj);
 
-  for (const auto &e : entities->GetDynamicEntities()) {
-    drawEntity(mMeshShader, e);
+  const auto &[marbleMesh, marbles, numMarbles] =
+      entities->GetDynamicEntities();
+  for (int i = 0; i < numMarbles; i++) {
+    drawDynamicEntity(mMeshShader, marbles[i], marbleMesh);
   }
 }
 

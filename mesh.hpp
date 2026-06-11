@@ -18,6 +18,7 @@ class Mesh {
   void deleteVertexArray() const;
 
 public:
+  // May or may not return a mesh, so it cannot be a constructor
   static optional<pair<Mesh, Body>> Load(const std::string &filename);
   vector<TriangleCollider>
   generateTriangleCollidersFromMesh(Body &body, float accel,

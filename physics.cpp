@@ -159,8 +159,8 @@ optional<vec3> intersectsSphere(SphereCollider &s1, SphereCollider &s2) {
 }
 
 const float restitution = 0.0f;
-void Physics::processDynamicCollisions(currentDynEntities &des, int idx) {
-  DynamicEntity eThis = des[idx];
+void Physics::processDynamicCollisions(vector<DynamicBody> &des, int idx) {
+  DynamicBody eThis = des[idx];
   vec3 collisions = vec3::zero;
   int numCollisions = 0;
   bool collisionHappened = false;
@@ -173,20 +173,15 @@ void Physics::processDynamicCollisions(currentDynEntities &des, int idx) {
     if (!maybeNormal.has_value())
       continue;
 
-#ifdef _DEBUG
-    gTo_render_as_collided.push(eThis.mesh.GetVertexArray());
-    gTo_render_as_collided.push(eOther.mesh.GetVertexArray());
-#endif
-
     // SOURCE: "Game Physics Engine Development" by Ian Millington (section 7.2)
     const vec3 normal = maybeNormal.value();
-    const float sepVel = eThis.body.velocity.dot(normal);
-    const float sepVelOther = eOther.body.velocity.dot(-normal);
+    const float sepVel = eThis.velocity.dot(normal);
+    const float sepVelOther = eOther.velocity.dot(-normal);
 
     // Apply impulse instantly
     if (sepVel < 0 || sepVelOther < 0) {
-      eThis.body.velocity += normal * (-sepVel * (restitution + 1));
-      eOther.body.velocity += -normal * (-sepVelOther * (restitution + 1));
+      eThis.velocity += normal * (-sepVel * (restitution + 1));
+      eOther.velocity += -normal * (-sepVelOther * (restitution + 1));
     }
   }
 }
@@ -207,7 +202,7 @@ bool Physics::processStaticCollisions(const vector<TriangleCollider> &triangles,
     collision_happened = true;
 
 #ifdef _DEBUG
-    gTo_render_as_collided.push(triangle.vertexArray);
+    gToRenderAsCollided.push(triangle.vertexArray);
 #endif
 
     // SOURCE: "Game Physics Engine Development" by Ian Millington (section 7.2)

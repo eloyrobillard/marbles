@@ -73,7 +73,7 @@ class DynamicEntity;
 namespace Physics {
 bool processStaticCollisions(const vector<TriangleCollider> &triangles,
                              const SphereCollider &sphere, vec3 &velocity);
-void processDynamicCollisions(currentDynEntities &des, int idx);
+void processDynamicCollisions(vector<DynamicBody> &des, int idx);
 
 inline float physicsTicksPerSecond = 120.0;
 inline float physicsDeltaTime = 1.0f / physicsTicksPerSecond;

@@ -1,17 +1,19 @@
 #include "entities.hpp"
 #include "physics.hpp"
 
-EntityData GenerateEntityData(string meshPath,
-                              BodyType bodyType = BodyType::Static,
-                              float collisionAcceleration = 1.0f,
-                              bool overrideImpulse = false,
-                              vec3 impulseOverride = vec3::zero) {
-  return {std::move(meshPath), bodyType, collisionAcceleration, overrideImpulse,
+StaticEntityData GenerateEntityData(string meshPath,
+                                    float collisionAcceleration = 1.0f,
+                                    bool overrideImpulse = false,
+                                    vec3 impulseOverride = vec3::zero) {
+  return {std::move(meshPath), collisionAcceleration, overrideImpulse,
           impulseOverride};
 }
 
 Entities::Entities() {
-  RegisterEntities({
+  mMarbles.reserve(mMaxNumMarbles);
+  mPreviousPositions.reserve(mMaxNumMarbles);
+
+  RegisterStaticEntities({
       {"assets/ramp1.gpmesh"},
       {"assets/ramp2.gpmesh"},
       {"assets/ramp3.gpmesh"},
@@ -28,28 +30,9 @@ Entities::Entities() {
        .collisionAcceleration = 1.03f,
        .overrideImpulse = true,
        .impulseOverride = vec3::up},
-      {"assets/sphere.gpmesh", BodyType::Dynamic},
-      {.meshPath = "assets/sphere.gpmesh",
-       .bodyType = BodyType::Dynamic,
-       .scale = vec3(0.5f)},
-      {.meshPath = "assets/sphere.gpmesh",
-       .bodyType = BodyType::Dynamic,
-       .scale = vec3(0.5f)},
-      {.meshPath = "assets/sphere.gpmesh",
-       .bodyType = BodyType::Dynamic,
-       .scale = vec3(0.5f)},
-      {.meshPath = "assets/sphere.gpmesh",
-       .bodyType = BodyType::Dynamic,
-       .scale = vec3(0.5f)},
-      {.meshPath = "assets/sphere.gpmesh",
-       .bodyType = BodyType::Dynamic,
-       .scale = vec3(0.5f)},
-      {.meshPath = "assets/sphere.gpmesh",
-       .bodyType = BodyType::Dynamic,
-       .scale = vec3(0.5f)},
   });
 
-  mCurrentDynamicEntities = ranges::subrange{views::take(mDynamicEntities, 1)};
+  RegisterMarble({"assets/sphere.gpmesh"});
 }
 
 void Entities::Update(float time, float deltaTime) {
@@ -58,77 +41,73 @@ void Entities::Update(float time, float deltaTime) {
   computeAverageVelocity();
   computePositionalVariance();
   computeAveragePositionWithoutOutliers();
-  // repositionUsingVariance();
 
-  for (auto &e : mCurrentDynamicEntities) {
+  for (int i = 0; i < (mSplitMode ? mCurNumMarbles : 1); i++) {
+    DynamicBody &m = mMarbles[i];
+
     // Prepare new body position to test collisions at
-    e.UpdateFirstPass(time, deltaTime);
-  }
+    mPreviousPositions[i] = m.position;
 
-  // Instantly apply collisions to the velocity of the body
-  GetDynamicCollisionImpulse();
+    m.velocity += deltaTime * grav_force;
+    m.position += deltaTime * m.velocity;
 
-  for (auto &e : mCurrentDynamicEntities) {
+    m.collider.position = m.position;
+
+    // Instantly apply collisions to the velocity of the body
+    Physics::processDynamicCollisions(mMarbles, i);
+
     // Adjust position based on (possibly) updated velocity
-    e.UpdateSecondPass(time, deltaTime);
-  }
+    m.position = mPreviousPositions[i] + deltaTime * m.velocity;
 
-  GetStaticCollisionImpulse();
+    // Match m's position with collider's
+    m.collider.position = m.position;
 
-  for (auto &e : mCurrentDynamicEntities) {
-    // Adjust position based on (possibly) updated velocity
-    e.UpdateSecondPass(time, deltaTime);
-  }
-}
-
-// TODO: Put in Physics
-void Entities::GetDynamicCollisionImpulse() {
-  for (int i = 0; i < mCurrentDynamicEntities.size(); i++) {
-    Physics::processDynamicCollisions(mCurrentDynamicEntities, i);
-  }
-}
-
-// TODO: Put in Physics
-void Entities::GetStaticCollisionImpulse() {
-  for (auto &e : mCurrentDynamicEntities) {
-    float min_x = e.collider.position.x - e.collider.radius;
-    float max_x = e.collider.position.x + e.collider.radius;
-    float min_y = e.collider.position.y - e.collider.radius;
-    float max_y = e.collider.position.y + e.collider.radius;
-    float min_z = e.collider.position.z - e.collider.radius;
-    float max_z = e.collider.position.z + e.collider.radius;
+    float min_x = m.collider.position.x - m.collider.radius;
+    float max_x = m.collider.position.x + m.collider.radius;
+    float min_y = m.collider.position.y - m.collider.radius;
+    float max_y = m.collider.position.y + m.collider.radius;
+    float min_z = m.collider.position.z - m.collider.radius;
+    float max_z = m.collider.position.z + m.collider.radius;
 
     gCurrentPartition =
         gSpacePartition.get_partition(min_x, max_x, min_y, max_y, min_z, max_z);
 
-    Physics::processStaticCollisions(gCurrentPartition, e.collider,
-                                     e.GetVelocityAsRef());
+    Physics::processStaticCollisions(gCurrentPartition, m.collider, m.velocity);
+
+    // Adjust position (again)
+    m.position = mPreviousPositions[i] + deltaTime * m.velocity;
+
+    // Match m's position with collider's
+    m.collider.position = m.position;
   }
 }
 
-void DynamicEntity::UpdateFirstPass(float t, float dt) {
-  mPrevPos = body.position;
+void Entities::RegisterMarble(const DynamicEntityData &entityData) {
+  auto maybe = Mesh::Load(entityData.meshPath);
 
-  body.velocity += dt * grav_force;
-  body.position += dt * body.velocity;
+  if (maybe.has_value()) {
+    auto [mesh, body] = maybe.value();
+    body.scale *= entityData.scale;
 
-  collider.position = body.position;
+    SphereCollider c(body.position, body.scale.x);
+    DynamicBody b(c);
+    b.scale = body.scale;
+    b.position = body.position;
+
+    mMarbleMesh = {mesh};
+
+    for (int i = 0; i < mMaxNumMarbles; i++) {
+      mMarbles.emplace_back(b);
+      mPreviousPositions.emplace_back(b.position);
+    }
+
+    mDynamicEntitiesStartingState.emplace_back(b);
+  }
 }
 
-void DynamicEntity::UpdateSecondPass(float t, float dt) {
-  body.position = mPrevPos + dt * body.velocity;
-
-  // Match body's position with collider's
-  collider.position = body.position;
-}
-
-tuple<mat4, optional<Texture *>, GLuint, size_t> Entity::GetDrawData() const {
-  return {body.getWorldTransform(), mesh.lookTextureUp(0),
-          mesh.GetVertexArray(), mesh.GetNumIndices()};
-}
-
-void Entities::RegisterEntities(const vector<EntityData> &entityList) {
-  for (const auto &[mesh_name, btype, accel, override_impulse, impulse_override,
+void Entities::RegisterStaticEntities(
+    const vector<StaticEntityData> &entityList) {
+  for (const auto &[mesh_name, accel, override_impulse, impulse_override,
                     scale] : entityList) {
     auto maybe = Mesh::Load(mesh_name);
 
@@ -136,58 +115,58 @@ void Entities::RegisterEntities(const vector<EntityData> &entityList) {
       auto [mesh, body] = maybe.value();
       body.scale *= scale;
 
-      if (btype == BodyType::Dynamic) {
-        DynamicEntity de(mesh, body,
-                         SphereCollider(body.position, body.scale.x));
-        mDynamicEntities.emplace_back(de);
-        mDynamicEntitiesStartingState.emplace_back(de);
-      } else {
-        auto triangles = mesh.generateTriangleCollidersFromMesh(
-            body, accel, override_impulse, impulse_override);
-        gSpacePartition.populate(triangles);
+      auto triangles = mesh.generateTriangleCollidersFromMesh(
+          body, accel, override_impulse, impulse_override);
+      gSpacePartition.populate(triangles);
 
-        mStaticEntities.emplace_back(mesh, body);
-        mStaticColliders.emplace_back(triangles);
-      }
+      StaticBody b(body);
+      mStaticEntities.emplace_back(mesh, b);
+      mStaticColliders.emplace_back(triangles);
     }
   }
 }
 
 void Entities::RegisterInputLeft(float dt) {
   if (!mSplitMode)
-    mDynamicEntities[0].RegisterInputLeft(dt);
+    mMarbles[0].RegisterInputLeft(dt);
 }
 
 void Entities::RegisterInputRight(float dt) {
   if (!mSplitMode)
-    mDynamicEntities[0].RegisterInputRight(dt);
+    mMarbles[0].RegisterInputRight(dt);
 }
 
 void Entities::ToCheckpoint(const vector<vec3> &positionsAtCheckpoint) {
-  for (int i = 0; i < positionsAtCheckpoint.size(); i++) {
-    mDynamicEntities[i].ResetToPosition(positionsAtCheckpoint[i]);
+  mSplitMode = false;
+  join();
+
+  mMarbles[0].ResetToPosition(positionsAtCheckpoint[0]);
+}
+
+void Entities::split() {
+  const vec3 &pos = mMarbles[0].position;
+  const vec3 &vel = mMarbles[0].velocity;
+  const float radius =
+      mMarbles[0].collider.radius / static_cast<float>(mCurNumMarbles);
+
+  for (int i = 0; i < mCurNumMarbles; i++) {
+    mMarbles[i].position = pos + vec3::rand(0.5f, 0.5f, 0.5f);
+    mMarbles[i].velocity = vel;
+    mMarbles[i].collider.radius = radius;
   }
+}
+
+void Entities::join() {
+  mMarbles[0].position = mAveragePos;
+  mMarbles[0].velocity = mAverageVel;
+  mMarbles[0].collider.radius *= static_cast<float>(mCurNumMarbles);
 }
 
 void Entities::ToggleSplitMode() {
   mSplitMode = !mSplitMode;
 
-  if (!mSplitMode) {
-    mDynamicEntities[0].SetPosition(mAveragePos);
-    mDynamicEntities[0].SetVelocity(mAverageVel);
-
-    mCurrentDynamicEntities =
-        ranges::subrange{views::take(mDynamicEntities, 1)};
-  } else {
-    const vec3 &pos = mDynamicEntities[0].GetPositionAsRef();
-    const vec3 &vel = mDynamicEntities[0].GetVelocityAsRef();
-
-    for (int i = 1; i < mDynamicEntities.size(); i++) {
-      mDynamicEntities[i].SetPosition(pos + vec3::rand(0.5f, 0.5f, 0.0f));
-      mDynamicEntities[i].SetVelocity(vel);
-    }
-
-    mCurrentDynamicEntities =
-        ranges::subrange{views::drop(mDynamicEntities, 1)};
-  }
+  if (!mSplitMode)
+    join();
+  else
+    split();
 };
