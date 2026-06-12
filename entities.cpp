@@ -49,8 +49,13 @@ void Entities::Update(float time, float deltaTime) {
     mPreviousPositions[i] = m.position;
 
     if (mSplitMode == SplitMode::Joining) {
-      vec3 to = mAveragePos - m.position;
-      m.velocity += to / 64.0f;
+      // Once all marbles are done fusing into one, return to single marble mode
+      if (mCurNumMarbles == 1) {
+        join();
+      } else {
+        vec3 to = mAveragePos - m.position;
+        m.velocity += to / 64.0f;
+      }
     }
 
     m.velocity += deltaTime * gGravity;
