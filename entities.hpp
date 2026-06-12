@@ -84,67 +84,20 @@ class Entities {
 
   int mMaxNumMarbles = 6;
   int mCurNumMarbles = 6;
-  SplitMode mSplitMode = SplitMode::Joined;
   vec3 mAveragePos;
   float mPositionalVariance = 0.0f;
   vec3 mAverageVel;
+  SplitMode mSplitMode = SplitMode::Joined;
 
   void split();
   void join();
   void startJoin() { mSplitMode = SplitMode::Joining; }
   void stopJoin() { mSplitMode = SplitMode::Split; }
 
-  void computeAveragePosition() {
-    vec3 res = vec3(0.0f);
-
-    int numMarbles = getNumMarbles();
-
-    for (int i = 0; i < numMarbles; i++) {
-      res += mMarbles[i].position;
-    }
-
-    mAveragePos = res / static_cast<float>(numMarbles);
-  }
-
-  void computeAveragePositionWithoutOutliers() {
-    vec3 res = vec3(0.0f);
-
-    int numMarbles = getNumMarbles();
-
-    for (int i = 0; i < numMarbles; i++) {
-      float distSqrd = mAveragePos.distanceSqrd(mMarbles[i].position);
-
-      if (distSqrd <= 3 * mPositionalVariance) {
-        res += mMarbles[i].position;
-      }
-    }
-
-    mAveragePos = res / static_cast<float>(numMarbles);
-  }
-
-  void computePositionalVariance() {
-    mPositionalVariance = 0;
-
-    int numMarbles = getNumMarbles();
-
-    for (int i = 0; i < numMarbles; i++) {
-      mPositionalVariance += mAveragePos.distanceSqrd(mMarbles[i].position);
-    }
-
-    mPositionalVariance /= static_cast<float>(numMarbles);
-  }
-
-  void computeAverageVelocity() {
-    vec3 res = vec3(0.0f);
-
-    int numMarbles = getNumMarbles();
-
-    for (int i = 0; i < numMarbles; i++) {
-      res += mMarbles[i].velocity;
-    }
-
-    mAverageVel = res / static_cast<float>(numMarbles);
-  }
+  void computeAveragePosition();
+  void computeAveragePositionWithoutOutliers();
+  void computePositionalVariance();
+  void computeAverageVelocity();
 
   [[nodiscard]] int getNumMarbles() const {
     return mSplitMode == SplitMode::Joined ? 1 : mCurNumMarbles;

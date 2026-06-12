@@ -159,21 +159,25 @@ optional<vec3> intersectsSphere(SphereCollider &s1, SphereCollider &s2) {
 }
 
 const float restitution = 0.0f;
-void Physics::processDynamicCollisions(vector<DynamicBody> &des, int idx) {
+int Physics::processDynamicCollisions(vector<DynamicBody> &des, int idx,
+                                      int numMarbles, bool joining) {
   DynamicBody eThis = des[idx];
-  vec3 collisions = vec3::zero;
-  int numCollisions = 0;
-  bool collisionHappened = false;
 
   // Check for collision against spheres past this one in the vector
   // This is to avoid duplicate collision checks
-  for (auto &eOther : ranges::subrange{des.begin() + idx + 1, des.end()}) {
+  for (int i = idx + 1; i < numMarbles; i++) {
+    DynamicBody &eOther = des[i];
     auto maybeNormal = intersectsSphere(eThis.collider, eOther.collider);
 
     if (!maybeNormal.has_value())
       continue;
 
-    // SOURCE: "Game Physics Engine Development" by Ian Millington (section 7.2)
+    if (joining) {
+      return i;
+    }
+
+    // SOURCE: "Game Physics Engine Development" by Ian Millington
+    // (section 7.2)
     const vec3 normal = maybeNormal.value();
     const float sepVel = eThis.velocity.dot(normal);
     const float sepVelOther = eOther.velocity.dot(-normal);
@@ -184,13 +188,13 @@ void Physics::processDynamicCollisions(vector<DynamicBody> &des, int idx) {
       eOther.velocity += -normal * (-sepVelOther * (restitution + 1));
     }
   }
+
+  return -1;
 }
 
 bool Physics::processStaticCollisions(const vector<TriangleCollider> &triangles,
                                       const SphereCollider &sphere,
                                       vec3 &velocity) {
-  vec3 collisions = vec3::zero;
-  int num_collisions = 0;
   bool collision_happened = false;
 
   for (const auto &triangle : triangles) {
@@ -205,7 +209,8 @@ bool Physics::processStaticCollisions(const vector<TriangleCollider> &triangles,
     gToRenderAsCollided.push(triangle.vertexArray);
 #endif
 
-    // SOURCE: "Game Physics Engine Development" by Ian Millington (section 7.2)
+    // SOURCE: "Game Physics Engine Development" by Ian Millington
+    // (section 7.2)
     const vec3 normal = maybe_normal.value();
     const float sepVel = velocity.dot(normal);
 

@@ -59,7 +59,18 @@ void Entities::Update(float time, float deltaTime) {
     m.collider.position = m.position;
 
     // Instantly apply collisions to the velocity of the body
-    Physics::processDynamicCollisions(mMarbles, i);
+    // If in joining mode, instantly join with any collided marble
+    int collisionIdx = Physics::processDynamicCollisions(
+        mMarbles, i, mCurNumMarbles, mSplitMode == SplitMode::Joining);
+
+    if (collisionIdx > -1) {
+      vec3 averagePos = (m.position + mMarbles[collisionIdx].position) / 2.0f;
+      m.collider.radius += mMarbles[collisionIdx].collider.radius;
+      m.scale += mMarbles[collisionIdx].scale;
+
+      mCurNumMarbles--;
+      mMarbles[collisionIdx] = mMarbles[mCurNumMarbles];
+    }
 
     // Adjust position based on (possibly) updated velocity
     m.position = mPreviousPositions[i] + deltaTime * m.velocity;
@@ -186,4 +197,56 @@ void Entities::ToggleSplitMode() {
     stopJoin();
   else
     split();
+}
+
+void Entities::computeAveragePosition() {
+  vec3 res = vec3(0.0f);
+
+  int numMarbles = getNumMarbles();
+
+  for (int i = 0; i < numMarbles; i++) {
+    res += mMarbles[i].position;
+  }
+
+  mAveragePos = res / static_cast<float>(numMarbles);
+}
+
+void Entities::computeAveragePositionWithoutOutliers() {
+  vec3 res = vec3(0.0f);
+
+  int numMarbles = getNumMarbles();
+
+  for (int i = 0; i < numMarbles; i++) {
+    float distSqrd = mAveragePos.distanceSqrd(mMarbles[i].position);
+
+    if (distSqrd <= 3 * mPositionalVariance) {
+      res += mMarbles[i].position;
+    }
+  }
+
+  mAveragePos = res / static_cast<float>(numMarbles);
+}
+
+void Entities::computePositionalVariance() {
+  mPositionalVariance = 0;
+
+  int numMarbles = getNumMarbles();
+
+  for (int i = 0; i < numMarbles; i++) {
+    mPositionalVariance += mAveragePos.distanceSqrd(mMarbles[i].position);
+  }
+
+  mPositionalVariance /= static_cast<float>(numMarbles);
+}
+
+void Entities::computeAverageVelocity() {
+  vec3 res = vec3(0.0f);
+
+  int numMarbles = getNumMarbles();
+
+  for (int i = 0; i < numMarbles; i++) {
+    res += mMarbles[i].velocity;
+  }
+
+  mAverageVel = res / static_cast<float>(numMarbles);
 }
