@@ -160,7 +160,6 @@ void Entities::RegisterInputRight(float dt) {
 void Entities::ToCheckpoint(const vector<vec3> &positionsAtCheckpoint) {
   if (mSplitMode != SplitMode::Joined) {
     join();
-    mSplitMode = SplitMode::Joined;
   }
 
   mMarbles[0].ResetToPosition(positionsAtCheckpoint[0]);
@@ -168,6 +167,7 @@ void Entities::ToCheckpoint(const vector<vec3> &positionsAtCheckpoint) {
 
 void Entities::split() {
   mSplitMode = SplitMode::Split;
+  mCurNumMarbles = mMaxNumMarbles;
 
   const vec3 &pos = mMarbles[0].position;
   const vec3 &vel = mMarbles[0].velocity;
@@ -189,10 +189,10 @@ void Entities::join() {
   mMarbles[0].position = mAveragePos;
   mMarbles[0].velocity = mAverageVel;
 
-  float newRadius =
-      mMarbles[0].collider.radius * static_cast<float>(mCurNumMarbles);
-  mMarbles[0].collider.radius = newRadius;
-  mMarbles[0].scale = vec3(newRadius);
+  for (int i = 1; i < mCurNumMarbles; i++) {
+    mMarbles[0].collider.radius += mMarbles[i].collider.radius;
+    mMarbles[0].scale += mMarbles[i].scale;
+  }
 }
 
 void Entities::ToggleSplitMode() {
