@@ -171,12 +171,16 @@ void Entities::split() {
 
   const vec3 &pos = mMarbles[0].position;
   const vec3 &vel = mMarbles[0].velocity;
+  const float scale = mMarbles[0].scale.x;
   const float radius =
       mMarbles[0].collider.radius / static_cast<float>(mCurNumMarbles);
 
   for (int i = 0; i < mCurNumMarbles; i++) {
+    // Place tiny marble at random position inside the sphere of the original
+    // marble
     mMarbles[i].position =
-        pos + vec3::rand(1.0f, 1.0f, 0.5f) - vec3(0.5f, 0.5f, 0.0f);
+        pos + vec3(0.0f, 0.0f, scale) +
+        (vec3::rand(1.0f, 1.0f, 1.0f) - vec3(0.5f, 0.5f, 0.0f)) * scale;
     mMarbles[i].velocity = vel;
     mMarbles[i].collider.radius = radius;
     mMarbles[i].scale = vec3(radius);
