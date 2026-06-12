@@ -11,7 +11,7 @@ using Maths::mat4;
 using Maths::quat;
 using Maths::vec3;
 
-const vec3 grav_force = vec3(0.0f, 0.0f, -9.81f);
+const vec3 gGravity = vec3(0.0f, 0.0f, -9.81f);
 
 class SpacePartition {
   float mMinX;

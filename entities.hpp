@@ -70,6 +70,8 @@ struct DynamicEntity : public Entity {
   void SetVelocity(const vec3 &vel) { body.velocity = vel; }
 };
 
+enum class SplitMode { Split, Joining, Joined };
+
 // Container for all game objects
 class Entities {
   vector<StaticEntity> mStaticEntities;
@@ -82,13 +84,15 @@ class Entities {
 
   int mMaxNumMarbles = 6;
   int mCurNumMarbles = 6;
-  bool mSplitMode = false;
+  SplitMode mSplitMode = SplitMode::Joined;
   vec3 mAveragePos;
   float mPositionalVariance = 0.0f;
   vec3 mAverageVel;
 
   void split();
   void join();
+  void startJoin() { mSplitMode = SplitMode::Joining; }
+  void stopJoin() { mSplitMode = SplitMode::Split; }
 
   void computeAveragePosition() {
     vec3 res = vec3(0.0f);
@@ -143,7 +147,7 @@ class Entities {
   }
 
   [[nodiscard]] int getNumMarbles() const {
-    return mSplitMode ? mCurNumMarbles : 1;
+    return mSplitMode == SplitMode::Joined ? 1 : mCurNumMarbles;
   }
 
   static void updateFirstPass(DynamicBody &body, float t, float dt);

@@ -42,13 +42,18 @@ void Entities::Update(float time, float deltaTime) {
   computePositionalVariance();
   computeAveragePositionWithoutOutliers();
 
-  for (int i = 0; i < (mSplitMode ? mCurNumMarbles : 1); i++) {
+  for (int i = 0; i < getNumMarbles(); i++) {
     DynamicBody &m = mMarbles[i];
 
     // Prepare new body position to test collisions at
     mPreviousPositions[i] = m.position;
 
-    m.velocity += deltaTime * grav_force;
+    if (mSplitMode == SplitMode::Joining) {
+      vec3 to = mAveragePos - m.position;
+      m.velocity += to / 64.0f;
+    }
+
+    m.velocity += deltaTime * gGravity;
     m.position += deltaTime * m.velocity;
 
     m.collider.position = m.position;
@@ -127,25 +132,27 @@ void Entities::RegisterStaticEntities(
 }
 
 void Entities::RegisterInputLeft(float dt) {
-  if (!mSplitMode)
+  if (mSplitMode == SplitMode::Joined)
     mMarbles[0].RegisterInputLeft(dt);
 }
 
 void Entities::RegisterInputRight(float dt) {
-  if (!mSplitMode)
+  if (mSplitMode == SplitMode::Joined)
     mMarbles[0].RegisterInputRight(dt);
 }
 
 void Entities::ToCheckpoint(const vector<vec3> &positionsAtCheckpoint) {
-  if (mSplitMode) {
+  if (mSplitMode != SplitMode::Joined) {
     join();
-    mSplitMode = false;
+    mSplitMode = SplitMode::Joined;
   }
 
   mMarbles[0].ResetToPosition(positionsAtCheckpoint[0]);
 }
 
 void Entities::split() {
+  mSplitMode = SplitMode::Split;
+
   const vec3 &pos = mMarbles[0].position;
   const vec3 &vel = mMarbles[0].velocity;
   const float radius =
@@ -161,6 +168,8 @@ void Entities::split() {
 }
 
 void Entities::join() {
+  mSplitMode = SplitMode::Joined;
+
   mMarbles[0].position = mAveragePos;
   mMarbles[0].velocity = mAverageVel;
 
@@ -171,10 +180,10 @@ void Entities::join() {
 }
 
 void Entities::ToggleSplitMode() {
-  mSplitMode = !mSplitMode;
-
-  if (!mSplitMode)
-    join();
+  if (mSplitMode == SplitMode::Split)
+    startJoin();
+  else if (mSplitMode == SplitMode::Joining)
+    stopJoin();
   else
     split();
-};
+}
