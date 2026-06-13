@@ -251,9 +251,11 @@ void Renderer::Init(const shared_ptr<const Entities> &entities) {
                       TTF_STYLE_NORMAL);
 
   // Length can be zero for null-terminated text
-  SDL_Surface *commandsSurface = TTF_RenderText_Blended_Wrapped(
-      mFont, "Left/Right arrows to turn\nSpace to restart", 0,
-      {255, 255, 255, 255}, 0);
+  SDL_Surface *commandsSurface =
+      TTF_RenderText_Blended_Wrapped(mFont,
+                                     "Left/Right arrows to turn\nSpace to "
+                                     "split/join marbles\nEnter to restart",
+                                     0, {255, 255, 255, 255}, 0);
 
   GLuint hudTexture = LoadGLTexture(commandsSurface, 5, 5, SDL_FLIP_VERTICAL);
 

@@ -46,11 +46,11 @@ void Game::Tick(float deltaTime) {
     entities->RegisterInputLeft(deltaTime);
   }
 
-  if (GetKeyPressed(SDL_SCANCODE_SPACE)) {
+  if (GetKeyPressed(SDL_SCANCODE_RETURN)) {
     ToCheckpoint();
   }
 
-  if (GetKeyPressed(SDL_SCANCODE_RETURN)) {
+  if (GetKeyPressed(SDL_SCANCODE_SPACE)) {
     entities->ToggleSplitMode();
   }
 
