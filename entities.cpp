@@ -28,9 +28,8 @@ Entities::Entities() {
       {"assets/plane8.gpmesh"},
       {"assets/twist3.gpmesh"},
       {.meshPath = "assets/canon1.gpmesh",
-       .collisionAcceleration = 1.03f,
-       .overrideImpulse = true,
-       .impulseOverride = vec3::up},
+       .overrideSpeed = true,
+       .speedOverride = vec3::up * 50.0f},
   });
 
   RegisterMarble({"assets/sphere.gpmesh"});
@@ -129,8 +128,8 @@ void Entities::RegisterMarble(const DynamicEntityData &entityData) {
 
 void Entities::RegisterStaticEntities(
     const vector<StaticEntityData> &entityList) {
-  for (const auto &[mesh_name, accel, override_impulse, impulse_override,
-                    scale] : entityList) {
+  for (const auto &[mesh_name, accel, override_speed, speed_override,
+                    override_impulse, impulse_override, scale] : entityList) {
     auto maybe = Mesh::Load(mesh_name);
 
     if (maybe.has_value()) {
@@ -138,7 +137,8 @@ void Entities::RegisterStaticEntities(
       body.scale *= scale;
 
       auto triangles = mesh.generateTriangleCollidersFromMesh(
-          body, accel, override_impulse, impulse_override);
+          body, accel, override_speed, speed_override, override_impulse,
+          impulse_override);
       gSpacePartition.populate(triangles);
 
       StaticBody b(body);

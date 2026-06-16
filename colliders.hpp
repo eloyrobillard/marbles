@@ -21,9 +21,11 @@ struct SphereCollider : Collider {
 // For static objects
 struct TriangleCollider : Collider {
   TriangleCollider(vec3 &normal, vec3 &a, vec3 &b, vec3 &c, float accel,
+                   bool overrideSpeed, vec3 &speedOverride,
                    bool overrideImpulse, vec3 &impulseOverride,
                    GLuint vertexBuffer, GLuint indexBuffer, GLuint vertexArray)
       : normal(normal), a(a), b(b), c(c), accel(accel),
+        overrideSpeed(overrideSpeed), speedOverride(speedOverride),
         overrideImpulse(overrideImpulse), impulseOverride(impulseOverride),
         vertexBuffer(vertexBuffer), indexBuffer(indexBuffer),
         vertexArray(vertexArray) {}
@@ -32,6 +34,8 @@ struct TriangleCollider : Collider {
   vec3 b;
   vec3 c;
   float accel;
+  bool overrideSpeed;
+  vec3 speedOverride;
   bool overrideImpulse;
   vec3 impulseOverride;
   vec3 normal;

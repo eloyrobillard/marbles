@@ -21,7 +21,13 @@ struct DynamicEntityData {
 struct StaticEntityData {
   string meshPath;
   float collisionAcceleration = 1.0f;
+  bool overrideSpeed = false;
+  // Rotation of override is local to mesh
+  // e.g. vec3::forward would be the mesh's forward direction
+  vec3 speedOverride = vec3::zero;
   bool overrideImpulse = false;
+  // Rotation of override is local to mesh
+  // e.g. vec3::forward would be the mesh's forward direction
   vec3 impulseOverride = vec3::zero;
   vec3 scale = vec3(1.0f);
 };

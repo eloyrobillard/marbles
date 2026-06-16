@@ -298,10 +298,9 @@ void Mesh::deleteVertexArray() const {
   glDeleteBuffers(1, &vertexArray);
 }
 
-vector<TriangleCollider>
-Mesh::generateTriangleCollidersFromMesh(Body &body, float accel,
-                                        bool override_impulse,
-                                        vec3 impulse_override) const {
+vector<TriangleCollider> Mesh::generateTriangleCollidersFromMesh(
+    Body &body, float accel, bool override_speed, vec3 speed_override,
+    bool override_impulse, vec3 impulse_override) const {
   vector<TriangleCollider> triangles;
   triangles.reserve(idx_triplets.size());
 
@@ -322,6 +321,7 @@ Mesh::generateTriangleCollidersFromMesh(Body &body, float accel,
     average_normal = vec4(average_normal, 1.0f) * rot;
 
     vec3 impov = vec4(impulse_override, 1.0f) * rot;
+    vec3 spdov = vec4(speed_override, 1.0f) * rot;
 
     float verts[9] = {a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z};
     uint indices[3] = {0, 1, 2};
@@ -329,8 +329,9 @@ Mesh::generateTriangleCollidersFromMesh(Body &body, float accel,
     auto [vertexBuffer, indexBuffer, vertexArray] =
         createVertexArrayVertsOnly(verts, 3, indices, 3, 3 /* Position only */);
 
-    triangles.emplace_back(average_normal, a, b, c, accel, override_impulse,
-                           impov, vertexBuffer, indexBuffer, vertexArray);
+    triangles.emplace_back(average_normal, a, b, c, accel, override_speed,
+                           spdov, override_impulse, impov, vertexBuffer,
+                           indexBuffer, vertexArray);
   }
 
   return triangles;

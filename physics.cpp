@@ -219,6 +219,8 @@ bool Physics::processStaticCollisions(const vector<TriangleCollider> &triangles,
       if (triangle.overrideImpulse) {
         velocity =
             triangle.impulseOverride * velocity.length() * triangle.accel;
+      } else if (triangle.overrideSpeed) {
+        velocity = triangle.speedOverride;
       } else {
         velocity += normal * (-sepVel * (restitution + 1)) * triangle.accel;
       }
