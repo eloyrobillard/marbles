@@ -242,6 +242,7 @@
     <ClInclude Include="texture.hpp" />
     <ClInclude Include="camera.hpp" />
     <ClInclude Include="colliders.hpp" />
+    <ClInclude Include="spacePartition.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Header Files">

@@ -2,69 +2,9 @@
 #include "entities.hpp"
 #include "pch.h"
 
-void SpacePartition::populate(const vector<TriangleCollider> &v) {
-  for (const auto &tc : v) {
-    float min_x = fmin(fmin(tc.a.x, tc.b.x), tc.c.x);
-    float max_x = fmax(fmax(tc.a.x, tc.b.x), tc.c.x);
-    float min_y = fmin(fmin(tc.a.y, tc.b.y), tc.c.y);
-    float max_y = fmax(fmax(tc.a.y, tc.b.y), tc.c.y);
-    float min_z = fmin(fmin(tc.a.z, tc.b.z), tc.c.z);
-    float max_z = fmax(fmax(tc.a.z, tc.b.z), tc.c.z);
-
-    auto start_x =
-        std::max((size_t)0, static_cast<size_t>((min_x - mMinX) / mStep));
-    auto end_x =
-        std::min(mNumX - 1, static_cast<size_t>((max_x - mMinX) / mStep));
-    auto start_y =
-        std::max((size_t)0, static_cast<size_t>((min_y - mMinY) / mStep));
-    auto end_y =
-        std::min(mNumY - 1, static_cast<size_t>((max_y - mMinY) / mStep));
-    auto start_z =
-        std::max((size_t)0, static_cast<size_t>((min_z - mMinZ) / mStep));
-    auto end_z =
-        std::min(mNumZ - 1, static_cast<size_t>((max_z - mMinZ) / mStep));
-
-    for (size_t x = start_x; x <= end_x; x++) {
-      for (size_t y = start_y; y <= end_y; y++) {
-        for (size_t z = start_z; z <= end_z; z++) {
-          mPartition[x * mNumY * mNumZ + y * mNumZ + z].emplace_back(tc);
-        }
-      }
-    }
-  }
-}
-
-vector<TriangleCollider> SpacePartition::get_partition(float min_x, float max_x,
-                                                       float min_y, float max_y,
-                                                       float min_z,
-                                                       float max_z) const {
-  vector<TriangleCollider> result{};
-  auto start_x =
-      std::max((size_t)0, static_cast<size_t>((min_x - mMinX) / mStep));
-  size_t end_x =
-      std::min(mNumX - 1, static_cast<size_t>((max_x - mMinX) / mStep));
-  auto start_y =
-      std::max((size_t)0, static_cast<size_t>((min_y - mMinY) / mStep));
-  size_t end_y =
-      std::min(mNumY - 1, static_cast<size_t>((max_y - mMinY) / mStep));
-  auto start_z =
-      std::max((size_t)0, static_cast<size_t>((min_z - mMinZ) / mStep));
-  size_t end_z =
-      std::min(mNumZ - 1, static_cast<size_t>((max_z - mMinZ) / mStep));
-
-  for (size_t x = start_x; x <= end_x; x++) {
-    for (size_t y = start_y; y <= end_y; y++) {
-      for (size_t z = start_z; z <= end_z; z++) {
-        result.append_range(mPartition[x * mNumY * mNumZ + y * mNumZ + z]);
-      }
-    }
-  }
-
-  return result;
-};
-
 // SOURCE: "Real-Time Collision Detection" by Christer Ericson (5.1.5 & 5.2.7)
-vec3 ClosestPtvec3Triangle(vec3 p, vec3 a, vec3 b, vec3 c) {
+vec3 ClosestPtvec3Triangle(const vec3 &p, const vec3 &a, const vec3 &b,
+                           const vec3 &c) {
   vec3 ab = b - a;
   vec3 ac = c - a;
   vec3 bc = c - b;
@@ -140,13 +80,7 @@ optional<vec3> intersectsTriangle(const TriangleCollider &t,
     return {};
   }
 
-  vec3 normal = t.normal.normalized();
-
-  if (t.normal.dot(v) > 0) {
-    return {-normal};
-  }
-
-  return {normal};
+  return {v};
 }
 
 optional<vec3> intersectsSphere(SphereCollider &s1, SphereCollider &s2) {
@@ -193,6 +127,7 @@ int Physics::processDynamicCollisions(vector<DynamicBody> &des, int idx,
 }
 
 bool Physics::processStaticCollisions(const vector<TriangleCollider> &triangles,
+                                      const Mesh &mesh,
                                       const SphereCollider &sphere,
                                       vec3 &velocity) {
   bool collision_happened = false;
@@ -211,18 +146,21 @@ bool Physics::processStaticCollisions(const vector<TriangleCollider> &triangles,
 
     // SOURCE: "Game Physics Engine Development" by Ian Millington
     // (section 7.2)
-    const vec3 normal = maybe_normal.value();
+    vec3 normal = triangle.normal.normalized();
+    if (normal.dot(maybe_normal.value()) > 0) {
+      normal *= -1.0f;
+    }
+
     const float sepVel = velocity.dot(normal);
 
     if (sepVel < 0) {
-      // Apply impulse instantly
-      if (triangle.overrideImpulse) {
-        velocity =
-            triangle.impulseOverride * velocity.length() * triangle.accel;
-      } else if (triangle.overrideSpeed) {
-        velocity = triangle.speedOverride;
+      if (mesh.overrideImpulse) {
+        velocity = mesh.impulseOverride * velocity.length() * mesh.accel;
+      } else if (mesh.overrideSpeed) {
+        velocity = mesh.speedOverride;
       } else {
-        velocity += normal * (-sepVel * (restitution + 1)) * triangle.accel;
+        // Apply impulse instantly
+        velocity += normal * (-sepVel * (restitution + 1)) * mesh.accel;
       }
     }
   }

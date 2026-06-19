@@ -453,6 +453,7 @@
     <ClInclude Include="physics.hpp" />
     <ClInclude Include="renderer.hpp" />
     <ClInclude Include="shader.hpp" />
+    <ClInclude Include="spacePartition.hpp" />
     <ClInclude Include="texture.hpp" />
     <ClInclude Include="tmpl8\template.hpp" />
     <ClInclude Include="utils.h" />

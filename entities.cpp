@@ -1,5 +1,8 @@
 #include "entities.hpp"
+#include "maths.hpp"
+#include "mesh.hpp"
 #include "physics.hpp"
+#include "spacePartition.hpp"
 
 StaticEntityData GenerateEntityData(string meshPath,
                                     float collisionAcceleration = 1.0f,
@@ -43,25 +46,25 @@ void Entities::Update(float time, float deltaTime) {
   computeAveragePositionWithoutOutliers();
 
   for (int i = 0; i < getNumMarbles(); i++) {
-    DynamicBody &m = mMarbles[i];
+    DynamicBody &marble = mMarbles[i];
 
     // Prepare new body position to test collisions at
-    mPreviousPositions[i] = m.position;
+    mPreviousPositions[i] = marble.position;
 
     if (mSplitMode == SplitMode::Joining) {
       // Once all marbles are done fusing into one, return to single marble mode
       if (mCurNumMarbles == 1) {
         join();
       } else {
-        vec3 to = mAveragePos - m.position;
-        m.velocity += to / 64.0f;
+        vec3 to = mAveragePos - marble.position;
+        marble.velocity += to / 64.0f;
       }
     }
 
-    m.velocity += deltaTime * gGravity;
-    m.position += deltaTime * m.velocity;
+    marble.velocity += deltaTime * gGravity;
+    marble.position += deltaTime * marble.velocity;
 
-    m.collider.position = m.position;
+    marble.collider.position = marble.position;
 
     // Instantly apply collisions to the velocity of the body
     // If in joining mode, instantly join with any collided marble
@@ -69,37 +72,44 @@ void Entities::Update(float time, float deltaTime) {
         mMarbles, i, mCurNumMarbles, mSplitMode == SplitMode::Joining);
 
     if (collisionIdx > -1) {
-      vec3 averagePos = (m.position + mMarbles[collisionIdx].position) / 2.0f;
-      m.collider.radius += mMarbles[collisionIdx].collider.radius;
-      m.scale += mMarbles[collisionIdx].scale;
+      vec3 averagePos =
+          (marble.position + mMarbles[collisionIdx].position) / 2.0f;
+      marble.collider.radius += mMarbles[collisionIdx].collider.radius;
+      marble.scale += mMarbles[collisionIdx].scale;
 
       mCurNumMarbles--;
       mMarbles[collisionIdx] = mMarbles[mCurNumMarbles];
     }
 
     // Adjust position based on (possibly) updated velocity
-    m.position = mPreviousPositions[i] + deltaTime * m.velocity;
+    marble.position = mPreviousPositions[i] + deltaTime * marble.velocity;
 
     // Match m's position with collider's
-    m.collider.position = m.position;
+    marble.collider.position = marble.position;
 
-    float min_x = m.collider.position.x - m.collider.radius;
-    float max_x = m.collider.position.x + m.collider.radius;
-    float min_y = m.collider.position.y - m.collider.radius;
-    float max_y = m.collider.position.y + m.collider.radius;
-    float min_z = m.collider.position.z - m.collider.radius;
-    float max_z = m.collider.position.z + m.collider.radius;
+    float min_x = marble.collider.position.x - marble.collider.radius;
+    float max_x = marble.collider.position.x + marble.collider.radius;
+    float min_y = marble.collider.position.y - marble.collider.radius;
+    float max_y = marble.collider.position.y + marble.collider.radius;
+    float min_z = marble.collider.position.z - marble.collider.radius;
+    float max_z = marble.collider.position.z + marble.collider.radius;
 
     gCurrentPartition =
         gSpacePartition.get_partition(min_x, max_x, min_y, max_y, min_z, max_z);
 
-    Physics::processStaticCollisions(gCurrentPartition, m.collider, m.velocity);
+    for (const auto &mesh : gCurrentPartition) {
+      auto partition = mesh.spacePartition.get_partition(min_x, max_x, min_y,
+                                                         max_y, min_z, max_z);
+
+      Physics::processStaticCollisions(partition, mesh, marble.collider,
+                                       marble.velocity);
+    }
 
     // Adjust position (again)
-    m.position = mPreviousPositions[i] + deltaTime * m.velocity;
+    marble.position = mPreviousPositions[i] + deltaTime * marble.velocity;
 
-    // Match m's position with collider's
-    m.collider.position = m.position;
+    // Match the collider's position to the body's
+    marble.collider.position = marble.position;
   }
 }
 
@@ -134,16 +144,22 @@ void Entities::RegisterStaticEntities(
 
     if (maybe.has_value()) {
       auto [mesh, body] = maybe.value();
+      mesh.accel = accel;
+      mesh.overrideSpeed = override_speed;
+      mesh.overrideImpulse = override_impulse;
+
+      const mat4 worldTransform = body.getWorldTransform();
+      const mat4 rot = mat4::CreateFromQuaternion(body.rotation);
+      mesh.impulseOverride = Maths::vec4(impulse_override, 1.0f) * rot;
+      mesh.speedOverride = Maths::vec4(speed_override, 1.0f) * rot;
+
       body.scale *= scale;
 
-      auto triangles = mesh.generateTriangleCollidersFromMesh(
-          body, accel, override_speed, speed_override, override_impulse,
-          impulse_override);
-      gSpacePartition.populate(triangles);
+      mesh.generateSpacePartition(body);
 
       StaticBody b(body);
       mStaticEntities.emplace_back(mesh, b);
-      mStaticColliders.emplace_back(triangles);
+      gSpacePartition.populate(mesh);
     }
   }
 }

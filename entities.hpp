@@ -11,7 +11,7 @@ using Maths::quat;
 using Maths::vec3;
 
 inline stack<GLuint> gToRenderAsCollided;
-inline vector<TriangleCollider> gCurrentPartition;
+inline vector<Mesh> gCurrentPartition;
 
 struct DynamicEntityData {
   string meshPath;
@@ -81,7 +81,6 @@ enum class SplitMode { Split, Joining, Joined };
 // Container for all game objects
 class Entities {
   vector<StaticEntity> mStaticEntities;
-  vector<vector<TriangleCollider>> mStaticColliders;
 
   Mesh mMarbleMesh;
   vector<DynamicBody> mMarbles;

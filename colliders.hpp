@@ -16,32 +16,43 @@ struct SphereCollider : Collider {
 
   vec3 position;
   float radius;
+
+  [[nodiscard]] tuple<float, float, float, float, float, float>
+  GetBounds() const {
+    float minX = position.x - radius;
+    float maxX = position.x + radius;
+    float minY = position.y - radius;
+    float maxY = position.y + radius;
+    float minZ = position.z - radius;
+    float maxZ = position.z + radius;
+
+    return {minX, maxX, minY, maxY, minZ, maxZ};
+  }
 };
 
 // For static objects
 struct TriangleCollider : Collider {
-  TriangleCollider(vec3 &normal, vec3 &a, vec3 &b, vec3 &c, float accel,
-                   bool overrideSpeed, vec3 &speedOverride,
-                   bool overrideImpulse, vec3 &impulseOverride,
-                   GLuint vertexBuffer, GLuint indexBuffer, GLuint vertexArray)
-      : normal(normal), a(a), b(b), c(c), accel(accel),
-        overrideSpeed(overrideSpeed), speedOverride(speedOverride),
-        overrideImpulse(overrideImpulse), impulseOverride(impulseOverride),
-        vertexBuffer(vertexBuffer), indexBuffer(indexBuffer),
-        vertexArray(vertexArray) {}
+  TriangleCollider(vec3 &normal, vec3 &a, vec3 &b, vec3 &c, GLuint vertexArray)
+      : normal(normal), a(a), b(b), c(c), vertexArray(vertexArray) {}
 
   vec3 a;
   vec3 b;
   vec3 c;
-  float accel;
-  bool overrideSpeed;
-  vec3 speedOverride;
-  bool overrideImpulse;
-  vec3 impulseOverride;
   vec3 normal;
-  GLuint vertexBuffer;
-  GLuint indexBuffer;
+  // GLuint vertexBuffer;
+  // GLuint indexBuffer;
   GLuint vertexArray;
+
+  [[nodiscard]] tuple<float, float, float, float, float, float>
+  GetBounds() const {
+    float minX = std::min(a.x, std::min(b.x, c.x));
+    float maxX = std::min(a.x, std::min(b.x, c.x));
+    float minY = std::min(a.y, std::min(b.y, c.y));
+    float maxY = std::max(a.y, std::max(b.y, c.y));
+    float minZ = std::min(a.z, std::min(b.z, c.z));
+    float maxZ = std::max(a.z, std::max(b.z, c.z));
+    return {minX, maxX, minY, maxY, minZ, maxZ};
+  }
 };
 
 inline ostream &operator<<(ostream &os, const SphereCollider &coll) {

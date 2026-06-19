@@ -298,30 +298,35 @@ void Mesh::deleteVertexArray() const {
   glDeleteBuffers(1, &vertexArray);
 }
 
-vector<TriangleCollider> Mesh::generateTriangleCollidersFromMesh(
-    Body &body, float accel, bool override_speed, vec3 speed_override,
-    bool override_impulse, vec3 impulse_override) const {
+void Mesh::generateSpacePartition(Body &body) {
   vector<TriangleCollider> triangles;
   triangles.reserve(idx_triplets.size());
 
   const mat4 worldTransform = body.getWorldTransform();
+  const mat4 rot = mat4::CreateFromQuaternion(body.rotation);
+
+  float min_x, max_x, min_y, max_y, min_z, max_z;
+  min_x = min_y = min_z = std::numeric_limits<float>::max();
+  max_x = max_y = max_z = std::numeric_limits<float>::min();
 
   for (const auto &[i0, i1, i2] : idx_triplets) {
     auto a = vec3(vec4(vert_coord[i0], 1.0f) * worldTransform);
     auto b = vec3(vec4(vert_coord[i1], 1.0f) * worldTransform);
     auto c = vec3(vec4(vert_coord[i2], 1.0f) * worldTransform);
 
+    min_x = std::min(min_x, std::min(a.x, std::min(b.x, c.x)));
+    max_x = std::max(max_x, std::max(a.x, std::max(b.x, c.x)));
+    min_y = std::min(min_y, std::min(a.y, std::min(b.y, c.y)));
+    max_y = std::max(max_y, std::max(a.y, std::max(b.y, c.y)));
+    min_z = std::min(min_z, std::min(a.z, std::min(b.z, c.z)));
+    max_z = std::max(max_z, std::max(a.z, std::max(b.z, c.z)));
+
     auto n0 = vert_normal[i0];
     auto n1 = vert_normal[i1];
     auto n2 = vert_normal[i2];
 
-    mat4 rot = mat4::CreateFromQuaternion(body.rotation);
-
     vec3 average_normal = (n0 + n1 + n2) * (1.0f / 3.0f);
-    average_normal = vec4(average_normal, 1.0f) * rot;
-
-    vec3 impov = vec4(impulse_override, 1.0f) * rot;
-    vec3 spdov = vec4(speed_override, 1.0f) * rot;
+    vec3 normal = vec4(average_normal, 1.0f) * rot;
 
     float verts[9] = {a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z};
     uint indices[3] = {0, 1, 2};
@@ -329,10 +334,17 @@ vector<TriangleCollider> Mesh::generateTriangleCollidersFromMesh(
     auto [vertexBuffer, indexBuffer, vertexArray] =
         createVertexArrayVertsOnly(verts, 3, indices, 3, 3 /* Position only */);
 
-    triangles.emplace_back(average_normal, a, b, c, accel, override_speed,
-                           spdov, override_impulse, impov, vertexBuffer,
-                           indexBuffer, vertexArray);
+    triangles.emplace_back(normal, a, b, c, vertexArray);
   }
 
-  return triangles;
+  minX = min_x;
+  maxX = max_x;
+  minY = min_y;
+  maxY = max_y;
+  minZ = min_z;
+  maxZ = max_z;
+
+  if (triangles.size() > 0)
+    spacePartition = SpacePartition<TriangleCollider>(
+        minX, maxX, minY, maxY, minZ, maxZ, 1.0f, triangles);
 }
