@@ -81,7 +81,6 @@ enum class SplitMode { Split, Joining, Joined };
 // Container for all game objects
 class Entities {
   vector<StaticEntity> mStaticEntities;
-  vector<vector<TriangleCollider>> mStaticColliders;
 
   Mesh mMarbleMesh;
   vector<DynamicBody> mMarbles;

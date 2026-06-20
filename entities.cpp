@@ -143,7 +143,6 @@ void Entities::RegisterStaticEntities(
 
       StaticBody b(body);
       mStaticEntities.emplace_back(mesh, b);
-      mStaticColliders.emplace_back(triangles);
     }
   }
 }
