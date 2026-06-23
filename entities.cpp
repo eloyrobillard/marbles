@@ -18,18 +18,25 @@ Entities::Entities() {
       {"assets/ramp2.gpmesh"},
       {"assets/ramp3.gpmesh"},
       {"assets/snake1.gpmesh"},
-      {"assets/doorR.gpmesh"},
-      {"assets/doorL.gpmesh"},
       {"assets/hingeR.gpmesh"},
       {"assets/hingeL.gpmesh"},
       {"assets/plane5.gpmesh"},
-      {"assets/plane6.gpmesh"},
       {"assets/plane7.gpmesh"},
-      {"assets/plane8.gpmesh"},
       {"assets/twist3.gpmesh"},
       {.meshPath = "assets/canon1.gpmesh",
        .overrideSpeed = true,
        .speedOverride = vec3::up * 50.0f},
+  });
+
+  RegisterDoor({
+      .meshPath = "assets/doorR.gpmesh",
+      .pivotAxis = vec3::up,
+      .pivotPoint = vec3::zero,
+  });
+  RegisterDoor({
+      .meshPath = "assets/doorL.gpmesh",
+      .pivotAxis = vec3::up,
+      .pivotPoint = vec3::zero,
   });
 
   RegisterMarble({"assets/sphere.gpmesh"});
@@ -126,23 +133,41 @@ void Entities::RegisterMarble(const DynamicEntityData &entityData) {
   }
 }
 
-void Entities::RegisterStaticEntities(
-    const vector<StaticEntityData> &entityList) {
-  for (const auto &[mesh_name, accel, override_speed, speed_override,
-                    override_impulse, impulse_override, scale] : entityList) {
-    auto maybe = Mesh::Load(mesh_name);
+void Entities::RegisterDoor(const DoorData &doorData) {
+  auto maybe = Mesh::Load(doorData.meshPath);
+
+  if (maybe.has_value()) {
+    auto [mesh, body] = maybe.value();
+    body.scale *= doorData.scale;
+
+    StaticBody b(body, doorData.pivotAxis, doorData.pivotPoint);
+    shared_ptr<StaticBody> shB = std::make_shared<StaticBody>(b);
+    auto triangles = mesh.generateTriangleCollidersFromMesh(shB);
+    gDoorSP.populate(triangles);
+
+    mDoors.emplace_back(mesh, shB);
+  }
+}
+
+void Entities::RegisterStaticEntities(const vector<StaticEntityData> &data) {
+  for (const auto &datum : data) {
+    auto maybe = Mesh::Load(datum.meshPath);
 
     if (maybe.has_value()) {
       auto [mesh, body] = maybe.value();
-      body.scale *= scale;
+      body.scale *= datum.scale;
 
-      auto triangles = mesh.generateTriangleCollidersFromMesh(
-          body, accel, override_speed, speed_override, override_impulse,
-          impulse_override);
+      const mat4 rot = mat4::CreateFromQuaternion(body.rotation);
+
+      StaticBody b(body, datum.collisionAcceleration, datum.overrideImpulse,
+                   datum.overrideSpeed, vec4(datum.impulseOverride, 1.0f) * rot,
+                   vec4(datum.speedOverride, 1.0f) * rot);
+
+      shared_ptr<StaticBody> shB = std::make_shared<StaticBody>(b);
+      auto triangles = mesh.generateTriangleCollidersFromMesh(shB);
       gSpacePartition.populate(triangles);
 
-      StaticBody b(body);
-      mStaticEntities.emplace_back(mesh, b);
+      mStaticEntities.emplace_back(mesh, shB);
     }
   }
 }

@@ -8,6 +8,8 @@ using Maths::mat4;
 using Maths::quat;
 using Maths::vec3;
 
+class StaticBody;
+
 struct Collider {};
 
 struct SphereCollider : Collider {
@@ -20,28 +22,21 @@ struct SphereCollider : Collider {
 
 // For static objects
 struct TriangleCollider : Collider {
-  TriangleCollider(vec3 &normal, vec3 &a, vec3 &b, vec3 &c, float accel,
-                   bool overrideSpeed, vec3 &speedOverride,
-                   bool overrideImpulse, vec3 &impulseOverride,
-                   GLuint vertexBuffer, GLuint indexBuffer, GLuint vertexArray)
-      : normal(normal), a(a), b(b), c(c), accel(accel),
-        overrideSpeed(overrideSpeed), speedOverride(speedOverride),
-        overrideImpulse(overrideImpulse), impulseOverride(impulseOverride),
+  TriangleCollider(vec3 &normal, vec3 &a, vec3 &b, vec3 &c,
+                   const shared_ptr<StaticBody> &body, GLuint vertexBuffer,
+                   GLuint indexBuffer, GLuint vertexArray)
+      : normal(normal), a(a), b(b), c(c), body(body),
         vertexBuffer(vertexBuffer), indexBuffer(indexBuffer),
         vertexArray(vertexArray) {}
 
   vec3 a;
   vec3 b;
   vec3 c;
-  float accel;
-  bool overrideSpeed;
-  vec3 speedOverride;
-  bool overrideImpulse;
-  vec3 impulseOverride;
   vec3 normal;
-  GLuint vertexBuffer;
-  GLuint indexBuffer;
-  GLuint vertexArray;
+  const shared_ptr<StaticBody> body;
+  const GLuint vertexBuffer;
+  const GLuint indexBuffer;
+  const GLuint vertexArray;
 };
 
 inline ostream &operator<<(ostream &os, const SphereCollider &coll) {
@@ -96,7 +91,20 @@ struct DynamicBody : Body {
 
 struct StaticBody : Body {
   StaticBody() : Body() {}
-  StaticBody(Body &b) : Body(b) {}
+  StaticBody(Body &b, float accel, bool oi, bool os, vec3 io, vec3 so)
+      : Body(b), collisionAcceleration(accel), overrideImpulse(oi),
+        overrideSpeed(os), impulseOverride(io), speedOverride(so) {}
+
+  StaticBody(Body &b, const vec3 &pivotAxis, const vec3 &pivotPoint)
+      : Body(b), pivotAxis(pivotAxis), pivotPoint(pivotPoint) {}
+
+  float collisionAcceleration = 1.0f;
+  bool overrideImpulse = false;
+  bool overrideSpeed = false;
+  vec3 impulseOverride = vec3::zero;
+  vec3 speedOverride = vec3::zero;
+  vec3 pivotAxis = vec3::zero;
+  vec3 pivotPoint = vec3::zero;
 };
 
 #endif

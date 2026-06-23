@@ -20,9 +20,8 @@ class Mesh {
 public:
   // May or may not return a mesh, so it cannot be a constructor
   static optional<pair<Mesh, Body>> Load(const std::string &filename);
-  vector<TriangleCollider> generateTriangleCollidersFromMesh(
-      Body &body, float accel, bool override_speed, Maths::vec3 speed_override,
-      bool override_impulse, Maths::vec3 impulse_override) const;
+  [[nodiscard]] vector<TriangleCollider>
+  generateTriangleCollidersFromMesh(const shared_ptr<StaticBody> &body) const;
   [[nodiscard]] optional<Texture *> lookTextureUp(size_t index) const;
   [[nodiscard]] size_t GetNumIndices() const { return indices.size(); }
   [[nodiscard]] GLuint GetVertexArray() const { return vertexArray; }

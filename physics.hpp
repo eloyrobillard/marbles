@@ -68,6 +68,9 @@ public:
 inline SpacePartition gSpacePartition =
     SpacePartition(4.0f, 150.0f, -40.0f, 80.0f, -100.0f, 10.0f, 0.5f);
 
+inline SpacePartition gDoorSP =
+    SpacePartition(60.0f, 75.0f, -10.0f, 10.0f, -10.0f, 10.0f, 0.5f);
+
 class DynamicEntity;
 
 namespace Physics {

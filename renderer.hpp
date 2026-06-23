@@ -5,6 +5,7 @@
 #include "entities.hpp"
 #include "maths.hpp"
 #include "pch.h"
+#include "shader.hpp"
 
 #define GLEW_BUILD
 extern "C" {

@@ -216,13 +216,14 @@ bool Physics::processStaticCollisions(const vector<TriangleCollider> &triangles,
 
     if (sepVel < 0) {
       // Apply impulse instantly
-      if (triangle.overrideImpulse) {
-        velocity =
-            triangle.impulseOverride * velocity.length() * triangle.accel;
-      } else if (triangle.overrideSpeed) {
-        velocity = triangle.speedOverride;
+      if (triangle.body->overrideImpulse) {
+        velocity = triangle.body->impulseOverride * velocity.length() *
+                   triangle.body->collisionAcceleration;
+      } else if (triangle.body->overrideSpeed) {
+        velocity = triangle.body->speedOverride;
       } else {
-        velocity += normal * (-sepVel * (restitution + 1)) * triangle.accel;
+        velocity += normal * (-sepVel * (restitution + 1)) *
+                    triangle.body->collisionAcceleration;
       }
     }
   }

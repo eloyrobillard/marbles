@@ -5,10 +5,10 @@
 #include "maths.hpp"
 #include "mesh.hpp"
 #include "pch.h"
-#include "shader.hpp"
 
 using Maths::quat;
 using Maths::vec3;
+using Maths::vec4;
 
 inline stack<GLuint> gToRenderAsCollided;
 inline vector<TriangleCollider> gCurrentPartition;
@@ -16,6 +16,15 @@ inline vector<TriangleCollider> gCurrentPartition;
 struct DynamicEntityData {
   string meshPath;
   vec3 scale = vec3(1.0f);
+};
+
+struct DoorData {
+  string meshPath;
+  vec3 scale = vec3(1.0f);
+  vec3 pivotAxis;
+  // Point in local coordinates
+  vec3 pivotPoint;
+  float maxAngle;
 };
 
 struct StaticEntityData {
@@ -39,20 +48,21 @@ struct Entity {
 };
 
 struct StaticEntity : Entity {
-  StaticEntity(const Mesh &mesh, StaticBody &body) : Entity(mesh), body(body) {}
+  StaticEntity(const Mesh &mesh, const shared_ptr<StaticBody> &body)
+      : Entity(mesh), body(body) {}
 
   [[nodiscard]] string GetCoordinatesString() const {
-    return std::format("x: {:8.3f}\ny: {:8.3f}\nz: {:8.3f}", body.position.x,
-                       body.position.y, body.position.z);
+    return std::format("x: {:8.3f}\ny: {:8.3f}\nz: {:8.3f}", body->position.x,
+                       body->position.y, body->position.z);
   }
 
   [[nodiscard]] tuple<mat4, optional<Texture *>, GLuint, size_t>
   GetDrawData() const {
-    return {body.getWorldTransform(), mesh.lookTextureUp(0),
+    return {body->getWorldTransform(), mesh.lookTextureUp(0),
             mesh.GetVertexArray(), mesh.GetNumIndices()};
   }
 
-  StaticBody body;
+  shared_ptr<StaticBody> body;
 };
 
 struct DynamicEntity : public Entity {
@@ -81,6 +91,7 @@ enum class SplitMode { Split, Joining, Joined };
 // Container for all game objects
 class Entities {
   vector<StaticEntity> mStaticEntities;
+  vector<StaticEntity> mDoors;
 
   Mesh mMarbleMesh;
   vector<DynamicBody> mMarbles;
@@ -117,7 +128,8 @@ public:
   // Register the mesh/textures for the marbles.
   // Only one mesh/textures set can be active at a time.
   void RegisterMarble(const DynamicEntityData &entity);
-  void RegisterStaticEntities(const vector<StaticEntityData> &entityList);
+  void RegisterDoor(const DoorData &doorData);
+  void RegisterStaticEntities(const vector<StaticEntityData> &data);
 
   [[nodiscard]]
   vec3 ProvideCameraFollow() const {

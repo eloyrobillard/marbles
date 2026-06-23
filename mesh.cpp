@@ -299,12 +299,12 @@ void Mesh::deleteVertexArray() const {
 }
 
 vector<TriangleCollider> Mesh::generateTriangleCollidersFromMesh(
-    Body &body, float accel, bool override_speed, vec3 speed_override,
-    bool override_impulse, vec3 impulse_override) const {
+    const shared_ptr<StaticBody> &body) const {
   vector<TriangleCollider> triangles;
   triangles.reserve(idx_triplets.size());
 
-  const mat4 worldTransform = body.getWorldTransform();
+  const mat4 worldTransform = body->getWorldTransform();
+  const mat4 rot = mat4::CreateFromQuaternion(body->rotation);
 
   for (const auto &[i0, i1, i2] : idx_triplets) {
     auto a = vec3(vec4(vert_coord[i0], 1.0f) * worldTransform);
@@ -315,13 +315,8 @@ vector<TriangleCollider> Mesh::generateTriangleCollidersFromMesh(
     auto n1 = vert_normal[i1];
     auto n2 = vert_normal[i2];
 
-    mat4 rot = mat4::CreateFromQuaternion(body.rotation);
-
     vec3 average_normal = (n0 + n1 + n2) * (1.0f / 3.0f);
     average_normal = vec4(average_normal, 1.0f) * rot;
-
-    vec3 impov = vec4(impulse_override, 1.0f) * rot;
-    vec3 spdov = vec4(speed_override, 1.0f) * rot;
 
     float verts[9] = {a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z};
     uint indices[3] = {0, 1, 2};
@@ -329,8 +324,9 @@ vector<TriangleCollider> Mesh::generateTriangleCollidersFromMesh(
     auto [vertexBuffer, indexBuffer, vertexArray] =
         createVertexArrayVertsOnly(verts, 3, indices, 3, 3 /* Position only */);
 
-    triangles.emplace_back(average_normal, a, b, c, accel, override_speed,
-                           spdov, override_impulse, impov, vertexBuffer,
+    // TODO: simplify TriangleCollider struct to not directly include all this
+    // overriding stuff
+    triangles.emplace_back(average_normal, a, b, c, body, vertexBuffer,
                            indexBuffer, vertexArray);
   }
 
