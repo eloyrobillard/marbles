@@ -102,6 +102,13 @@ void Entities::Update(float time, float deltaTime) {
 
     Physics::processStaticCollisions(gCurrentPartition, m.collider, m.velocity);
 
+    auto doors =
+        gDoorSP.get_partition(min_x, max_x, min_y, max_y, min_z, max_z);
+
+    Physics::processDoorCollisions(doors, m.collider, m.velocity);
+
+    gCurrentPartition.append_range(doors);
+
     // Adjust position (again)
     m.position = mPreviousPositions[i] + deltaTime * m.velocity;
 
