@@ -192,6 +192,45 @@ int Physics::processDynamicCollisions(vector<DynamicBody> &des, int idx,
   return -1;
 }
 
+bool Physics::processDoorCollisions(const vector<TriangleCollider> &triangles,
+                                    const SphereCollider &sphere,
+                                    vec3 &velocity) {
+  bool collision_happened = false;
+
+  for (const auto &triangle : triangles) {
+    auto maybe_normal = intersectsTriangle(triangle, sphere);
+
+    if (!maybe_normal.has_value())
+      continue;
+
+    collision_happened = true;
+
+#ifdef _DEBUG
+    gToRenderAsCollided.push(triangle.vertexArray);
+#endif
+
+    // SOURCE: "Game Physics Engine Development" by Ian Millington
+    // (section 7.2)
+    const vec3 normal = maybe_normal.value();
+    const float sepVel = velocity.dot(normal);
+
+    if (sepVel < 0) {
+      // Apply impulse instantly
+      if (triangle.body->overrideImpulse) {
+        velocity = triangle.body->impulseOverride * velocity.length() *
+                   triangle.body->collisionAcceleration;
+      } else if (triangle.body->overrideSpeed) {
+        velocity = triangle.body->speedOverride;
+      } else {
+        velocity += normal * (-sepVel * (restitution + 1)) *
+                    triangle.body->collisionAcceleration;
+      }
+    }
+  }
+
+  return collision_happened;
+}
+
 bool Physics::processStaticCollisions(const vector<TriangleCollider> &triangles,
                                       const SphereCollider &sphere,
                                       vec3 &velocity) {

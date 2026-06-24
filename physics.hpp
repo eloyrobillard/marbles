@@ -74,6 +74,8 @@ inline SpacePartition gDoorSP =
 class DynamicEntity;
 
 namespace Physics {
+bool processDoorCollisions(const vector<TriangleCollider> &triangles,
+                           const SphereCollider &sphere, vec3 &velocity);
 bool processStaticCollisions(const vector<TriangleCollider> &triangles,
                              const SphereCollider &sphere, vec3 &velocity);
 int processDynamicCollisions(vector<DynamicBody> &des, int idx, int numMarbles,
