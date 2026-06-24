@@ -644,6 +644,10 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
     drawStaticEntity(mDepthMapShader, e);
   }
 
+  for (const auto &e : entities->GetDoors()) {
+    drawStaticEntity(mDrawStaticShader, e);
+  }
+
   glBindFramebuffer(GL_FRAMEBUFFER, mContourFBO);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -670,6 +674,10 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
   glBindTexture(GL_TEXTURE_2D, mMarbleShadowMapTexture);
 
   for (const auto &e : entities->GetStaticEntities()) {
+    drawStaticEntity(mDrawStaticShader, e);
+  }
+
+  for (const auto &e : entities->GetDoors()) {
     drawStaticEntity(mDrawStaticShader, e);
   }
 

@@ -141,6 +141,8 @@ public:
     return mAverageVel.normalized();
   }
 
+  [[nodiscard]] const vector<StaticEntity> &GetDoors() const { return mDoors; }
+
   [[nodiscard]] const vector<StaticEntity> &GetStaticEntities() const {
     return mStaticEntities;
   }
