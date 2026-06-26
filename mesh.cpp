@@ -317,6 +317,7 @@ vector<TriangleCollider> Mesh::generateTriangleCollidersFromMesh(
 
     vec3 average_normal = (n0 + n1 + n2) * (1.0f / 3.0f);
     average_normal = vec4(average_normal, 1.0f) * rot;
+    average_normal.normalize();
 
     float verts[9] = {a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z};
     uint indices[3] = {0, 1, 2};
