@@ -140,13 +140,11 @@ optional<vec3> intersectsTriangle(const TriangleCollider &t,
     return {};
   }
 
-  vec3 normal = t.normal.normalized();
-
   if (t.normal.dot(v) > 0) {
-    return {-normal};
+    return {-t.normal};
   }
 
-  return {normal};
+  return {t.normal};
 }
 
 optional<vec3> intersectsSphere(SphereCollider &s1, SphereCollider &s2) {
