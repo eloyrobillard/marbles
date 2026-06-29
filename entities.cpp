@@ -109,9 +109,10 @@ void Entities::Update(float time, float deltaTime) {
     Physics::processDoorCollisions(doors, marble);
 
     for (auto &door : doors) {
-      // TODO: figure out quaternion/slerp
+      // q * p * q^-1 = qを用いて回転する
       auto targetRot =
           quat::Concatenate(door.body->rotation, door.body->rotationalVelocity);
+
       door.body->rotation =
           quat::Lerp(door.body->rotation, targetRot, deltaTime);
     }

@@ -142,10 +142,12 @@ void handleDoorRotation(const TriangleCollider<PivotBody> &triangle,
   // 速度(sepVel)から角速度を導出
   float angVel = sepVel / distToPivot;
 
-  // 回転の範囲を越えていないか確認し、角速度を適用する
+  // 角速度を適用する：q * p * q^-1
+  quat rotVel(triangle.body->pivotAxis, angVel);
   triangle.body->rotationalVelocity =
-      quat::Concatenate(triangle.body->rotationalVelocity,
-                        quat(triangle.body->pivotAxis, angVel));
+      quat::Concatenate(triangle.body->rotationalVelocity, rotVel);
+
+  // 回転の範囲を越えていないか確認し、修正
 }
 
 bool Physics::processDoorCollisions(
