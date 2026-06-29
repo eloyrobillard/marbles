@@ -116,10 +116,15 @@ void Entities::Update(float time, float deltaTime) {
           quat::Lerp(door.body->rotation, targetRot, deltaTime);
     }
 
-    for (const auto &s : statics)
-      gShowWireframe.push_back(s.vertexArray);
-    for (const auto &d : doors)
-      gShowWireframe.push_back(d.vertexArray);
+    vector<GLuint> showWireframe;
+    std::ranges::transform(
+        statics, std::back_inserter(showWireframe),
+        [](const TriangleCollider<StaticBody> &s) { return s.vertexArray; });
+    std::ranges::transform(
+        doors, std::back_inserter(showWireframe),
+        [](const TriangleCollider<PivotBody> &d) { return d.vertexArray; });
+
+    gShowWireframe = showWireframe;
 
     // Adjust position (again)
     marble.position = mPreviousPositions[i] + deltaTime * marble.velocity;
