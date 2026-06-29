@@ -628,12 +628,12 @@ void Renderer::drawCollisionDebug(const mat4 &viewProj) {
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   // Only show triangles currently tested against
-  // for (const auto &vertexArray : gShowWireframe) {
-  //   Shader::SetVerticesActive(vertexArray);
-  //
-  //   // Draw triangles
-  //   glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
-  // }
+  for (const auto &vertexArray : gShowWireframe) {
+    Shader::SetVerticesActive(vertexArray);
+
+    // Draw triangles
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+  }
 
   // Turn off wireframe mode
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
