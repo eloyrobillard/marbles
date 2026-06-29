@@ -116,6 +116,9 @@ void Entities::Update(float time, float deltaTime) {
           quat::Lerp(door.body->rotation, targetRot, deltaTime);
     }
 
+#ifdef _DEBUG
+    // Set vertices to be shown as wireframe
+    // FIX: vertex array だけ渡すと、回転などは反映されない
     vector<GLuint> showWireframe;
     std::ranges::transform(
         statics, std::back_inserter(showWireframe),
@@ -123,8 +126,8 @@ void Entities::Update(float time, float deltaTime) {
     std::ranges::transform(
         doors, std::back_inserter(showWireframe),
         [](const TriangleCollider<PivotBody> &d) { return d.vertexArray; });
-
     gShowWireframe = showWireframe;
+#endif
 
     // Adjust position (again)
     marble.position = mPreviousPositions[i] + deltaTime * marble.velocity;
