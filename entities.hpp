@@ -11,7 +11,8 @@ using Maths::vec3;
 using Maths::vec4;
 
 inline stack<GLuint> gToRenderAsCollided;
-inline vector<TriangleCollider> gCurrentPartition;
+
+inline vector<GLuint> gShowWireframe;
 
 struct DynamicEntityData {
   string meshPath;
@@ -25,6 +26,8 @@ struct DoorData {
   // Point in local coordinates
   vec3 pivotPoint;
   float maxAngle;
+  // Resisting force pushing the door back close
+  float resistance;
 };
 
 struct StaticEntityData {
@@ -45,6 +48,24 @@ struct Entity {
   Entity(Mesh mesh) : mesh(std::move(mesh)) {}
 
   Mesh mesh;
+};
+
+struct PivotEntity : Entity {
+  PivotEntity(const Mesh &mesh, const shared_ptr<PivotBody> &body)
+      : Entity(mesh), body(body) {}
+
+  [[nodiscard]] string GetCoordinatesString() const {
+    return std::format("x: {:8.3f}\ny: {:8.3f}\nz: {:8.3f}", body->position.x,
+                       body->position.y, body->position.z);
+  }
+
+  [[nodiscard]] tuple<mat4, optional<Texture *>, GLuint, size_t>
+  GetDrawData() const {
+    return {body->getWorldTransform(), mesh.lookTextureUp(0),
+            mesh.GetVertexArray(), mesh.GetNumIndices()};
+  }
+
+  shared_ptr<PivotBody> body;
 };
 
 struct StaticEntity : Entity {
@@ -91,7 +112,7 @@ enum class SplitMode { Split, Joining, Joined };
 // Container for all game objects
 class Entities {
   vector<StaticEntity> mStaticEntities;
-  vector<StaticEntity> mDoors;
+  vector<PivotEntity> mDoors;
 
   Mesh mMarbleMesh;
   vector<DynamicBody> mMarbles;
@@ -141,7 +162,7 @@ public:
     return mAverageVel.normalized();
   }
 
-  [[nodiscard]] const vector<StaticEntity> &GetDoors() const { return mDoors; }
+  [[nodiscard]] const vector<PivotEntity> &GetDoors() const { return mDoors; }
 
   [[nodiscard]] const vector<StaticEntity> &GetStaticEntities() const {
     return mStaticEntities;

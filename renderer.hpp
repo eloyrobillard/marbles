@@ -99,6 +99,7 @@ class Renderer {
                               int readH, int drawW, int drawH);
   static void drawStaticEntity(const Shader &shader,
                                const StaticEntity &entity);
+  static void drawStaticEntity(const Shader &shader, const PivotEntity &entity);
   static void drawDynamicEntity(const Shader &shader, const DynamicBody &body,
                                 const Mesh &mesh);
   static GLuint createColorAttachmentTexture(

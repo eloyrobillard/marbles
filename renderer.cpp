@@ -340,6 +340,30 @@ void Renderer::drawDynamicEntity(const Shader &shader, const DynamicBody &body,
 }
 
 void Renderer::drawStaticEntity(const Shader &shader,
+                                const PivotEntity &entity) {
+  const auto &[worldTransform, maybeTex, vertexArray, numIndices] =
+      entity.GetDrawData();
+  shader.SetMatrixUniform("uWorldTransform", worldTransform);
+
+  if (maybeTex.has_value()) {
+    glActiveTexture(GL_TEXTURE0);
+    maybeTex.value()->SetActive();
+  }
+
+  Shader::SetVerticesActive(vertexArray);
+
+  // Draw triangles
+  glDrawElements(GL_TRIANGLES, static_cast<int>(numIndices), GL_UNSIGNED_INT,
+                 nullptr);
+
+  GLenum err_code = glGetError();
+  while (GL_NO_ERROR != err_code) {
+    printf("OpenGL Error @ %s: %i", "mesh draw", err_code);
+    err_code = glGetError();
+  }
+}
+
+void Renderer::drawStaticEntity(const Shader &shader,
                                 const StaticEntity &entity) {
   const auto &[worldTransform, maybeTex, vertexArray, numIndices] =
       entity.GetDrawData();
@@ -604,12 +628,12 @@ void Renderer::drawCollisionDebug(const mat4 &viewProj) {
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   // Only show triangles currently tested against
-  for (const auto &triangle : gCurrentPartition) {
-    Shader::SetVerticesActive(triangle.vertexArray);
-
-    // Draw triangles
-    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
-  }
+  // for (const auto &vertexArray : gShowWireframe) {
+  //   Shader::SetVerticesActive(vertexArray);
+  //
+  //   // Draw triangles
+  //   glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+  // }
 
   // Turn off wireframe mode
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

@@ -5,10 +5,6 @@
 #include "rapidjson/document.h"
 #include "texture.hpp"
 
-using Maths::mat4;
-using Maths::vec3;
-using Maths::vec4;
-
 tuple<GLuint, GLuint, GLuint>
 createVertexArray(const float *verts, uint numVerts, const uint *indices,
                   uint numIndices, size_t vertSize) {
@@ -296,40 +292,4 @@ void Mesh::deleteVertexArray() const {
   glDeleteBuffers(1, &vertexBuffer);
   glDeleteBuffers(1, &indexBuffer);
   glDeleteBuffers(1, &vertexArray);
-}
-
-vector<TriangleCollider> Mesh::generateTriangleCollidersFromMesh(
-    const shared_ptr<StaticBody> &body) const {
-  vector<TriangleCollider> triangles;
-  triangles.reserve(idx_triplets.size());
-
-  const mat4 worldTransform = body->getWorldTransform();
-  const mat4 rot = mat4::CreateFromQuaternion(body->rotation);
-
-  for (const auto &[i0, i1, i2] : idx_triplets) {
-    auto a = vec3(vec4(vert_coord[i0], 1.0f) * worldTransform);
-    auto b = vec3(vec4(vert_coord[i1], 1.0f) * worldTransform);
-    auto c = vec3(vec4(vert_coord[i2], 1.0f) * worldTransform);
-
-    auto n0 = vert_normal[i0];
-    auto n1 = vert_normal[i1];
-    auto n2 = vert_normal[i2];
-
-    vec3 average_normal = (n0 + n1 + n2) * (1.0f / 3.0f);
-    average_normal = vec4(average_normal, 1.0f) * rot;
-    average_normal.normalize();
-
-    float verts[9] = {a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z};
-    uint indices[3] = {0, 1, 2};
-
-    auto [vertexBuffer, indexBuffer, vertexArray] =
-        createVertexArrayVertsOnly(verts, 3, indices, 3, 3 /* Position only */);
-
-    // TODO: simplify TriangleCollider struct to not directly include all this
-    // overriding stuff
-    triangles.emplace_back(average_normal, a, b, c, body, vertexBuffer,
-                           indexBuffer, vertexArray);
-  }
-
-  return triangles;
 }
