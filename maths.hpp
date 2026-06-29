@@ -424,6 +424,8 @@ public:
     w = inW;
   }
 
+  static quat Conjugate(const quat &q) { return quat{-q.x, -q.y, -q.z, q.w}; }
+
   void Conjugate() {
     x *= -1.0f;
     y *= -1.0f;
@@ -498,6 +500,12 @@ public:
     retVal.w = scale0 * a.w + scale1 * b.w;
     retVal.Normalize();
     return retVal;
+  }
+
+  // NOTE: From "Game Engine Architecture (4 ed)" by Jason Gregory
+  static quat RotateVector(const quat &q, const vec3 &v) {
+    quat vq(v.x, v.y, v.z, 0);
+    return Concatenate(Concatenate(q, vq), Conjugate(q));
   }
 
   // NOTE: From "Game Programming in C++" by Sanjay Madhav

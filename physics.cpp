@@ -2,67 +2,6 @@
 #include "entities.hpp"
 #include "pch.h"
 
-void SpacePartition::populate(const vector<TriangleCollider> &v) {
-  for (const auto &tc : v) {
-    float min_x = fmin(fmin(tc.a.x, tc.b.x), tc.c.x);
-    float max_x = fmax(fmax(tc.a.x, tc.b.x), tc.c.x);
-    float min_y = fmin(fmin(tc.a.y, tc.b.y), tc.c.y);
-    float max_y = fmax(fmax(tc.a.y, tc.b.y), tc.c.y);
-    float min_z = fmin(fmin(tc.a.z, tc.b.z), tc.c.z);
-    float max_z = fmax(fmax(tc.a.z, tc.b.z), tc.c.z);
-
-    auto start_x =
-        std::max((size_t)0, static_cast<size_t>((min_x - mMinX) / mStep));
-    auto end_x =
-        std::min(mNumX - 1, static_cast<size_t>((max_x - mMinX) / mStep));
-    auto start_y =
-        std::max((size_t)0, static_cast<size_t>((min_y - mMinY) / mStep));
-    auto end_y =
-        std::min(mNumY - 1, static_cast<size_t>((max_y - mMinY) / mStep));
-    auto start_z =
-        std::max((size_t)0, static_cast<size_t>((min_z - mMinZ) / mStep));
-    auto end_z =
-        std::min(mNumZ - 1, static_cast<size_t>((max_z - mMinZ) / mStep));
-
-    for (size_t x = start_x; x <= end_x; x++) {
-      for (size_t y = start_y; y <= end_y; y++) {
-        for (size_t z = start_z; z <= end_z; z++) {
-          mPartition[x * mNumY * mNumZ + y * mNumZ + z].emplace_back(tc);
-        }
-      }
-    }
-  }
-}
-
-vector<TriangleCollider> SpacePartition::get_partition(float min_x, float max_x,
-                                                       float min_y, float max_y,
-                                                       float min_z,
-                                                       float max_z) const {
-  vector<TriangleCollider> result{};
-  auto start_x =
-      std::max((size_t)0, static_cast<size_t>((min_x - mMinX) / mStep));
-  size_t end_x =
-      std::min(mNumX - 1, static_cast<size_t>((max_x - mMinX) / mStep));
-  auto start_y =
-      std::max((size_t)0, static_cast<size_t>((min_y - mMinY) / mStep));
-  size_t end_y =
-      std::min(mNumY - 1, static_cast<size_t>((max_y - mMinY) / mStep));
-  auto start_z =
-      std::max((size_t)0, static_cast<size_t>((min_z - mMinZ) / mStep));
-  size_t end_z =
-      std::min(mNumZ - 1, static_cast<size_t>((max_z - mMinZ) / mStep));
-
-  for (size_t x = start_x; x <= end_x; x++) {
-    for (size_t y = start_y; y <= end_y; y++) {
-      for (size_t z = start_z; z <= end_z; z++) {
-        result.append_range(mPartition[x * mNumY * mNumZ + y * mNumZ + z]);
-      }
-    }
-  }
-
-  return result;
-};
-
 // SOURCE: "Real-Time Collision Detection" by Christer Ericson (5.1.5 & 5.2.7)
 vec3 ClosestPtvec3Triangle(vec3 p, vec3 a, vec3 b, vec3 c) {
   vec3 ab = b - a;
@@ -126,8 +65,15 @@ vec3 ClosestPtvec3Triangle(vec3 p, vec3 a, vec3 b, vec3 c) {
   return u * a + v * b + w * c;
 }
 
-optional<vec3> intersectsTriangle(const TriangleCollider &t,
-                                  const SphereCollider &s) {
+struct CollisionData {
+  vec3 normal;
+  vec3 collisionPoint;
+};
+
+template <class T>
+  requires std::derived_from<T, Body>
+optional<CollisionData> intersectsTriangle(const TriangleCollider<T> &t,
+                                           const SphereCollider &s) {
   const vec3 &center = s.position;
 
   auto closest_point = ClosestPtvec3Triangle(center, t.a, t.b, t.c);
@@ -141,10 +87,10 @@ optional<vec3> intersectsTriangle(const TriangleCollider &t,
   }
 
   if (t.normal.dot(v) > 0) {
-    return {-t.normal};
+    return {{-t.normal, closest_point}};
   }
 
-  return {t.normal};
+  return {{t.normal, closest_point}};
 }
 
 optional<vec3> intersectsSphere(SphereCollider &s1, SphereCollider &s2) {
@@ -190,15 +136,26 @@ int Physics::processDynamicCollisions(vector<DynamicBody> &des, int idx,
   return -1;
 }
 
-bool Physics::processDoorCollisions(const vector<TriangleCollider> &triangles,
-                                    const SphereCollider &sphere,
-                                    vec3 &velocity) {
+void handleDoorRotation(const TriangleCollider<PivotBody> &triangle,
+                        const vec3 &normal, const float sepVel,
+                        const float distToPivot) {
+  // 速度(sepVel)から角速度を導出
+  float angVel = sepVel / distToPivot;
+
+  // 回転の範囲を越えていないか確認し、角速度を適用する
+  triangle.body->rotationalVelocity =
+      quat::Concatenate(triangle.body->rotationalVelocity,
+                        quat(triangle.body->pivotAxis, angVel));
+}
+
+bool Physics::processDoorCollisions(
+    const vector<TriangleCollider<PivotBody>> &triangles, DynamicBody &marble) {
   bool collision_happened = false;
 
   for (const auto &triangle : triangles) {
-    auto maybe_normal = intersectsTriangle(triangle, sphere);
+    auto maybe_coll = intersectsTriangle(triangle, marble.collider);
 
-    if (!maybe_normal.has_value())
+    if (!maybe_coll.has_value())
       continue;
 
     collision_happened = true;
@@ -209,35 +166,46 @@ bool Physics::processDoorCollisions(const vector<TriangleCollider> &triangles,
 
     // SOURCE: "Game Physics Engine Development" by Ian Millington
     // (section 7.2)
-    const vec3 normal = maybe_normal.value();
-    const float sepVel = velocity.dot(normal);
+    const auto &[normal, closestPoint] = maybe_coll.value();
+    const float sepVel = marble.velocity.dot(normal);
 
     if (sepVel < 0) {
       // Apply impulse instantly
       if (triangle.body->overrideImpulse) {
-        velocity = triangle.body->impulseOverride * velocity.length() *
-                   triangle.body->collisionAcceleration;
+        marble.velocity = triangle.body->impulseOverride *
+                          marble.velocity.length() *
+                          triangle.body->collisionAcceleration;
       } else if (triangle.body->overrideSpeed) {
-        velocity = triangle.body->speedOverride;
+        marble.velocity = triangle.body->speedOverride;
       } else {
-        velocity += normal * (-sepVel * (restitution + 1)) *
-                    triangle.body->collisionAcceleration;
+        marble.velocity += normal * (-sepVel * (restitution + 1)) *
+                           triangle.body->collisionAcceleration;
       }
+
+      vec3 axis = triangle.body->pivotAxis;
+      vec3 point = triangle.body->pivotPoint;
+      float t =
+          (closestPoint.x + closestPoint.y + closestPoint.z - axis.dot(point)) /
+          axis.sqrLentgh();
+      vec3 pointOnPivotAxis = point + t * axis;
+
+      handleDoorRotation(triangle, -normal, sepVel,
+                         closestPoint.distance(pointOnPivotAxis));
     }
   }
 
   return collision_happened;
 }
 
-bool Physics::processStaticCollisions(const vector<TriangleCollider> &triangles,
-                                      const SphereCollider &sphere,
-                                      vec3 &velocity) {
+bool Physics::processStaticCollisions(
+    const vector<TriangleCollider<StaticBody>> &triangles,
+    DynamicBody &marble) {
   bool collision_happened = false;
 
   for (const auto &triangle : triangles) {
-    auto maybe_normal = intersectsTriangle(triangle, sphere);
+    auto maybe_coll = intersectsTriangle(triangle, marble.collider);
 
-    if (!maybe_normal.has_value())
+    if (!maybe_coll.has_value())
       continue;
 
     collision_happened = true;
@@ -248,19 +216,20 @@ bool Physics::processStaticCollisions(const vector<TriangleCollider> &triangles,
 
     // SOURCE: "Game Physics Engine Development" by Ian Millington
     // (section 7.2)
-    const vec3 normal = maybe_normal.value();
-    const float sepVel = velocity.dot(normal);
+    const auto &[normal, closestPoint] = maybe_coll.value();
+    const float sepVel = marble.velocity.dot(normal);
 
     if (sepVel < 0) {
       // Apply impulse instantly
       if (triangle.body->overrideImpulse) {
-        velocity = triangle.body->impulseOverride * velocity.length() *
-                   triangle.body->collisionAcceleration;
+        marble.velocity = triangle.body->impulseOverride *
+                          marble.velocity.length() *
+                          triangle.body->collisionAcceleration;
       } else if (triangle.body->overrideSpeed) {
-        velocity = triangle.body->speedOverride;
+        marble.velocity = triangle.body->speedOverride;
       } else {
-        velocity += normal * (-sepVel * (restitution + 1)) *
-                    triangle.body->collisionAcceleration;
+        marble.velocity += normal * (-sepVel * (restitution + 1)) *
+                           triangle.body->collisionAcceleration;
       }
     }
   }

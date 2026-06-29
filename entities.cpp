@@ -28,16 +28,16 @@ Entities::Entities() {
        .speedOverride = vec3::up * 50.0f},
   });
 
-  RegisterDoor({
-      .meshPath = "assets/doorR.gpmesh",
-      .pivotAxis = vec3::up,
-      .pivotPoint = vec3::zero,
-  });
-  RegisterDoor({
-      .meshPath = "assets/doorL.gpmesh",
-      .pivotAxis = vec3::up,
-      .pivotPoint = vec3::zero,
-  });
+  RegisterDoor({.meshPath = "assets/doorR.gpmesh",
+                .pivotAxis = vec3::up,
+                .pivotPoint = vec3::zero,
+                .maxAngle = 45,
+                .resistance = 10.0f});
+  RegisterDoor({.meshPath = "assets/doorL.gpmesh",
+                .pivotAxis = vec3::up,
+                .pivotPoint = vec3::zero,
+                .maxAngle = -45,
+                .resistance = 10.0f});
 
   RegisterMarble({"assets/sphere.gpmesh"});
 }
@@ -50,25 +50,25 @@ void Entities::Update(float time, float deltaTime) {
   computeAveragePositionWithoutOutliers();
 
   for (int i = 0; i < getNumMarbles(); i++) {
-    DynamicBody &m = mMarbles[i];
+    DynamicBody &marble = mMarbles[i];
 
     // Prepare new body position to test collisions at
-    mPreviousPositions[i] = m.position;
+    mPreviousPositions[i] = marble.position;
 
     if (mSplitMode == SplitMode::Joining) {
       // Once all marbles are done fusing into one, return to single marble mode
       if (mCurNumMarbles == 1) {
         join();
       } else {
-        vec3 to = mAveragePos - m.position;
-        m.velocity += to / 64.0f;
+        vec3 to = mAveragePos - marble.position;
+        marble.velocity += to / 64.0f;
       }
     }
 
-    m.velocity += deltaTime * gGravity;
-    m.position += deltaTime * m.velocity;
+    marble.velocity += deltaTime * gGravity;
+    marble.position += deltaTime * marble.velocity;
 
-    m.collider.position = m.position;
+    marble.collider.position = marble.position;
 
     // Instantly apply collisions to the velocity of the body
     // If in joining mode, instantly join with any collided marble
@@ -76,44 +76,56 @@ void Entities::Update(float time, float deltaTime) {
         mMarbles, i, mCurNumMarbles, mSplitMode == SplitMode::Joining);
 
     if (collisionIdx > -1) {
-      vec3 averagePos = (m.position + mMarbles[collisionIdx].position) / 2.0f;
-      m.collider.radius += mMarbles[collisionIdx].collider.radius;
-      m.scale += mMarbles[collisionIdx].scale;
+      vec3 averagePos =
+          (marble.position + mMarbles[collisionIdx].position) / 2.0f;
+      marble.collider.radius += mMarbles[collisionIdx].collider.radius;
+      marble.scale += mMarbles[collisionIdx].scale;
 
       mCurNumMarbles--;
       mMarbles[collisionIdx] = mMarbles[mCurNumMarbles];
     }
 
     // Adjust position based on (possibly) updated velocity
-    m.position = mPreviousPositions[i] + deltaTime * m.velocity;
+    marble.position = mPreviousPositions[i] + deltaTime * marble.velocity;
 
     // Match m's position with collider's
-    m.collider.position = m.position;
+    marble.collider.position = marble.position;
 
-    float min_x = m.collider.position.x - m.collider.radius;
-    float max_x = m.collider.position.x + m.collider.radius;
-    float min_y = m.collider.position.y - m.collider.radius;
-    float max_y = m.collider.position.y + m.collider.radius;
-    float min_z = m.collider.position.z - m.collider.radius;
-    float max_z = m.collider.position.z + m.collider.radius;
+    float min_x = marble.collider.position.x - marble.collider.radius;
+    float max_x = marble.collider.position.x + marble.collider.radius;
+    float min_y = marble.collider.position.y - marble.collider.radius;
+    float max_y = marble.collider.position.y + marble.collider.radius;
+    float min_z = marble.collider.position.z - marble.collider.radius;
+    float max_z = marble.collider.position.z + marble.collider.radius;
 
-    gCurrentPartition =
+    auto statics =
         gSpacePartition.get_partition(min_x, max_x, min_y, max_y, min_z, max_z);
 
-    Physics::processStaticCollisions(gCurrentPartition, m.collider, m.velocity);
+    Physics::processStaticCollisions(statics, marble);
 
     auto doors =
         gDoorSP.get_partition(min_x, max_x, min_y, max_y, min_z, max_z);
 
-    Physics::processDoorCollisions(doors, m.collider, m.velocity);
+    Physics::processDoorCollisions(doors, marble);
 
-    gCurrentPartition.append_range(doors);
+    for (auto &door : doors) {
+      // TODO: figure out quaternion/slerp
+      auto targetRot =
+          quat::Concatenate(door.body->rotation, door.body->rotationalVelocity);
+      door.body->rotation =
+          quat::Lerp(door.body->rotation, targetRot, deltaTime);
+    }
+
+    for (const auto &s : statics)
+      gShowWireframe.push_back(s.vertexArray);
+    for (const auto &d : doors)
+      gShowWireframe.push_back(d.vertexArray);
 
     // Adjust position (again)
-    m.position = mPreviousPositions[i] + deltaTime * m.velocity;
+    marble.position = mPreviousPositions[i] + deltaTime * marble.velocity;
 
     // Match m's position with collider's
-    m.collider.position = m.position;
+    marble.collider.position = marble.position;
   }
 }
 
@@ -147,9 +159,10 @@ void Entities::RegisterDoor(const DoorData &doorData) {
     auto [mesh, body] = maybe.value();
     body.scale *= doorData.scale;
 
-    StaticBody b(body, doorData.pivotAxis, doorData.pivotPoint);
-    shared_ptr<StaticBody> shB = std::make_shared<StaticBody>(b);
-    auto triangles = mesh.generateTriangleCollidersFromMesh(shB);
+    PivotBody b(body, doorData.pivotAxis, doorData.pivotPoint,
+                doorData.maxAngle, doorData.resistance);
+    shared_ptr<PivotBody> shB = std::make_shared<PivotBody>(b);
+    auto triangles = mesh.generateTriangleCollidersFromMesh<PivotBody>(shB);
     gDoorSP.populate(triangles);
 
     mDoors.emplace_back(mesh, shB);
