@@ -29,12 +29,12 @@ Entities::Entities() {
   });
 
   RegisterDoor({.meshPath = "assets/doorR.gpmesh",
-                .pivotAxis = vec3::up,
+                .pivotAxis = -vec3::right,
                 .pivotPoint = vec3::zero,
                 .maxAngle = 45,
                 .resistance = 10.0f});
   RegisterDoor({.meshPath = "assets/doorL.gpmesh",
-                .pivotAxis = vec3::up,
+                .pivotAxis = vec3::right,
                 .pivotPoint = vec3::zero,
                 .maxAngle = -45,
                 .resistance = 10.0f});
@@ -98,23 +98,25 @@ void Entities::Update(float time, float deltaTime) {
     float min_z = marble.collider.position.z - marble.collider.radius;
     float max_z = marble.collider.position.z + marble.collider.radius;
 
-    auto statics =
+    auto staticsPartition =
         gSpacePartition.get_partition(min_x, max_x, min_y, max_y, min_z, max_z);
 
-    Physics::processStaticCollisions(statics, marble);
+    Physics::processStaticCollisions(staticsPartition, marble);
 
-    auto doors =
+    auto doorsPartition =
         gDoorSP.get_partition(min_x, max_x, min_y, max_y, min_z, max_z);
 
-    Physics::processDoorCollisions(doors, marble);
+    Physics::processDoorCollisions(doorsPartition, marble);
 
-    for (auto &door : doors) {
-      // q * p * q^-1 = qを用いて回転する
+    for (auto &door : mDoors) {
+      // q * p * q^-1 = q を用いて回転する
       auto targetRot =
           quat::Concatenate(door.body->rotation, door.body->rotationalVelocity);
 
       door.body->rotation =
           quat::Lerp(door.body->rotation, targetRot, deltaTime);
+
+      // 回転の範囲を越えたら修正
     }
 
 #ifdef _DEBUG
@@ -122,10 +124,10 @@ void Entities::Update(float time, float deltaTime) {
     // FIX: vertex array だけ渡すと、回転などは反映されない
     vector<GLuint> showWireframe;
     std::ranges::transform(
-        statics, std::back_inserter(showWireframe),
+        staticsPartition, std::back_inserter(showWireframe),
         [](const TriangleCollider<StaticBody> &s) { return s.vertexArray; });
     std::ranges::transform(
-        doors, std::back_inserter(showWireframe),
+        doorsPartition, std::back_inserter(showWireframe),
         [](const TriangleCollider<PivotBody> &d) { return d.vertexArray; });
     gShowWireframe = showWireframe;
 #endif

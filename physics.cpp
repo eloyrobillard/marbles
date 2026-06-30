@@ -146,8 +146,6 @@ void handleDoorRotation(const TriangleCollider<PivotBody> &triangle,
   quat rotVel(triangle.body->pivotAxis, angVel);
   triangle.body->rotationalVelocity =
       quat::Concatenate(triangle.body->rotationalVelocity, rotVel);
-
-  // 回転の範囲を越えていないか確認し、修正
 }
 
 bool Physics::processDoorCollisions(
