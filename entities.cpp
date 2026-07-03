@@ -29,14 +29,14 @@ Entities::Entities() {
   });
 
   RegisterDoor({.meshPath = "assets/doorR.gpmesh",
-                .pivotAxis = -vec3::right,
+                .pivotAxis = -vec3::up,
                 .pivotPoint = vec3::zero,
-                .maxAngle = 45,
+                .angleBoundsDeg = {0.0f, 45.0f},
                 .resistance = 10.0f});
   RegisterDoor({.meshPath = "assets/doorL.gpmesh",
-                .pivotAxis = vec3::right,
+                .pivotAxis = vec3::up,
                 .pivotPoint = vec3::zero,
-                .maxAngle = -45,
+                .angleBoundsDeg = {0.0f, 45.0f},
                 .resistance = 10.0f});
 
   RegisterMarble({"assets/sphere.gpmesh"});
