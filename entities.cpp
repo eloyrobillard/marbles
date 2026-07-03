@@ -113,10 +113,13 @@ void Entities::Update(float time, float deltaTime) {
       auto targetRot =
           quat::Concatenate(door.body->rotation, door.body->rotationalVelocity);
 
-      door.body->rotation =
-          quat::Lerp(door.body->rotation, targetRot, deltaTime);
+      auto finalRot = quat::Lerp(door.body->rotation, targetRot, deltaTime);
 
       // 回転の範囲を越えたら修正
+      if (door.body->angleBounds.minCosHalfRad <= finalRot.w &&
+          finalRot.w <= door.body->angleBounds.maxCosHalfRad) {
+        door.body->rotation = finalRot;
+      }
     }
 
 #ifdef _DEBUG
@@ -171,7 +174,7 @@ void Entities::RegisterDoor(const DoorData &doorData) {
     body.scale *= doorData.scale;
 
     PivotBody b(body, doorData.pivotAxis, doorData.pivotPoint,
-                doorData.maxAngle, doorData.resistance);
+                doorData.angleBoundsDeg, doorData.resistance);
     shared_ptr<PivotBody> shB = std::make_shared<PivotBody>(b);
     auto triangles = mesh.generateTriangleCollidersFromMesh<PivotBody>(shB);
     gDoorSP.populate(triangles);

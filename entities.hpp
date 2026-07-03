@@ -25,7 +25,7 @@ struct DoorData {
   vec3 pivotAxis;
   // Point in local coordinates
   vec3 pivotPoint;
-  float maxAngle;
+  pair<float, float> angleBoundsDeg;
   // Resisting force pushing the door back close
   float resistance;
 };
