@@ -11,6 +11,14 @@ using Maths::vec3;
 class Body;
 class StaticBody;
 
+struct AngleBounds {
+  float minRad;
+  float maxRad;
+  // この二つは四元数のスカラ部と直接比較するために役立つ
+  float maxCosHalfRad;
+  float minCosHalfRad;
+};
+
 struct Collider {};
 
 struct SphereCollider : Collider {
@@ -101,9 +109,15 @@ struct PivotBody : Body {
         overrideSpeed(os), impulseOverride(io), speedOverride(so) {}
 
   PivotBody(Body &b, const vec3 &pivotAxis, const vec3 &pivotPoint,
-            float maxAngle, float resistance)
+            pair<float, float> boundsDeg, float resistance)
       : Body(b), pivotAxis(pivotAxis), pivotPoint(pivotPoint),
-        maxAngle(maxAngle), resistance(resistance) {}
+        resistance(resistance) {
+    angleBounds.minRad = boundsDeg.first / 180.0f * Maths::PI;
+    angleBounds.maxRad = boundsDeg.second / 180.0f * Maths::PI;
+    // NOTE: minRadはmaxRadより大きいcos値を返すので逆
+    angleBounds.minCosHalfRad = cosf(angleBounds.maxRad / 2.0f);
+    angleBounds.maxCosHalfRad = cosf(angleBounds.minRad / 2.0f);
+  }
 
   quat rotationalVelocity;
 
@@ -114,7 +128,7 @@ struct PivotBody : Body {
   vec3 speedOverride = vec3::zero;
   vec3 pivotAxis = vec3::zero;
   vec3 pivotPoint = vec3::zero;
-  float maxAngle = 0.0f;
+  AngleBounds angleBounds = {0.0f, 45.0f};
   float resistance = 0.0f;
 };
 
