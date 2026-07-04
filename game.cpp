@@ -46,6 +46,16 @@ void Game::Tick(float deltaTime) {
     entities->RegisterInputLeft(deltaTime);
   }
 
+#ifdef _DEBUG
+  if (GetKey(SDL_SCANCODE_UP)) {
+    entities->RegisterInputForward(deltaTime);
+  }
+
+  if (GetKey(SDL_SCANCODE_DOWN)) {
+    entities->RegisterInputBackward(deltaTime);
+  }
+#endif
+
   if (GetKeyPressed(SDL_SCANCODE_RETURN)) {
     ToCheckpoint();
   }
