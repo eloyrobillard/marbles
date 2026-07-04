@@ -206,6 +206,16 @@ void Entities::RegisterStaticEntities(const vector<StaticEntityData> &data) {
   }
 }
 
+void Entities::RegisterInputForward(float dt) {
+  if (mSplitMode == SplitMode::Joined)
+    mMarbles[0].RegisterInputForward(dt);
+}
+
+void Entities::RegisterInputBackward(float dt) {
+  if (mSplitMode == SplitMode::Joined)
+    mMarbles[0].RegisterInputBackward(dt);
+}
+
 void Entities::RegisterInputLeft(float dt) {
   if (mSplitMode == SplitMode::Joined)
     mMarbles[0].RegisterInputLeft(dt);

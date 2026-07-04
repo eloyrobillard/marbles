@@ -180,6 +180,7 @@ public:
 
   // TODO: move input handling somewhere else
   void RegisterInputForward(float dt);
+  void RegisterInputBackward(float dt);
   void RegisterInputLeft(float dt);
   void RegisterInputRight(float dt);
   void ToCheckpoint(const vector<vec3> &positionsAtCheckpoint);
