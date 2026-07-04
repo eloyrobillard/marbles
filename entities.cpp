@@ -132,14 +132,13 @@ void Entities::Update(float time, float deltaTime) {
 
 #ifdef _DEBUG
     // Set vertices to be shown as wireframe
-    // FIX: vertex array だけ渡すと、回転などは反映されない
     vector<GLuint> showWireframe;
     std::ranges::transform(
         staticsPartition, std::back_inserter(showWireframe),
-        [](const TriangleCollider<StaticBody> &s) { return s.vertexArray; });
+        [](const TriangleCollider<StaticBody> *s) { return s->vertexArray; });
     std::ranges::transform(
         doorsPartition, std::back_inserter(showWireframe),
-        [](const TriangleCollider<PivotBody> &d) { return d.vertexArray; });
+        [](const TriangleCollider<PivotBody> *d) { return d->vertexArray; });
     gShowWireframe = showWireframe;
 #endif
 
@@ -185,9 +184,9 @@ void Entities::RegisterDoor(const DoorData &doorData) {
                 doorData.angleBoundsDeg, doorData.resistance);
     shared_ptr<PivotBody> shB = std::make_shared<PivotBody>(b);
     auto triangles = mesh.generateTriangleCollidersFromMesh<PivotBody>(shB);
-    gDoorSP.populate(triangles);
+    auto &ref = mDoors.emplace_back(mesh, shB, triangles);
 
-    mDoors.emplace_back(mesh, shB);
+    gDoorSP.populate(ref.colliders);
   }
 }
 
@@ -207,9 +206,9 @@ void Entities::RegisterStaticEntities(const vector<StaticEntityData> &data) {
 
       shared_ptr<StaticBody> shB = std::make_shared<StaticBody>(b);
       auto triangles = mesh.generateTriangleCollidersFromMesh(shB);
-      gSpacePartition.populate(triangles);
+      auto &ref = mStaticEntities.emplace_back(mesh, shB, triangles);
 
-      mStaticEntities.emplace_back(mesh, shB);
+      gSpacePartition.populate(ref.colliders);
     }
   }
 }

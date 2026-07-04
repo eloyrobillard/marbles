@@ -68,8 +68,6 @@ public:
           createVertexArrayVertsOnly(verts, 3, indices, 3,
                                      3 /* Position only */);
 
-      // TODO: simplify TriangleCollider struct to not directly include all this
-      // overriding stuff
       triangles.emplace_back(average_normal, a, b, c, body, vertexBuffer,
                              indexBuffer, vertexArray);
     }

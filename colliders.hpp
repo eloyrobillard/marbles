@@ -126,7 +126,6 @@ struct PivotBody : Body {
   }
 
   quat rotationalVelocity;
-
   float collisionAcceleration = 1.0f;
   bool overrideImpulse = false;
   bool overrideSpeed = false;
