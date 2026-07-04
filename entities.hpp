@@ -51,8 +51,9 @@ struct Entity {
 };
 
 struct PivotEntity : Entity {
-  PivotEntity(const Mesh &mesh, const shared_ptr<PivotBody> &body)
-      : Entity(mesh), body(body) {}
+  PivotEntity(const Mesh &mesh, const shared_ptr<PivotBody> &body,
+              vector<TriangleCollider<PivotBody>> &colliders)
+      : Entity(mesh), body(body), colliders(std::move(colliders)) {}
 
   [[nodiscard]] string GetCoordinatesString() const {
     return std::format("x: {:8.3f}\ny: {:8.3f}\nz: {:8.3f}", body->position.x,
@@ -66,11 +67,13 @@ struct PivotEntity : Entity {
   }
 
   shared_ptr<PivotBody> body;
+  vector<TriangleCollider<PivotBody>> colliders;
 };
 
 struct StaticEntity : Entity {
-  StaticEntity(const Mesh &mesh, const shared_ptr<StaticBody> &body)
-      : Entity(mesh), body(body) {}
+  StaticEntity(const Mesh &mesh, const shared_ptr<StaticBody> &body,
+               vector<TriangleCollider<StaticBody>> &colliders)
+      : Entity(mesh), body(body), colliders(std::move(colliders)) {}
 
   [[nodiscard]] string GetCoordinatesString() const {
     return std::format("x: {:8.3f}\ny: {:8.3f}\nz: {:8.3f}", body->position.x,
@@ -84,6 +87,7 @@ struct StaticEntity : Entity {
   }
 
   shared_ptr<StaticBody> body;
+  vector<TriangleCollider<StaticBody>> colliders;
 };
 
 struct DynamicEntity : public Entity {

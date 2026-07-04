@@ -26,7 +26,7 @@ class SpacePartition {
   size_t mNumX;
   size_t mNumY;
   size_t mNumZ;
-  vector<vector<TriangleCollider<T>>> mPartition;
+  vector<vector<TriangleCollider<T> *>> mPartition;
 
   void populate(const TriangleCollider<T> &tc, float min_x, float max_x,
                 float min_y, float max_y, float min_z, float max_z);
@@ -40,27 +40,27 @@ public:
     mNumY = ceil((max_y - min_y) / step);
     mNumZ = ceil((max_z - min_z) / step);
 
-    mPartition = vector<vector<TriangleCollider<T>>>(mNumX * mNumY * mNumZ);
+    mPartition = vector<vector<TriangleCollider<T> *>>(mNumX * mNumY * mNumZ);
   }
 
   SpacePartition(float min_x, float max_x, float min_y, float max_y,
                  float min_z, float max_z, float step,
-                 const vector<TriangleCollider<T>> &v)
+                 const vector<TriangleCollider<T> *> &v)
       : mMinX(min_x), mMaxX(max_x), mMinY(min_y), mMaxY(max_y), mMinZ(min_z),
         mMaxZ(max_z), mStep(step) {
     mNumX = ceil((max_x - min_x) / step);
     mNumY = ceil((max_y - min_y) / step);
     mNumZ = ceil((max_z - min_z) / step);
 
-    mPartition = vector<vector<TriangleCollider<T>>>(mNumX * mNumY * mNumZ);
+    mPartition = vector<vector<TriangleCollider<T> *>>(mNumX * mNumY * mNumZ);
 
     populate(v);
   }
 
   ~SpacePartition() = default;
 
-  void populate(const vector<TriangleCollider<T>> &v) {
-    for (const auto &tc : v) {
+  void populate(vector<TriangleCollider<T>> &v) {
+    for (auto &tc : v) {
       float min_x = fmin(fmin(tc.a.x, tc.b.x), tc.c.x);
       float max_x = fmax(fmax(tc.a.x, tc.b.x), tc.c.x);
       float min_y = fmin(fmin(tc.a.y, tc.b.y), tc.c.y);
@@ -84,17 +84,17 @@ public:
       for (size_t x = start_x; x <= end_x; x++) {
         for (size_t y = start_y; y <= end_y; y++) {
           for (size_t z = start_z; z <= end_z; z++) {
-            mPartition[x * mNumY * mNumZ + y * mNumZ + z].emplace_back(tc);
+            mPartition[x * mNumY * mNumZ + y * mNumZ + z].push_back(&tc);
           }
         }
       }
     }
   }
 
-  [[nodiscard]] vector<TriangleCollider<T>>
+  [[nodiscard]] vector<TriangleCollider<T> *>
   get_partition(float min_x, float max_x, float min_y, float max_y, float min_z,
                 float max_z) const {
-    vector<TriangleCollider<T>> result{};
+    vector<TriangleCollider<T> *> result{};
     auto start_x =
         std::max((size_t)0, static_cast<size_t>((min_x - mMinX) / mStep));
     size_t end_x =
@@ -130,10 +130,12 @@ inline SpacePartition gDoorSP =
 class DynamicEntity;
 
 namespace Physics {
-bool processDoorCollisions(const vector<TriangleCollider<PivotBody>> &triangles,
-                           DynamicBody &marble);
+bool processDoorCollisions(
+    const vector<TriangleCollider<PivotBody> *> &triangles,
+    DynamicBody &marble);
 bool processStaticCollisions(
-    const vector<TriangleCollider<StaticBody>> &triangles, DynamicBody &marble);
+    const vector<TriangleCollider<StaticBody> *> &triangles,
+    DynamicBody &marble);
 int processDynamicCollisions(vector<DynamicBody> &des, int idx, int numMarbles,
                              bool joining);
 

@@ -72,11 +72,11 @@ struct CollisionData {
 
 template <class T>
   requires std::derived_from<T, Body>
-optional<CollisionData> intersectsTriangle(const TriangleCollider<T> &t,
+optional<CollisionData> intersectsTriangle(const TriangleCollider<T> *t,
                                            const SphereCollider &s) {
   const vec3 &center = s.position;
 
-  auto closest_point = ClosestPtvec3Triangle(center, t.a, t.b, t.c);
+  auto closest_point = ClosestPtvec3Triangle(center, t->a, t->b, t->c);
 
   // Sphere and triangle intersect if the (squared) distance from sphere
   // center to point p is less than the (squared) sphere radius
@@ -86,11 +86,11 @@ optional<CollisionData> intersectsTriangle(const TriangleCollider<T> &t,
     return {};
   }
 
-  if (t.normal.dot(v) > 0) {
-    return {{-t.normal, closest_point}};
+  if (t->normal.dot(v) > 0) {
+    return {{-t->normal, closest_point}};
   }
 
-  return {{t.normal, closest_point}};
+  return {{t->normal, closest_point}};
 }
 
 optional<vec3> intersectsSphere(SphereCollider &s1, SphereCollider &s2) {
@@ -136,19 +136,20 @@ int Physics::processDynamicCollisions(vector<DynamicBody> &des, int idx,
   return -1;
 }
 
-void handleDoorRotation(const TriangleCollider<PivotBody> &triangle,
+void handleDoorRotation(const TriangleCollider<PivotBody> *triangle,
                         const vec3 &normal, const float sepVel,
                         const float distToPivot) {
   // 速度(sepVel)から角速度を導出
   float angVel = 20.f * sepVel / distToPivot;
 
-  quat rotVel(triangle.body->pivotAxis, angVel);
-  triangle.body->rotationalVelocity =
-      quat::Concatenate(triangle.body->rotationalVelocity, rotVel);
+  quat rotVel(triangle->body->pivotAxis, angVel);
+  triangle->body->rotationalVelocity =
+      quat::Concatenate(triangle->body->rotationalVelocity, rotVel);
 }
 
 bool Physics::processDoorCollisions(
-    const vector<TriangleCollider<PivotBody>> &triangles, DynamicBody &marble) {
+    const vector<TriangleCollider<PivotBody> *> &triangles,
+    DynamicBody &marble) {
   bool collision_happened = false;
 
   for (const auto &triangle : triangles) {
@@ -160,7 +161,7 @@ bool Physics::processDoorCollisions(
     collision_happened = true;
 
 #ifdef _DEBUG
-    gToRenderAsCollided.push(triangle.vertexArray);
+    gToRenderAsCollided.push(triangle->vertexArray);
 #endif
 
     // SOURCE: "Game Physics Engine Development" by Ian Millington
@@ -170,19 +171,19 @@ bool Physics::processDoorCollisions(
 
     if (sepVel < 0) {
       // Apply impulse instantly
-      if (triangle.body->overrideImpulse) {
-        marble.velocity = triangle.body->impulseOverride *
+      if (triangle->body->overrideImpulse) {
+        marble.velocity = triangle->body->impulseOverride *
                           marble.velocity.length() *
-                          triangle.body->collisionAcceleration;
-      } else if (triangle.body->overrideSpeed) {
-        marble.velocity = triangle.body->speedOverride;
+                          triangle->body->collisionAcceleration;
+      } else if (triangle->body->overrideSpeed) {
+        marble.velocity = triangle->body->speedOverride;
       } else {
         marble.velocity += normal * (-sepVel * (restitution + 1)) *
-                           triangle.body->collisionAcceleration;
+                           triangle->body->collisionAcceleration;
       }
 
-      vec3 axis = triangle.body->pivotAxis;
-      vec3 point = triangle.body->pivotPoint;
+      vec3 axis = triangle->body->pivotAxis;
+      vec3 point = triangle->body->pivotPoint;
       float t =
           (closestPoint.x + closestPoint.y + closestPoint.z - axis.dot(point)) /
           axis.sqrLentgh();
@@ -197,7 +198,7 @@ bool Physics::processDoorCollisions(
 }
 
 bool Physics::processStaticCollisions(
-    const vector<TriangleCollider<StaticBody>> &triangles,
+    const vector<TriangleCollider<StaticBody> *> &triangles,
     DynamicBody &marble) {
   bool collision_happened = false;
 
@@ -210,7 +211,7 @@ bool Physics::processStaticCollisions(
     collision_happened = true;
 
 #ifdef _DEBUG
-    gToRenderAsCollided.push(triangle.vertexArray);
+    gToRenderAsCollided.push(triangle->vertexArray);
 #endif
 
     // SOURCE: "Game Physics Engine Development" by Ian Millington
@@ -220,15 +221,15 @@ bool Physics::processStaticCollisions(
 
     if (sepVel < 0) {
       // Apply impulse instantly
-      if (triangle.body->overrideImpulse) {
-        marble.velocity = triangle.body->impulseOverride *
+      if (triangle->body->overrideImpulse) {
+        marble.velocity = triangle->body->impulseOverride *
                           marble.velocity.length() *
-                          triangle.body->collisionAcceleration;
-      } else if (triangle.body->overrideSpeed) {
-        marble.velocity = triangle.body->speedOverride;
+                          triangle->body->collisionAcceleration;
+      } else if (triangle->body->overrideSpeed) {
+        marble.velocity = triangle->body->speedOverride;
       } else {
         marble.velocity += normal * (-sepVel * (restitution + 1)) *
-                           triangle.body->collisionAcceleration;
+                           triangle->body->collisionAcceleration;
       }
     }
   }
