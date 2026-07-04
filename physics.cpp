@@ -140,9 +140,8 @@ void handleDoorRotation(const TriangleCollider<PivotBody> &triangle,
                         const vec3 &normal, const float sepVel,
                         const float distToPivot) {
   // 速度(sepVel)から角速度を導出
-  float angVel = sepVel / distToPivot;
+  float angVel = 20.f * sepVel / distToPivot;
 
-  // 角速度を適用する：q * p * q^-1
   quat rotVel(triangle.body->pivotAxis, angVel);
   triangle.body->rotationalVelocity =
       quat::Concatenate(triangle.body->rotationalVelocity, rotVel);

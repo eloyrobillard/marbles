@@ -32,12 +32,12 @@ Entities::Entities() {
                 .pivotAxis = -vec3::up,
                 .pivotPoint = vec3::zero,
                 .angleBoundsDeg = {0.0f, 45.0f},
-                .resistance = 10.0f});
+                .resistance = 1.f});
   RegisterDoor({.meshPath = "assets/doorL.gpmesh",
                 .pivotAxis = vec3::up,
                 .pivotPoint = vec3::zero,
-                .angleBoundsDeg = {0.0f, 45.0f},
-                .resistance = 10.0f});
+                .angleBoundsDeg = {-45.0f, 0.0f},
+                .resistance = 1.f});
 
   RegisterMarble({"assets/sphere.gpmesh"});
 }
@@ -109,16 +109,24 @@ void Entities::Update(float time, float deltaTime) {
     Physics::processDoorCollisions(doorsPartition, marble);
 
     for (auto &door : mDoors) {
-      // q * p * q^-1 = q を用いて回転する
+      // 抵抗力を適用
+      door.body->rotationalVelocity =
+          quat::Lerp(door.body->rotationalVelocity,
+                     quat::Concatenate(door.body->rotationalVelocity,
+                                       door.body->constantAcceleration),
+                     deltaTime);
+
       auto targetRot =
           quat::Concatenate(door.body->rotation, door.body->rotationalVelocity);
 
       auto finalRot = quat::Lerp(door.body->rotation, targetRot, deltaTime);
 
-      // 回転の範囲を越えたら修正
-      if (door.body->angleBounds.minCosHalfRad <= finalRot.w &&
-          finalRot.w <= door.body->angleBounds.maxCosHalfRad) {
+      // 回転の範囲を越えたら速度をリセット
+      if (door.body->angleBounds.minSinHalfRad <= finalRot.z &&
+          finalRot.z <= door.body->angleBounds.maxSinHalfRad) {
         door.body->rotation = finalRot;
+      } else {
+        door.body->rotationalVelocity = quat::Identity;
       }
     }
 
