@@ -7,6 +7,7 @@
 using Maths::mat4;
 using Maths::quat;
 using Maths::vec3;
+using Maths::vec4;
 
 class Body;
 class StaticBody;
@@ -39,6 +40,13 @@ struct TriangleCollider : Collider {
       : normal(normal), a(a), b(b), c(c), body(body),
         vertexBuffer(vertexBuffer), indexBuffer(indexBuffer),
         vertexArray(vertexArray) {}
+
+  void updateNormal() {
+    const mat4 rot = mat4::CreateFromQuaternion(body->rotation);
+
+    normal = vec3(vec4(normal, 1.0f) * rot);
+    normal.normalize();
+  }
 
   vec3 a;
   vec3 b;

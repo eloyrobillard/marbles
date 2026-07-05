@@ -38,6 +38,40 @@ public:
   [[nodiscard]] size_t GetNumIndices() const { return indices.size(); }
   [[nodiscard]] GLuint GetVertexArray() const { return vertexArray; }
 
+  [[nodiscard]] vector<TriangleCollider<PivotBody>>
+  generateTriangleCollidersFromMesh(const shared_ptr<PivotBody> &body) const {
+    vector<TriangleCollider<PivotBody>> triangles;
+    triangles.reserve(idx_triplets.size());
+
+    const mat4 worldTransform = body->getWorldTransform();
+    const mat4 rot = mat4::CreateFromQuaternion(body->rotation);
+
+    for (const auto &[i0, i1, i2] : idx_triplets) {
+      auto a = vert_coord[i0];
+      auto b = vert_coord[i1];
+      auto c = vert_coord[i2];
+
+      auto n0 = vert_normal[i0];
+      auto n1 = vert_normal[i1];
+      auto n2 = vert_normal[i2];
+
+      vec3 average_normal = (n0 + n1 + n2) * (1.0f / 3.0f);
+      average_normal.normalize();
+
+      float verts[9] = {a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z};
+      uint indices[3] = {0, 1, 2};
+
+      auto [vertexBuffer, indexBuffer, vertexArray] =
+          createVertexArrayVertsOnly(verts, 3, indices, 3,
+                                     3 /* Position only */);
+
+      triangles.emplace_back(average_normal, a, b, c, body, vertexBuffer,
+                             indexBuffer, vertexArray);
+    }
+
+    return triangles;
+  }
+
   template <class T>
     requires std::derived_from<T, Body>
   vector<TriangleCollider<T>>
@@ -58,7 +92,7 @@ public:
       auto n2 = vert_normal[i2];
 
       vec3 average_normal = (n0 + n1 + n2) * (1.0f / 3.0f);
-      average_normal = vec4(average_normal, 1.0f) * rot;
+      average_normal = vec3(vec4(average_normal, 1.0f) * rot);
       average_normal.normalize();
 
       float verts[9] = {a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z};

@@ -124,14 +124,11 @@ public:
 inline SpacePartition gSpacePartition = SpacePartition<StaticBody>(
     4.0f, 150.0f, -40.0f, 80.0f, -100.0f, 10.0f, 0.5f);
 
-inline SpacePartition gDoorSP =
-    SpacePartition<PivotBody>(60.0f, 75.0f, -10.0f, 10.0f, -10.0f, 10.0f, 0.5f);
-
 class DynamicEntity;
 
 namespace Physics {
 bool processDoorCollisions(
-    const vector<TriangleCollider<PivotBody> *> &triangles,
+    const vector<pair<TriangleCollider<PivotBody>, mat4>> &triangles,
     DynamicBody &marble);
 bool processStaticCollisions(
     const vector<TriangleCollider<StaticBody> *> &triangles,

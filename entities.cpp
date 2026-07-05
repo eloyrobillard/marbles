@@ -103,10 +103,37 @@ void Entities::Update(float time, float deltaTime) {
 
     Physics::processStaticCollisions(staticsPartition, marble);
 
-    auto doorsPartition =
-        gDoorSP.get_partition(min_x, max_x, min_y, max_y, min_z, max_z);
+    vector<pair<TriangleCollider<PivotBody>, mat4>> doors{};
 
-    Physics::processDoorCollisions(doorsPartition, marble);
+    // NOTE: コライダーの位置・回転をフレームごとに更新
+    // 法線ベクトルは前のフレームに更新した
+    vector<pair<GLuint, mat4>> showDoorWireframe{};
+    for (auto &door : mDoors) {
+      for (auto &t : door.colliders) {
+        mat4 model = t.body->getWorldTransform();
+        auto &[ref, _] = doors.emplace_back(t, model);
+
+        ref.a = vec3(vec4(ref.a, 1.0f) * model);
+        ref.b = vec3(vec4(ref.b, 1.0f) * model);
+        ref.c = vec3(vec4(ref.c, 1.0f) * model);
+
+        float bias = 0.5f;
+
+        float minX = std::min(ref.a.x, std::min(ref.b.x, ref.c.x)) - bias;
+        float maxX = std::max(ref.a.x, std::max(ref.b.x, ref.c.x)) + bias;
+        float minY = std::min(ref.a.y, std::min(ref.b.y, ref.c.y)) - bias;
+        float maxY = std::max(ref.a.y, std::max(ref.b.y, ref.c.y)) + bias;
+        float minZ = std::min(ref.a.z, std::min(ref.b.z, ref.c.z)) - bias;
+        float maxZ = std::max(ref.a.z, std::max(ref.b.z, ref.c.z)) + bias;
+
+        if (!(maxX < min_x || minX > max_x || maxY < min_y || minY > max_y ||
+              maxZ < min_z || minZ > max_z)) {
+          showDoorWireframe.emplace_back(ref.vertexArray, model);
+        }
+      }
+    }
+
+    Physics::processDoorCollisions(doors, marble);
 
     for (auto &door : mDoors) {
       // 抵抗力を適用
@@ -125,6 +152,10 @@ void Entities::Update(float time, float deltaTime) {
       if (door.body->angleBounds.minSinHalfRad <= finalRot.z &&
           finalRot.z <= door.body->angleBounds.maxSinHalfRad) {
         door.body->rotation = finalRot;
+
+        for (auto &t : door.colliders) {
+          t.updateNormal();
+        }
       } else {
         door.body->rotationalVelocity = quat::Identity;
       }
@@ -136,10 +167,9 @@ void Entities::Update(float time, float deltaTime) {
     std::ranges::transform(
         staticsPartition, std::back_inserter(showWireframe),
         [](const TriangleCollider<StaticBody> *s) { return s->vertexArray; });
-    std::ranges::transform(
-        doorsPartition, std::back_inserter(showWireframe),
-        [](const TriangleCollider<PivotBody> *d) { return d->vertexArray; });
     gShowWireframe = showWireframe;
+
+    gShowDoorWireframe = showDoorWireframe;
 #endif
 
     // Adjust position (again)
@@ -183,10 +213,8 @@ void Entities::RegisterDoor(const DoorData &doorData) {
     PivotBody b(body, doorData.pivotAxis, doorData.pivotPoint,
                 doorData.angleBoundsDeg, doorData.resistance);
     shared_ptr<PivotBody> shB = std::make_shared<PivotBody>(b);
-    auto triangles = mesh.generateTriangleCollidersFromMesh<PivotBody>(shB);
-    auto &ref = mDoors.emplace_back(mesh, shB, triangles);
-
-    gDoorSP.populate(ref.colliders);
+    auto triangles = mesh.generateTriangleCollidersFromMesh(shB);
+    mDoors.emplace_back(mesh, shB, triangles);
   }
 }
 
@@ -201,8 +229,9 @@ void Entities::RegisterStaticEntities(const vector<StaticEntityData> &data) {
       const mat4 rot = mat4::CreateFromQuaternion(body.rotation);
 
       StaticBody b(body, datum.collisionAcceleration, datum.overrideImpulse,
-                   datum.overrideSpeed, vec4(datum.impulseOverride, 1.0f) * rot,
-                   vec4(datum.speedOverride, 1.0f) * rot);
+                   datum.overrideSpeed,
+                   vec3(vec4(datum.impulseOverride, 1.0f) * rot),
+                   vec3(vec4(datum.speedOverride, 1.0f) * rot));
 
       shared_ptr<StaticBody> shB = std::make_shared<StaticBody>(b);
       auto triangles = mesh.generateTriangleCollidersFromMesh(shB);
