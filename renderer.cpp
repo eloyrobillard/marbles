@@ -607,6 +607,7 @@ void Renderer::drawCollisionDebug(const mat4 &viewProj) {
   mCollisionShader.SetActive();
 
   mCollisionShader.SetMatrixUniform("uViewProj", viewProj);
+  mCollisionShader.SetMatrixUniform("uModel", mat4::identity());
 
   while (!gToRenderAsCollided.empty()) {
     Shader::SetVerticesActive(gToRenderAsCollided.top());
@@ -617,10 +618,25 @@ void Renderer::drawCollisionDebug(const mat4 &viewProj) {
     gToRenderAsCollided.pop();
   }
 
+  while (!gToRenderDoorAsCollided.empty()) {
+    auto [va, model] = gToRenderDoorAsCollided.top();
+
+    mCollisionShader.SetMatrixUniform("uModel", model);
+
+    Shader::SetVerticesActive(va);
+
+    // Draw triangles
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+
+    gToRenderDoorAsCollided.pop();
+  }
+
   glEnable(GL_DEPTH_TEST);
 
   // Visualize triangle colliders as a wireframe
   mColliderShader.SetActive();
+
+  mColliderShader.SetMatrixUniform("uModel", mat4::identity());
 
   mColliderShader.SetMatrixUniform("uViewProj", viewProj);
 
@@ -632,6 +648,14 @@ void Renderer::drawCollisionDebug(const mat4 &viewProj) {
     Shader::SetVerticesActive(vertexArray);
 
     // Draw triangles
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+  }
+
+  for (const auto &[va, model] : gShowDoorWireframe) {
+    Shader::SetVerticesActive(va);
+
+    mColliderShader.SetMatrixUniform("uModel", model);
+
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
   }
 

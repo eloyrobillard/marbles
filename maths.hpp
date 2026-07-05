@@ -87,7 +87,7 @@ public:
   };
   vec3() : x(0.0f), y(0.0f), z(0.0f) {}
   vec3(float v) : x(v), y(v), z(v) {}
-  vec3(vec4 v);
+  explicit vec3(vec4 v);
   vec3(float x, float y, float z) : x(x), y(y), z(z) {}
   vec3 operator/(float f) const { return {x / f, y / f, z / f}; }
   vec3 operator-() const { return {-x, -y, -z}; }
@@ -210,9 +210,12 @@ public:
     };
     float cell[4];
   };
+
   vec4() {}
   vec4(float v) : x(v), y(v), z(v), w(v) {}
   vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
+
+  explicit vec4(vec3 v) : x(v.x), y(v.y), z(v.z), w(0.0f) {}
   vec4(vec3 a, float b) : x(a.x), y(a.y), z(a.z), w(b) {}
   vec4 operator-() const { return vec4(-x, -y, -z, -w); }
   vec4 operator+(const vec4 &addOperand) const {
