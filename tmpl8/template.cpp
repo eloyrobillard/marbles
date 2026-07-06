@@ -156,9 +156,6 @@ int main(int argc, char **argv) {
 
     game->Tick(elapsedTime);
 
-    camera->Update(elapsedTime, entities->ProvideCameraFollow(),
-                   entities->ProvideCameraForward());
-
     renderer->Draw3D(elapsedTime, entities);
 
     game->SetupKeys();

@@ -64,6 +64,16 @@ void Game::Tick(float deltaTime) {
     entities->ToggleSplitMode();
   }
 
+  float dMouseX = prevMouseX - mouseX;
+  float dMouseY = prevMouseY - mouseY;
+
+  prevMouseX = mouseX;
+  prevMouseY = mouseY;
+
+  camera->Update(deltaTime, entities->ProvideCameraFollow(),
+                 entities->ProvideCameraForward());
+  camera->SetMouseMovement(dMouseX, dMouseY);
+
   if (entities->ProvideCameraFollow().x > 55.0f) {
     checkpointID = 1;
   }

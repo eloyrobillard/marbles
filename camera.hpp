@@ -11,6 +11,9 @@ using Maths::vec4;
 
 class FollowCamera {
   vec3 mStartingPosition;
+  float mMouseDeltaX = 0.0f;
+  float mMouseDeltaY = 0.0f;
+  float mAngleHorizontal = 0.0f;
 
 public:
   vec3 mActualPosition;
@@ -28,27 +31,28 @@ public:
         mActualTarget(target), mUp(up), mVelocity(vec3::zero),
         mTargetDist(6.0f), mSpringConstant(spring) {}
 
+  void SetMouseMovement(float dx, float dy) {
+    mMouseDeltaX = dx / 360.0f * Maths::PI;
+    mMouseDeltaY = dy / 360.0f * Maths::PI;
+  }
+
   void Update(float dt, const vec3 &follow, const vec3 &followForward) {
-    vec3 followRight = {-followForward.y, followForward.x, 0};
+    mAngleHorizontal = mAngleHorizontal + mMouseDeltaX;
+    if (mAngleHorizontal > Maths::TAU) {
+      mAngleHorizontal -= Maths::TAU;
+    } else if (mAngleHorizontal < -Maths::TAU) {
+      mAngleHorizontal += Maths::TAU;
+    }
 
-    // Match offset to the follow's forward/right/up directions
-    vec3 idealPosition = follow + followForward * mIdealOffset.x +
-                         followRight * mIdealOffset.y +
-                         vec3::up * mIdealOffset.z;
+    // マウス入力による影響をリセット
+    mMouseDeltaX = 0.0f;
+    mMouseDeltaY = 0.0f;
 
-    // A higher value means the camera will take more time to reach the ideal
-    // position
-    float dampening = 2.0f * sqrt(mSpringConstant);
+    mActualPosition = follow + vec3::up * mIdealOffset.z -
+                      vec3::right * mIdealOffset.x * sinf(mAngleHorizontal) +
+                      vec3::forward * mIdealOffset.x * cosf(mAngleHorizontal);
 
-    vec3 diff = mActualPosition - idealPosition;
-    vec3 accel = -mSpringConstant * diff - dampening * mVelocity;
-
-    mVelocity += accel * dt;
-    mActualPosition += mVelocity * dt;
-
-    vec3 idealTarget = follow + followForward * mTargetDist;
-
-    mActualTarget = Maths::lerp(mActualTarget, idealTarget, 2 * dt);
+    mActualTarget = follow;
   }
 
   void SnapToTarget(const vec3 &target) {

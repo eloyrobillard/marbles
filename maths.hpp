@@ -14,6 +14,8 @@ template <typename T> constexpr T Clamp(T value, T min, T max) {
 
 constexpr float PI =
     3.14159265358979323846264338327950288419716939937510582097494459072381640628620899862803482534211706798f;
+constexpr float TAU =
+    6.2831853071795864769252867665590057683943387987502116419498891846156328125724179972560696506842341359642961730265646132941876892f;
 
 inline float Rand(float range) { return ((float)rand() / RAND_MAX) * range; }
 inline int IRand(int range) { return rand() % range; }
@@ -32,7 +34,7 @@ public:
     float cell[2];
   };
   vec2() {}
-  vec2(float v) : x(v), y(v) {}
+  explicit vec2(float v) : x(v), y(v) {}
   vec2(float x, float y) : x(x), y(y) {}
   vec2 operator-() const { return vec2(-x, -y); }
   vec2 operator+(const vec2 &addOperand) const {
@@ -85,8 +87,9 @@ public:
     };
     float cell[4];
   };
+
   vec3() : x(0.0f), y(0.0f), z(0.0f) {}
-  vec3(float v) : x(v), y(v), z(v) {}
+  explicit vec3(float v) : x(v), y(v), z(v) {}
   explicit vec3(vec4 v);
   vec3(float x, float y, float z) : x(x), y(y), z(z) {}
   vec3 operator/(float f) const { return {x / f, y / f, z / f}; }
@@ -212,7 +215,7 @@ public:
   };
 
   vec4() {}
-  vec4(float v) : x(v), y(v), z(v), w(v) {}
+  explicit vec4(float v) : x(v), y(v), z(v), w(v) {}
   vec4(float x, float y, float z, float w) : x(x), y(y), z(z), w(w) {}
 
   explicit vec4(vec3 v) : x(v.x), y(v.y), z(v.z), w(0.0f) {}
@@ -389,8 +392,12 @@ public:
   int &operator[](const int idx) { return cell[idx]; }
 };
 
-inline float lerp(float a, float b, float f) { return a + f * (b - a); }
-inline vec3 lerp(vec3 &a, vec3 &b, float f) { return a + f * (b - a); }
+inline float lerp(const float a, const float b, const float f) {
+  return a + f * (b - a);
+}
+inline vec3 lerp(const vec3 &a, const vec3 &b, const float f) {
+  return a + f * (b - a);
+}
 
 // NOTE: From "Game Programming in C++" by Sanjay Madhav
 class quat {

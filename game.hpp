@@ -17,7 +17,7 @@ public:
       int button) { /* implement if you want to detect mouse button presses */ }
   void MouseDown(
       int button) { /* implement if you want to detect mouse button presses */ }
-  void MouseMove(int x, int y) { mousex = x, mousey = y; }
+  void MouseMove(float x, float y) { mouseX = x, mouseY = y; }
   void KeyUp(SDL_Scancode key) { released.set(key); }
   void KeyDown(SDL_Scancode key) { pressed.set(key); }
   [[nodiscard]] bool GetKey(SDL_Scancode key) const {
@@ -53,7 +53,8 @@ private:
   std::bitset<SDL_SCANCODE_COUNT>
       released; // store key release events here (set to true on key up, reset
                 // to false after processing in Tick)
-  int mousex, mousey;
+  float mouseX, mouseY;
+  float prevMouseX = 0.0f, prevMouseY = 0.0f;
   shared_ptr<FollowCamera> camera;
   shared_ptr<Renderer> renderer;
   shared_ptr<Entities> entities;
