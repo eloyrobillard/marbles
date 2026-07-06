@@ -78,8 +78,14 @@ void Entities::Update(float time, float deltaTime) {
     if (collisionIdx > -1) {
       vec3 averagePos =
           (marble.position + mMarbles[collisionIdx].position) / 2.0f;
-      marble.collider.radius += mMarbles[collisionIdx].collider.radius;
-      marble.scale += mMarbles[collisionIdx].scale;
+
+      // NOTE: maxScale * minScaleFactor + (n - 1) * (maxScale - maxScale *
+      // minScaleFactor / (n-1)) = maxScale
+      float scaleStep =
+          (mMaxMarbleScale - mMaxMarbleScale * mMinMarbleScaleFactor) /
+          static_cast<float>(mMaxNumMarbles - 1);
+      marble.collider.radius += scaleStep;
+      marble.scale += vec3(scaleStep);
 
       mCurNumMarbles--;
       mMarbles[collisionIdx] = mMarbles[mCurNumMarbles];
@@ -190,6 +196,8 @@ void Entities::RegisterMarble(const DynamicEntityData &entityData) {
     SphereCollider c(body.position, body.scale.x);
     DynamicBody b(c);
     b.scale = body.scale;
+    // NOTE: マーブル結合のときに使う
+    mMaxMarbleScale = b.scale.x;
     b.position = body.position;
 
     mMarbleMesh = {mesh};
@@ -277,8 +285,7 @@ void Entities::split() {
   const vec3 &pos = mMarbles[0].position;
   const vec3 &vel = mMarbles[0].velocity;
   const float scale = mMarbles[0].scale.x;
-  const float radius =
-      mMarbles[0].collider.radius / static_cast<float>(mCurNumMarbles);
+  const float minScale = mMaxMarbleScale * mMinMarbleScaleFactor;
 
   for (int i = 0; i < mCurNumMarbles; i++) {
     // Place tiny marble at random position inside the sphere of the original
@@ -287,8 +294,8 @@ void Entities::split() {
         pos + vec3(0.0f, 0.0f, scale) +
         (vec3::rand(1.0f, 1.0f, 1.0f) - vec3(0.5f, 0.5f, 0.0f)) * scale;
     mMarbles[i].velocity = vel;
-    mMarbles[i].collider.radius = radius;
-    mMarbles[i].scale = vec3(radius);
+    mMarbles[i].collider.radius = minScale;
+    mMarbles[i].scale = vec3(minScale);
   }
 }
 
@@ -297,11 +304,8 @@ void Entities::join() {
 
   mMarbles[0].position = mAveragePos;
   mMarbles[0].velocity = mAverageVel;
-
-  for (int i = 1; i < mCurNumMarbles; i++) {
-    mMarbles[0].collider.radius += mMarbles[i].collider.radius;
-    mMarbles[0].scale += mMarbles[i].scale;
-  }
+  mMarbles[0].collider.radius = mMaxMarbleScale;
+  mMarbles[0].scale = vec3(mMaxMarbleScale);
 }
 
 void Entities::ToggleSplitMode() {
