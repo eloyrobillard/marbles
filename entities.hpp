@@ -126,8 +126,10 @@ class Entities {
   vector<DynamicBody> mDynamicEntitiesStartingState;
   vector<vec3> mPreviousPositions;
 
-  int mMaxNumMarbles = 6;
-  int mCurNumMarbles = 6;
+  int mMaxNumMarbles = 8;
+  int mCurNumMarbles = 8;
+  float mMaxMarbleScale;
+  float mMinMarbleScaleFactor = 0.6f;
   vec3 mAveragePos;
   float mPositionalVariance = 0.0f;
   vec3 mAverageVel;
