@@ -20,14 +20,14 @@ public:
   vec3 mActualTarget;
   vec3 mUp;
   vec3 mVelocity;
-  float mTargetDist;
   float mSpringConstant;
+  float mTargetDist;
   vec3 mIdealOffset;
 
   FollowCamera(const vec3 &target, const vec3 &up, const float spring,
                const float dist)
       : mActualTarget(target), mUp(up), mVelocity(vec3::zero),
-        mTargetDist(dist), mSpringConstant(spring) {}
+        mSpringConstant(spring), mTargetDist(dist) {}
 
   // 描画が初めて起こる際に使う
   void Init() {
@@ -69,17 +69,28 @@ public:
     const float cv = cosf(mAngleVertical);
     const float sv = sinf(mAngleVertical);
 
-    mActualPosition =
-        follow + mTargetDist * (vec3::up * sv -
-                                cv * (vec3::right * sh + vec3::forward * ch));
+    mIdealOffset = mTargetDist * (vec3::up * sv -
+                                  cv * (vec3::right * sh + vec3::forward * ch));
 
-    vec3 idealTarget = follow + followForward * mTargetDist;
+    // A higher value means the camera will take more
+    // time to reach the ideal position
+    // NOTE: Increasing the spring actually lowers dampening overall!
+    // Dampening works against the spring constant (see accel below).
+    float dampening = 2.0f * sqrt(mSpringConstant);
 
-    mActualTarget = Maths::lerp(follow, idealTarget, dt / 16.0f);
+    const vec3 idealPosition = follow + mIdealOffset;
+    const vec3 diff = mActualPosition - idealPosition;
+    const vec3 accel = -mSpringConstant * diff - dampening * mVelocity;
+
+    mVelocity += accel * dt;
+    mActualPosition += mVelocity * dt;
+
+    mActualTarget = follow;
   }
 
   void SnapToTarget(const vec3 &target) {
     mActualPosition = target + mIdealOffset;
+    mActualTarget = target;
   }
 
   void ToCheckpoint(const vec3 &target) {

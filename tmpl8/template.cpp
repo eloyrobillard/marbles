@@ -64,7 +64,6 @@ using namespace Tmpl8;
 using namespace std;
 
 int ACTWIDTH, ACTHEIGHT;
-static bool firstframe = true;
 
 Game *game = nullptr;
 
@@ -110,7 +109,7 @@ int main(int argc, char **argv) {
 
   shared_ptr<Entities> entities = std::make_shared<Entities>();
   shared_ptr<FollowCamera> camera = std::make_shared<FollowCamera>(
-      entities->ProvideCameraFollow(), Maths::vec3::up, 80.0f, 6.0f);
+      entities->ProvideCameraFollow(), Maths::vec3::up, 20.0f, 6.0f);
 
   renderer->SetCamera(camera);
   renderer->Init(entities);
@@ -128,15 +127,12 @@ int main(int argc, char **argv) {
   float tPhysics = 0.0;
   float physicsTimeAccumulator = 0.0;
 
-  while (!exitapp) {
-    if (firstframe) {
-      game->Init();
-      firstframe = false;
-      // NOTE: Only make game start once things are ready be rendered.
-      t.reset();
-      camera->Init();
-    }
+  game->Init();
+  camera->Init();
+  // NOTE: Only make game start once things are ready be rendered.
+  t.reset();
 
+  while (!exitapp) {
     // calculate frame time and pass it to game->Tick
     float elapsedTime = t.elapsed();
     t.reset();
