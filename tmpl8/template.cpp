@@ -179,7 +179,7 @@ int main(int argc, char **argv) {
         game->KeyUp(event.key.scancode);
         break;
       case SDL_EVENT_MOUSE_MOTION:
-        game->MouseMove(event.motion.x, event.motion.y);
+        game->MouseMove(event.motion.xrel, event.motion.yrel);
         break;
       case SDL_EVENT_MOUSE_BUTTON_UP:
         game->MouseUp(event.button.button);

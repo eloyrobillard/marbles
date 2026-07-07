@@ -173,6 +173,12 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
                                SDL_WINDOW_OPENGL);
   }
 
+  // Capture mouse
+  SDL_SetWindowRelativeMouseMode(mWindow, true);
+  // Fix mouse position
+  SDL_Rect r = {0, 0, 0, 0};
+  SDL_SetWindowMouseRect(mWindow, &r);
+
   // Save final screen width/height
   SDL_GetWindowSize(mWindow, &mScreenWidth, &mScreenHeight);
 

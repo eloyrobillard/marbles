@@ -32,12 +32,13 @@ public:
         mTargetDist(6.0f), mSpringConstant(spring) {}
 
   void SetMouseMovement(float dx, float dy) {
-    mMouseDeltaX = dx / 360.0f * Maths::PI;
-    mMouseDeltaY = dy / 360.0f * Maths::PI;
+    mMouseDeltaX = dx * Maths::DegToRad;
+    mMouseDeltaY = dy * Maths::DegToRad;
   }
 
   void Update(float dt, const vec3 &follow, const vec3 &followForward) {
     mAngleHorizontal = mAngleHorizontal + mMouseDeltaX;
+
     if (mAngleHorizontal > Maths::TAU) {
       mAngleHorizontal -= Maths::TAU;
     } else if (mAngleHorizontal < -Maths::TAU) {

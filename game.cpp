@@ -64,15 +64,14 @@ void Game::Tick(float deltaTime) {
     entities->ToggleSplitMode();
   }
 
-  float dMouseX = prevMouseX - mouseX;
-  float dMouseY = prevMouseY - mouseY;
-
-  prevMouseX = mouseX;
-  prevMouseY = mouseY;
-
   camera->Update(deltaTime, entities->ProvideCameraFollow(),
                  entities->ProvideCameraForward());
-  camera->SetMouseMovement(dMouseX, dMouseY);
+  camera->SetMouseMovement(mouseRelativeX, mouseRelativeY);
+
+  // NOTE: Relative motion goes both ways, so when the mouse stops moving
+  // the relative motion becomes negative and brings the mouse back to (0,0)
+  mouseRelativeX = 0.0f;
+  mouseRelativeY = 0.0f;
 
   if (entities->ProvideCameraFollow().x > 55.0f) {
     checkpointID = 1;
