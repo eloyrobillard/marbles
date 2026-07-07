@@ -10,7 +10,6 @@ using Maths::vec3;
 using Maths::vec4;
 
 class FollowCamera {
-  vec3 mStartingPosition;
   float mMouseDeltaX = 0.0f;
   float mMouseDeltaY = 0.0f;
   float mAngleHorizontal = 0.0f;
@@ -25,12 +24,23 @@ public:
   float mSpringConstant;
   vec3 mIdealOffset;
 
-  FollowCamera(const vec3 &startingFollowPosition, const vec3 &offset,
-               const vec3 &target, const vec3 &up, const float spring)
-      : mIdealOffset(offset), mActualPosition(startingFollowPosition + offset),
-        mStartingPosition(startingFollowPosition + offset),
-        mActualTarget(target), mUp(up), mVelocity(vec3::zero),
-        mTargetDist(6.0f), mSpringConstant(spring) {}
+  FollowCamera(const vec3 &target, const vec3 &up, const float spring,
+               const float dist)
+      : mActualTarget(target), mUp(up), mVelocity(vec3::zero),
+        mTargetDist(dist), mSpringConstant(spring) {}
+
+  // 描画が初めて起こる際に使う
+  void Init() {
+    const float ch = cosf(mAngleHorizontal);
+    const float sh = sinf(mAngleHorizontal);
+    const float cv = cosf(mAngleVertical);
+    const float sv = sinf(mAngleVertical);
+
+    mIdealOffset = mTargetDist * (vec3::up * sv -
+                                  cv * (vec3::right * sh + vec3::forward * ch));
+
+    SnapToTarget(mActualTarget);
+  }
 
   void SetMouseMovement(float dx, float dy) {
     mMouseDeltaX = dx * Maths::DegToRad;

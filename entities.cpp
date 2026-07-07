@@ -40,6 +40,8 @@ Entities::Entities() {
                 .resistance = 1.f});
 
   RegisterMarble({"assets/sphere.gpmesh"});
+
+  mAveragePos = mMarbles[0].position;
 }
 
 void Entities::Update(float time, float deltaTime) {
@@ -124,7 +126,6 @@ void Entities::Update(float time, float deltaTime) {
         ref.c = vec3(vec4(ref.c, 1.0f) * model);
 
         float bias = 0.5f;
-
         float minX = std::min(ref.a.x, std::min(ref.b.x, ref.c.x)) - bias;
         float maxX = std::max(ref.a.x, std::max(ref.b.x, ref.c.x)) + bias;
         float minY = std::min(ref.a.y, std::min(ref.b.y, ref.c.y)) - bias;
@@ -276,6 +277,9 @@ void Entities::ToCheckpoint(const vector<vec3> &positionsAtCheckpoint) {
   }
 
   mMarbles[0].ResetToPosition(positionsAtCheckpoint[0]);
+
+  mAveragePos = mMarbles[0].position;
+  mAverageVel = mMarbles[0].velocity;
 }
 
 void Entities::split() {
