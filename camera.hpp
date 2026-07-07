@@ -14,7 +14,7 @@ class FollowCamera {
   float mMouseDeltaX = 0.0f;
   float mMouseDeltaY = 0.0f;
   float mAngleHorizontal = 0.0f;
-  float mAngleVertical = 0.0f;
+  float mAngleVertical = 25.0f * Maths::DegToRad;
 
 public:
   vec3 mActualPosition;
@@ -63,7 +63,9 @@ public:
         follow + mTargetDist * (vec3::up * sv -
                                 cv * (vec3::right * sh + vec3::forward * ch));
 
-    mActualTarget = follow;
+    vec3 idealTarget = follow + followForward * mTargetDist;
+
+    mActualTarget = Maths::lerp(follow, idealTarget, dt / 16.0f);
   }
 
   void SnapToTarget(const vec3 &target) {
@@ -75,6 +77,15 @@ public:
     mActualTarget = target;
 
     SnapToTarget(target);
+  }
+
+  [[nodiscard]] vec3 GetRight() const {
+    return vec3::up.cross(mActualTarget - mActualPosition).normalized();
+  }
+
+  [[nodiscard]] vec3 GetForward() const {
+    const vec3 toTarget = mActualTarget - mActualPosition;
+    return vec3(toTarget.x, toTarget.y, 0.0f).normalized();
   }
 };
 
