@@ -1,3 +1,18 @@
 CompileFlags:
   Add:
     - /std:c++latest
+    - -Wall
+    - -Wsuggest-override
+    - -Wsuggest-destructor-override
+    - -Wstring-concatenation
+    - -Wstring-conversion
+    - -Wstrict-selector-match
+    - -Wswitch-default
+    - -Wswitch-enum
+    - -Wtautological-compare
+    - -Wtautological-type-limits
+    - -Wthread-safety
+    - -Wshadow
+    - -Wshadow-all
+    - -Wself-assign
+    - -Wselector
