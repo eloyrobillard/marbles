@@ -17,8 +17,8 @@ constexpr float PI =
 constexpr float TAU =
     6.2831853071795864769252867665590057683943387987502116419498891846156328125724179972560696506842341359642961730265646132941876892f;
 
-const float RadToDeg = 360.0f / PI;
-const float DegToRad = PI / 360.0f;
+const float RadToDeg = 360.0f / TAU;
+const float DegToRad = TAU / 360.0f;
 
 inline float Rand(float range) { return ((float)rand() / RAND_MAX) * range; }
 inline int IRand(int range) { return rand() % range; }

@@ -14,6 +14,7 @@ class FollowCamera {
   float mMouseDeltaX = 0.0f;
   float mMouseDeltaY = 0.0f;
   float mAngleHorizontal = 0.0f;
+  float mAngleVertical = 0.0f;
 
 public:
   vec3 mActualPosition;
@@ -45,19 +46,28 @@ public:
       mAngleHorizontal += Maths::TAU;
     }
 
+    mAngleVertical =
+        std::clamp(mAngleVertical + mMouseDeltaY, -45.0f * Maths::DegToRad,
+                   45.0f * Maths::DegToRad);
+
     // マウス入力による影響をリセット
     mMouseDeltaX = 0.0f;
     mMouseDeltaY = 0.0f;
 
-    mActualPosition = follow + vec3::up * mIdealOffset.z -
-                      vec3::right * mIdealOffset.x * sinf(mAngleHorizontal) +
-                      vec3::forward * mIdealOffset.x * cosf(mAngleHorizontal);
+    const float ch = cosf(mAngleHorizontal);
+    const float sh = sinf(mAngleHorizontal);
+    const float cv = cosf(mAngleVertical);
+    const float sv = sinf(mAngleVertical);
+
+    mActualPosition =
+        follow + mTargetDist * (vec3::up * sv -
+                                cv * (vec3::right * sh + vec3::forward * ch));
 
     mActualTarget = follow;
   }
 
   void SnapToTarget(const vec3 &target) {
-    mActualPosition = mActualTarget + mIdealOffset;
+    mActualPosition = target + mIdealOffset;
   }
 
   void ToCheckpoint(const vec3 &target) {
