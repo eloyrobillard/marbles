@@ -95,19 +95,17 @@ struct DynamicBody : Body {
 
   DynamicBody(SphereCollider &c) : collider(c), Body() {}
 
-  void RegisterInputForward(float dt) {
-    velocity += velocity.normalized() * 4.0f * dt;
+  void RegisterInputForward(float dt, const vec3 &cameraForward) {
+    velocity += cameraForward * 4.0f * dt;
   }
-  void RegisterInputBackward(float dt) {
-    velocity -= velocity.normalized() * 4.0f * dt;
+  void RegisterInputBackward(float dt, const vec3 &cameraForward) {
+    velocity -= cameraForward * 4.0f * dt;
   }
-  void RegisterInputLeft(float dt) {
-    vec3 left = velocity.cross(vec3::up).normalized();
-    velocity += left * 4.0f * dt;
+  void RegisterInputLeft(float dt, const vec3 &cameraRight) {
+    velocity -= cameraRight * 4.0f * dt;
   }
-  void RegisterInputRight(float dt) {
-    vec3 right = vec3::up.cross(velocity).normalized();
-    velocity += right * 4.0f * dt;
+  void RegisterInputRight(float dt, const vec3 &cameraRight) {
+    velocity += cameraRight * 4.0f * dt;
   }
   void ResetToPosition(const vec3 &pos) {
     position = pos;

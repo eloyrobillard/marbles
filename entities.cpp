@@ -250,24 +250,24 @@ void Entities::RegisterStaticEntities(const vector<StaticEntityData> &data) {
   }
 }
 
-void Entities::RegisterInputForward(float dt) {
+void Entities::RegisterInputForward(float dt, const vec3 &cameraForward) {
   if (mSplitMode == SplitMode::Joined)
-    mMarbles[0].RegisterInputForward(dt);
+    mMarbles[0].RegisterInputForward(dt, cameraForward);
 }
 
-void Entities::RegisterInputBackward(float dt) {
+void Entities::RegisterInputBackward(float dt, const vec3 &cameraForward) {
   if (mSplitMode == SplitMode::Joined)
-    mMarbles[0].RegisterInputBackward(dt);
+    mMarbles[0].RegisterInputBackward(dt, cameraForward);
 }
 
-void Entities::RegisterInputLeft(float dt) {
+void Entities::RegisterInputLeft(float dt, const vec3 &cameraRight) {
   if (mSplitMode == SplitMode::Joined)
-    mMarbles[0].RegisterInputLeft(dt);
+    mMarbles[0].RegisterInputLeft(dt, cameraRight);
 }
 
-void Entities::RegisterInputRight(float dt) {
+void Entities::RegisterInputRight(float dt, const vec3 &cameraRight) {
   if (mSplitMode == SplitMode::Joined)
-    mMarbles[0].RegisterInputRight(dt);
+    mMarbles[0].RegisterInputRight(dt, cameraRight);
 }
 
 void Entities::ToCheckpoint(const vector<vec3> &positionsAtCheckpoint) {

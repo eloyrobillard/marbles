@@ -38,21 +38,30 @@ void Game::Init() {
 }
 
 void Game::Tick(float deltaTime) {
+  camera->Update(deltaTime, entities->ProvideCameraFollow(),
+                 entities->ProvideCameraForward());
+  camera->SetMouseMovement(mouseRelativeX, mouseRelativeY);
+
+  // NOTE: Relative motion goes both ways, so when the mouse stops moving
+  // the relative motion becomes negative and brings the mouse back to (0,0)
+  mouseRelativeX = 0.0f;
+  mouseRelativeY = 0.0f;
+
   if (GetKey(SDL_SCANCODE_RIGHT)) {
-    entities->RegisterInputRight(deltaTime);
+    entities->RegisterInputRight(deltaTime, camera->GetRight());
   }
 
   if (GetKey(SDL_SCANCODE_LEFT)) {
-    entities->RegisterInputLeft(deltaTime);
+    entities->RegisterInputLeft(deltaTime, camera->GetRight());
   }
 
 #ifdef _DEBUG
   if (GetKey(SDL_SCANCODE_UP)) {
-    entities->RegisterInputForward(deltaTime);
+    entities->RegisterInputForward(deltaTime, camera->GetForward());
   }
 
   if (GetKey(SDL_SCANCODE_DOWN)) {
-    entities->RegisterInputBackward(deltaTime);
+    entities->RegisterInputBackward(deltaTime, camera->GetForward());
   }
 #endif
 
@@ -63,15 +72,6 @@ void Game::Tick(float deltaTime) {
   if (GetKeyPressed(SDL_SCANCODE_SPACE)) {
     entities->ToggleSplitMode();
   }
-
-  camera->Update(deltaTime, entities->ProvideCameraFollow(),
-                 entities->ProvideCameraForward());
-  camera->SetMouseMovement(mouseRelativeX, mouseRelativeY);
-
-  // NOTE: Relative motion goes both ways, so when the mouse stops moving
-  // the relative motion becomes negative and brings the mouse back to (0,0)
-  mouseRelativeX = 0.0f;
-  mouseRelativeY = 0.0f;
 
   if (entities->ProvideCameraFollow().x > 55.0f) {
     checkpointID = 1;

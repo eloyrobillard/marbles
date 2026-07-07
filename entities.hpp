@@ -188,10 +188,10 @@ public:
   }
 
   // TODO: move input handling somewhere else
-  void RegisterInputForward(float dt);
-  void RegisterInputBackward(float dt);
-  void RegisterInputLeft(float dt);
-  void RegisterInputRight(float dt);
+  void RegisterInputForward(float dt, const vec3 &cameraForward);
+  void RegisterInputBackward(float dt, const vec3 &cameraForward);
+  void RegisterInputLeft(float dt, const vec3 &cameraRight);
+  void RegisterInputRight(float dt, const vec3 &cameraRight);
   void ToCheckpoint(const vector<vec3> &positionsAtCheckpoint);
   void ToggleSplitMode();
 
