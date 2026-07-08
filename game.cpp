@@ -6,8 +6,8 @@ namespace Tmpl8 {
 
 int checkpointID = 0;
 vector<vector<vec3>> checkpoints{
-    {{9.826279640197754, -0.024219999089837074, 0.1309020072221756}},
-    {{53.835, -.45012, -3.5062}}};
+    {{9.826279640197754f, -0.024219999089837074f, 0.1309020072221756f}},
+    {{53.835f, -.45012f, -3.5062f}}};
 
 SDL_AudioSpec audioSpec;
 unsigned char *audioBuf;
