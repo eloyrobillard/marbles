@@ -52,7 +52,7 @@ public:
     mMouseDeltaY = dy * Maths::DegToRad;
   }
 
-  void Update(float dt, const vec3 &follow, const vec3 &followForward) {
+  void Update(float dt, const vec3 &target, const vec3 &targetForward) {
     mAngleHorizontal = mAngleHorizontal + mMouseDeltaX;
 
     if (mAngleHorizontal > Maths::TAU) {
@@ -80,17 +80,18 @@ public:
     // A higher value means the camera will take more
     // time to reach the ideal position
     // NOTE: Increasing the spring actually lowers dampening overall!
-    // Dampening works against the spring constant (see accel below).
+    // Dampening works against the spring constant.
+    // See accel below for how the spring constant gets used.
     float dampening = 2.0f * sqrt(mSpringConstant);
 
-    const vec3 idealPosition = follow + mIdealOffset;
+    const vec3 idealPosition = target + mIdealOffset;
     const vec3 diff = mActualPosition - idealPosition;
     const vec3 accel = -mSpringConstant * diff - dampening * mVelocity;
 
     mVelocity += accel * dt;
     mActualPosition += mVelocity * dt;
 
-    mActualTarget = follow;
+    mActualTarget = Maths::lerp(target, target + targetForward * 2.0f, dt);
   }
 
   void SnapToTarget(const vec3 &target) {

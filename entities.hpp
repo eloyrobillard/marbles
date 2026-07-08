@@ -168,7 +168,7 @@ public:
 
   [[nodiscard]]
   vec3 ProvideCameraForward() const {
-    return mAverageVel.normalized();
+    return mAverageVel;
   }
 
   [[nodiscard]] const vector<PivotEntity> &GetDoors() const { return mDoors; }
