@@ -12,8 +12,10 @@ using Maths::vec4;
 class FollowCamera {
   float mMouseDeltaX = 0.0f;
   float mMouseDeltaY = 0.0f;
-  float mAngleHorizontal = 0.0f;
-  float mAngleVertical = 25.0f * Maths::DegToRad;
+  const float mStartingAngleH = 0.0f;
+  const float mStartingAngleV = 25.0f * Maths::DegToRad;
+  float mAngleHorizontal = mStartingAngleH;
+  float mAngleVertical = mStartingAngleV;
 
 public:
   vec3 mActualPosition;
@@ -23,6 +25,7 @@ public:
   float mSpringConstant;
   float mTargetDist;
   vec3 mIdealOffset;
+  vec3 mStartingOffset;
 
   FollowCamera(const vec3 &target, const vec3 &up, const float spring,
                const float dist)
@@ -36,8 +39,10 @@ public:
     const float cv = cosf(mAngleVertical);
     const float sv = sinf(mAngleVertical);
 
-    mIdealOffset = mTargetDist * (vec3::up * sv -
-                                  cv * (vec3::right * sh + vec3::forward * ch));
+    mStartingOffset =
+        mTargetDist *
+        (vec3::up * sv - cv * (vec3::right * sh + vec3::forward * ch));
+    mIdealOffset = mStartingOffset;
 
     SnapToTarget(mActualTarget);
   }
@@ -97,6 +102,9 @@ public:
     mVelocity = vec3::zero;
     mActualTarget = target;
 
+    mIdealOffset = mStartingOffset;
+    mAngleHorizontal = mStartingAngleH;
+    mAngleVertical = mStartingAngleV;
     SnapToTarget(target);
   }
 
