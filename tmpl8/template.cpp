@@ -128,7 +128,6 @@ int main(int argc, char **argv) {
   float physicsTimeAccumulator = 0.0;
 
   game->Init();
-  camera->Init();
   // NOTE: Only make game start once things are ready be rendered.
   t.reset();
 

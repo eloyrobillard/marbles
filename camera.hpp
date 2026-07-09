@@ -1,6 +1,5 @@
 #ifndef CAMERA_H
 #define CAMERA_H
-#pragma once
 
 #include "maths.hpp"
 #include "physics.hpp"
@@ -30,10 +29,7 @@ public:
   FollowCamera(const vec3 &target, const vec3 &up, const float spring,
                const float dist)
       : mActualTarget(target), mUp(up), mVelocity(vec3::zero),
-        mSpringConstant(spring), mTargetDist(dist) {}
-
-  // 描画が初めて起こる際に使う
-  void Init() {
+        mSpringConstant(spring), mTargetDist(dist) {
     const float ch = cosf(mAngleHorizontal);
     const float sh = sinf(mAngleHorizontal);
     const float cv = cosf(mAngleVertical);
