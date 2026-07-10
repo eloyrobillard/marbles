@@ -214,7 +214,7 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
   mTextShader = GetShader("shaders/text.vert", "shaders/text.frag");
 
   mMeshShader = GetShader("shaders/basic.vert", "shaders/basic.frag");
-  mColliderShader =
+  mWireframeShader =
       GetShader("shaders/wireframe.vert", "shaders/wireframe.frag");
   mCollisionShader = GetShader("shaders/tint.vert", "shaders/tint.frag");
   mPostShader = GetShader("shaders/post.vert", "shaders/post.frag");
@@ -413,7 +413,7 @@ void Renderer::SetCamera(const shared_ptr<FollowCamera> &camera) {
 
 Renderer::~Renderer() {
   mMeshShader.Unload();
-  mColliderShader.Unload();
+  mWireframeShader.Unload();
   mCollisionShader.Unload();
   mTextShader.Unload();
   mPostShader.Unload();
@@ -614,6 +614,7 @@ void Renderer::drawCollisionDebug(const mat4 &viewProj) {
 
   mCollisionShader.SetMatrixUniform("uViewProj", viewProj);
   mCollisionShader.SetMatrixUniform("uModel", mat4::identity());
+  mCollisionShader.SetVec3Uniform("tint", vec3(1.f, 0.6f, 0.f));
 
   while (!gToRenderAsCollided.empty()) {
     Shader::SetVerticesActive(gToRenderAsCollided.top());
@@ -637,14 +638,26 @@ void Renderer::drawCollisionDebug(const mat4 &viewProj) {
     gToRenderDoorAsCollided.pop();
   }
 
+  mCollisionShader.SetVec3Uniform("tint", vec3(0.f, 0.f, 1.f));
+  mCollisionShader.SetMatrixUniform("uModel", mat4::identity());
+
+  while (!gShowRaycastHit.empty()) {
+    Shader::SetVerticesActive(gShowRaycastHit.top());
+
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+
+    gShowRaycastHit.pop();
+  }
+
   glEnable(GL_DEPTH_TEST);
 
   // Visualize triangle colliders as a wireframe
-  mColliderShader.SetActive();
+  mWireframeShader.SetActive();
 
-  mColliderShader.SetMatrixUniform("uModel", mat4::identity());
+  mWireframeShader.SetMatrixUniform("uModel", mat4::identity());
 
-  mColliderShader.SetMatrixUniform("uViewProj", viewProj);
+  mWireframeShader.SetMatrixUniform("uViewProj", viewProj);
+  mWireframeShader.SetVec3Uniform("tint", {0.f, 1.f, 0.f});
 
   // Turn on wireframe mode
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -660,9 +673,20 @@ void Renderer::drawCollisionDebug(const mat4 &viewProj) {
   for (const auto &[va, model] : gShowDoorWireframe) {
     Shader::SetVerticesActive(va);
 
-    mColliderShader.SetMatrixUniform("uModel", model);
+    mWireframeShader.SetMatrixUniform("uModel", model);
 
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+  }
+
+  mWireframeShader.SetVec3Uniform("tint", {0.f, 0.f, 1.f});
+  mWireframeShader.SetMatrixUniform("uModel", mat4::identity());
+
+  while (!gShowRaycastWireframe.empty()) {
+    Shader::SetVerticesActive(gShowRaycastWireframe.top());
+
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
+
+    gShowRaycastWireframe.pop();
   }
 
   // Turn off wireframe mode

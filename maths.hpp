@@ -4,11 +4,18 @@
 #include "pch.h"
 
 namespace Maths {
-template <typename T> constexpr T Min(T a, T b) { return (a > b) ? b : a; }
+template <typename T>
+constexpr T Min(T a, T b) {
+  return (a > b) ? b : a;
+}
 
-template <typename T> constexpr T Max(T a, T b) { return (a > b) ? a : b; }
+template <typename T>
+constexpr T Max(T a, T b) {
+  return (a > b) ? a : b;
+}
 
-template <typename T> constexpr T Clamp(T value, T min, T max) {
+template <typename T>
+constexpr T Clamp(T value, T min, T max) {
   return Min(max, Max(value, min));
 }
 
@@ -20,8 +27,12 @@ constexpr float TAU =
 const float RadToDeg = 360.0f / TAU;
 const float DegToRad = TAU / 360.0f;
 
-inline float Rand(float range) { return ((float)rand() / RAND_MAX) * range; }
-inline int IRand(int range) { return rand() % range; }
+inline float Rand(float range) {
+  return ((float)rand() / RAND_MAX) * range;
+}
+inline int IRand(int range) {
+  return rand() % range;
+}
 
 class quat;
 class vec4;
@@ -86,9 +97,9 @@ class vec3 {
 public:
   union {
     struct {
-      float x, y, z, dummy;
+      f32 x, y, z, dummy;
     };
-    float cell[4];
+    f32 cell[4];
   };
 
   vec3() : x(0.0f), y(0.0f), z(0.0f) {}

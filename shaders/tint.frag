@@ -1,9 +1,9 @@
 #version 430
 
 out vec4 outColor;
+uniform vec3 tint;
 
 void main()
 {
-        // orange
-        outColor = vec4(1.0f, 0.6f, 0.0f, 1.0f);
+        outColor = vec4(tint, 1.0f);
 };

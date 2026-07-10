@@ -63,7 +63,7 @@ class Renderer {
   Shader mDrawStaticShader;
   Shader mTextShader;
   Shader mMeshShader;
-  Shader mColliderShader;
+  Shader mWireframeShader;
   Shader mCollisionShader;
   Shader mPostShader;
   Shader mGaussianBlurShader;

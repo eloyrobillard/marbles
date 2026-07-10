@@ -36,7 +36,14 @@ typedef unsigned char uchar;
 typedef unsigned char byte;
 typedef __int64 int64;
 typedef unsigned __int64 uint64;
+typedef unsigned char u8;
+typedef __int32 i32;
+typedef __int64 i64;
+typedef unsigned __int64 u64;
+typedef unsigned __int32 u32;
 typedef unsigned int uint;
+typedef float f32;
+typedef double f64;
 
 namespace ranges = std::ranges;
 namespace views = ranges::views;

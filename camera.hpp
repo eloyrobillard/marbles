@@ -48,6 +48,70 @@ public:
     mMouseDeltaY = dy * Maths::DegToRad;
   }
 
+  // SOURCE: Real-Time Collision Detection by Christer Ericson (5.3.6)
+  static bool segmentAndTriangleIntersect(const vec3 &P, const vec3 &Q,
+                                          const vec3 &A, const vec3 &B,
+                                          const vec3 &C) {
+    const vec3 QP = P - Q;
+    const vec3 AC = C - A;
+    const vec3 AB = B - A;
+
+    const vec3 n = AB.cross(AC);
+
+    const f32 d = QP.dot(n);
+    if (d <= 0.f)
+      return false;
+
+    const vec3 AP = P - A;
+    const f32 t = AP.dot(n);
+    if (t < 0.f || t > d)
+      return false;
+
+    const vec3 e = QP.cross(AP);
+    const f32 v = AC.dot(e);
+    if (v < 0.f || v > d)
+      return false;
+    const f32 w = -AB.dot(e);
+    if (w < 0.f || v + w > d)
+      return false;
+
+    return true;
+  }
+
+  [[nodiscard]] bool raycast(const vec3 &target) const {
+    // レイキャストでカメラが壁に後ろを写すのを防ぐ
+    const vec3 toTarget = target - mActualPosition;
+    const float dist = toTarget.length();
+    const vec3 unitToTarget = toTarget / dist;
+
+    float t = 0.f;
+    while (t <= dist) {
+      const vec3 P = mActualPosition + t * unitToTarget;
+      const vec3 Q = mActualPosition + (t + 0.25f) * unitToTarget;
+
+      const auto staticColliders =
+          gSpacePartition.getPartition(Q.x, Q.x, Q.y, Q.y, Q.z, Q.z);
+
+      for (const auto &triangle : staticColliders) {
+#ifdef _DEBUG
+        gShowRaycastWireframe.push(triangle->vertexArray);
+#endif
+
+        if (segmentAndTriangleIntersect(P, Q, triangle->a, triangle->b,
+                                        triangle->c)) {
+#ifdef _DEBUG
+          gShowRaycastHit.push(triangle->vertexArray);
+#endif
+          return true;
+        }
+      }
+
+      t += 0.25f;
+    }
+
+    return false;
+  }
+
   void Update(float dt, const vec3 &target, const vec3 &targetForward) {
     mAngleHorizontal = mAngleHorizontal + mMouseDeltaX;
 
@@ -64,6 +128,13 @@ public:
     // マウス入力による影響をリセット
     mMouseDeltaX = 0.0f;
     mMouseDeltaY = 0.0f;
+
+    bool hit = raycast(target);
+
+    // ユーザー入力がなかったときだけカメラを（ゆっくりと）動かす
+    if (hit && mMouseDeltaX == 0.f && mMouseDeltaY == 0.f) {
+      mAngleVertical += 0.005f;
+    }
 
     const float ch = cosf(mAngleHorizontal);
     const float sh = sinf(mAngleHorizontal);

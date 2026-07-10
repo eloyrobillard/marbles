@@ -11,10 +11,11 @@ using Maths::vec3;
 using Maths::vec4;
 
 inline stack<GLuint> gToRenderAsCollided;
+inline stack<GLuint> gShowRaycastHit;
 inline stack<pair<GLuint, mat4>> gToRenderDoorAsCollided;
 
 inline vector<GLuint> gShowWireframe;
-
+inline stack<GLuint> gShowRaycastWireframe;
 inline vector<pair<GLuint, mat4>> gShowDoorWireframe;
 
 struct DynamicEntityData {

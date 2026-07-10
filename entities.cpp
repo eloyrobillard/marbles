@@ -107,7 +107,7 @@ void Entities::Update(float time, float deltaTime) {
     float max_z = marble.collider.position.z + marble.collider.radius;
 
     auto staticsPartition =
-        gSpacePartition.get_partition(min_x, max_x, min_y, max_y, min_z, max_z);
+        gSpacePartition.getPartition(min_x, max_x, min_y, max_y, min_z, max_z);
 
     Physics::processStaticCollisions(staticsPartition, marble);
 

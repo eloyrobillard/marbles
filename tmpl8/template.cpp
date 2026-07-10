@@ -26,9 +26,13 @@ namespace Tmpl8 {
 
 double timer::inv_freq = 1;
 
-timer::timer() : start(get()) { init(); }
+timer::timer() : start(get()) {
+  init();
+}
 
-float timer::elapsed() const { return (float)((get() - start) * inv_freq); }
+float timer::elapsed() const {
+  return (float)((get() - start) * inv_freq);
+}
 
 timer::value_type timer::get() {
   LARGE_INTEGER c;
@@ -36,9 +40,13 @@ timer::value_type timer::get() {
   return c.QuadPart;
 }
 
-double timer::to_time(const value_type vt) { return double(vt) * inv_freq; }
+double timer::to_time(const value_type vt) {
+  return double(vt) * inv_freq;
+}
 
-void timer::reset() { start = get(); }
+void timer::reset() {
+  start = get();
+}
 
 void timer::init() {
   LARGE_INTEGER f;

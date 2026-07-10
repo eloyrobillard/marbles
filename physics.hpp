@@ -92,8 +92,8 @@ public:
   }
 
   [[nodiscard]] vector<TriangleCollider<T> *>
-  get_partition(float min_x, float max_x, float min_y, float max_y, float min_z,
-                float max_z) const {
+  getPartition(float min_x, float max_x, float min_y, float max_y, float min_z,
+               float max_z) const {
     vector<TriangleCollider<T> *> result{};
     auto start_x =
         std::max((size_t)0, static_cast<size_t>((min_x - mMinX) / mStep));
