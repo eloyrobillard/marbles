@@ -86,9 +86,9 @@ class Renderer {
   GLuint LoadGLTexture(SDL_Surface *surface, int dst_x, int dst_y,
                        SDL_FlipMode flip_mode) const;
 
-  static void drawSceneWithShader(const Shader &shader,
-                                  const shared_ptr<const Entities> &entities,
-                                  const mat4 &viewProj);
+  void drawSceneWithShader(const Shader &shader,
+                           const shared_ptr<const Entities> &entities,
+                           const mat4 &viewProj);
   void drawScene(const shared_ptr<const Entities> &entities,
                  const mat4 &viewProj, const vec3 &lightDir,
                  const mat4 &lightViewProj, float near, float far);
@@ -100,8 +100,8 @@ class Renderer {
   static void drawStaticEntity(const Shader &shader,
                                const StaticEntity &entity);
   static void drawStaticEntity(const Shader &shader, const PivotEntity &entity);
-  static void drawDynamicEntity(const Shader &shader, const DynamicBody &body,
-                                const Mesh &mesh);
+  void drawDynamicEntity(const Shader &shader, const DynamicBody &body,
+                         const Mesh &mesh, const mat4 &viewProj);
   static GLuint createColorAttachmentTexture(
       int width, int height, int colorFormat,
       int colorAttachmentNumber = GL_COLOR_ATTACHMENT0);

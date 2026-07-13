@@ -323,8 +323,9 @@ void Renderer::Init(const shared_ptr<const Entities> &entities) {
 }
 
 void Renderer::drawDynamicEntity(const Shader &shader, const DynamicBody &body,
-                                 const Mesh &mesh) {
-  shader.SetMatrixUniform("uWorldTransform", body.getWorldTransform());
+                                 const Mesh &mesh, const mat4 &viewProj) {
+  mat4 model = body.getWorldTransform();
+  shader.SetMatrixUniform("uWorldTransform", model);
 
   auto maybeTex = mesh.lookTextureUp(0);
   if (maybeTex.has_value()) {
@@ -343,6 +344,53 @@ void Renderer::drawDynamicEntity(const Shader &shader, const DynamicBody &body,
     printf("OpenGL Error @ %s: %i", "mesh draw", err_code);
     err_code = glGetError();
   }
+
+#ifdef _DEBUG
+  GLuint VAs[3];
+  GLuint VBs[3];
+  glGenVertexArrays(3, VAs);
+  glGenBuffers(3, VBs);
+
+  float verts[3][6] = {
+      {body.position.x, body.position.y, body.position.z, body.velocity.x,
+       body.velocity.y, body.velocity.z},
+      {body.position.x, body.position.y, body.position.z, body.rotationAxis.x,
+       body.rotationAxis.y, body.rotationAxis.z},
+      {body.position.x, body.position.y, body.position.z, 0.f, 0.f, 1.f}};
+
+  for (auto &vert : verts) {
+    vert[3] += vert[0];
+    vert[4] += vert[1];
+    vert[5] += vert[2];
+  }
+
+  float color[3][3] = {{1.f, 0.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 0.f, 1.f}};
+
+  mWireframeShader.SetActive();
+  mWireframeShader.SetMatrixUniform("uModel", mat4::identity());
+  mWireframeShader.SetMatrixUniform("uViewProj", viewProj);
+
+  glDisable(GL_DEPTH_TEST);
+
+  for (int i = 0; i < 3; i++) {
+    glBindVertexArray(VAs[i]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBs[i]);
+    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), &verts[i], GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+
+    mWireframeShader.SetVec3Uniform("tint", color[i]);
+    glDrawArrays(GL_LINE_STRIP, 0, 2);
+  }
+
+  // TODO: vertex arrays/buffers のメモリを解放
+
+  glEnable(GL_DEPTH_TEST);
+
+  glDeleteVertexArrays(3, VAs);
+  glDeleteBuffers(3, VBs);
+#endif
 }
 
 void Renderer::drawStaticEntity(const Shader &shader,
@@ -451,8 +499,7 @@ void Renderer::setupQuadVAO(GLuint &VAO, GLuint &VBO) {
   glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices,
                GL_STATIC_DRAW);
   glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
-                        (void *)nullptr);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), nullptr);
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float),
                         (void *)(3 * sizeof(float)));
@@ -706,7 +753,7 @@ void Renderer::drawSceneWithShader(const Shader &shader,
   const auto &[marbleMesh, marbles, numMarbles] =
       entities->GetDynamicEntities();
   for (int i = 0; i < numMarbles; i++) {
-    drawDynamicEntity(shader, marbles[i], marbleMesh);
+    drawDynamicEntity(shader, marbles[i], marbleMesh, viewProj);
   }
 }
 
@@ -769,7 +816,7 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
   const auto &[marbleMesh, marbles, numMarbles] =
       entities->GetDynamicEntities();
   for (int i = 0; i < numMarbles; i++) {
-    drawDynamicEntity(mMeshShader, marbles[i], marbleMesh);
+    drawDynamicEntity(mMeshShader, marbles[i], marbleMesh, viewProj);
   }
 }
 

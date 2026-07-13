@@ -5,7 +5,6 @@
 uniform mat4 uViewProj;
 uniform mat4 uModel;
 
-// Attribute 0 is position, 1 is normal, 2 is tex coords.
 layout(location = 0) in vec3 inPosition;
 
 void main()

@@ -142,6 +142,8 @@ void Entities::Update(float time, float deltaTime) {
 
     Physics::processDoorCollisions(doors, marble);
 
+    marble.rotationAxis = vec3::up.cross(marble.velocity).normalized();
+
     for (auto &door : mDoors) {
       // 抵抗力を適用
       door.body->rotationalVelocity =
