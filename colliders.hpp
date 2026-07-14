@@ -91,26 +91,32 @@ struct Body {
 struct DynamicBody : Body {
   vec3 velocity;
   vec3 rotationalVelocity;
+  vec3 rotationAxis;
   SphereCollider collider;
 
-  DynamicBody(SphereCollider &c) : collider(c), Body() {}
+  DynamicBody(SphereCollider &c) : Body(), collider(c) {}
 
   void RegisterInputForward(float dt, const vec3 &cameraForward) {
     velocity += cameraForward * 4.0f * dt;
+    rotationalVelocity = velocity;
   }
   void RegisterInputBackward(float dt, const vec3 &cameraForward) {
     velocity -= cameraForward * 4.0f * dt;
+    rotationalVelocity = velocity;
   }
   void RegisterInputLeft(float dt, const vec3 &cameraRight) {
     velocity -= cameraRight * 4.0f * dt;
+    rotationalVelocity = velocity;
   }
   void RegisterInputRight(float dt, const vec3 &cameraRight) {
     velocity += cameraRight * 4.0f * dt;
+    rotationalVelocity = velocity;
   }
   void ResetToPosition(const vec3 &pos) {
     position = pos;
     velocity = vec3::zero;
     rotationalVelocity = vec3::zero;
+    rotation = quat::Identity;
   }
 };
 

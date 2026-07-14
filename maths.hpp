@@ -104,7 +104,8 @@ public:
 
   vec3() : x(0.0f), y(0.0f), z(0.0f) {}
   explicit vec3(float v) : x(v), y(v), z(v) {}
-  explicit vec3(vec4 v);
+  explicit vec3(const vec4 &v);
+  explicit vec3(const quat &q);
   vec3(float x, float y, float z) : x(x), y(y), z(z) {}
   vec3 operator/(float f) const { return {x / f, y / f, z / f}; }
   vec3 operator-() const { return {-x, -y, -z}; }
@@ -527,9 +528,9 @@ public:
   }
 
   // NOTE: From "Game Engine Architecture (4 ed)" by Jason Gregory
-  static quat RotateVector(const quat &q, const vec3 &v) {
+  static vec3 RotateVector(const quat &q, const vec3 &v) {
     quat vq(v.x, v.y, v.z, 0);
-    return Concatenate(Concatenate(q, vq), Conjugate(q));
+    return vec3{Concatenate(Concatenate(q, vq), Conjugate(q))};
   }
 
   // NOTE: From "Game Programming in C++" by Sanjay Madhav
@@ -562,7 +563,7 @@ public:
   }
 
   friend std::ostream &operator<<(std::ostream &os, const quat &q) {
-    os << "w: " << q.w << " x: " << q.x << " y: " << q.y << " z: " << q.z;
+    os << '[' << q.x << ", " << q.y << ", " << q.z << ", " << q.w << ']';
     return os;
   }
 

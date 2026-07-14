@@ -35,11 +35,13 @@ createVertexArray(const float *verts, uint numVerts, const uint *indices,
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE,
                         static_cast<int>(vertSize * sizeof(float)), nullptr);
+
   // Normal is 3 floats
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE,
                         static_cast<int>(vertSize * sizeof(float)),
                         reinterpret_cast<void *>(sizeof(float) * 3));
+
   // Texture coordinates is 2 floats
   glEnableVertexAttribArray(2);
   glVertexAttribPointer(

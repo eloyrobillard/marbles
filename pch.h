@@ -16,6 +16,7 @@
 #include <deque>
 #include <fstream>
 #include <glew.h>
+#include <iomanip>
 #include <iostream>
 #include <iterator>
 #include <memory>

@@ -78,9 +78,6 @@ void Entities::Update(float time, float deltaTime) {
         mMarbles, i, mCurNumMarbles, mSplitMode == SplitMode::Joining);
 
     if (collisionIdx > -1) {
-      vec3 averagePos =
-          (marble.position + mMarbles[collisionIdx].position) / 2.0f;
-
       // NOTE: maxScale * minScaleFactor + (n - 1) * (maxScale - maxScale *
       // minScaleFactor / (n-1)) = maxScale
       float scaleStep =
@@ -142,7 +139,18 @@ void Entities::Update(float time, float deltaTime) {
 
     Physics::processDoorCollisions(doors, marble);
 
-    marble.rotationAxis = vec3::up.cross(marble.velocity).normalized();
+    // マーブルの回転処理
+    marble.rotationAxis = marble.rotationalVelocity.cross(vec3::up);
+
+    // 回転軸をマーブルと逆に回転させると、Concat後正しい向きになる
+    marble.rotationAxis = quat::RotateVector(quat::Conjugate(marble.rotation),
+                                             marble.rotationAxis)
+                              .normalized();
+
+    quat deltaRot(marble.rotationAxis, marble.rotationalVelocity.length() /
+                                           marble.collider.radius * deltaTime);
+
+    marble.rotation = quat::Concatenate(marble.rotation, deltaRot);
 
     for (auto &door : mDoors) {
       // 抵抗力を適用
@@ -152,6 +160,7 @@ void Entities::Update(float time, float deltaTime) {
                                        door.body->constantAcceleration),
                      deltaTime);
 
+      // FIX: 後ろからドアにぶつかっても開いてしまう
       auto targetRot =
           quat::Concatenate(door.body->rotation, door.body->rotationalVelocity);
 
@@ -163,6 +172,7 @@ void Entities::Update(float time, float deltaTime) {
         door.body->rotation = finalRot;
 
         for (auto &t : door.colliders) {
+          // TODO: 新しい法線の計算が妥当かどうか確認
           t.updateNormal();
         }
       } else {

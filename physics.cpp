@@ -153,21 +153,24 @@ int Physics::processDynamicCollisions(vector<DynamicBody> &des, int idx,
     if (sepVel < 0 || sepVelOther < 0) {
       eThis.velocity += normal * (-sepVel * (restitution + 1));
       eOther.velocity += -normal * (-sepVelOther * (restitution + 1));
+      eThis.rotationalVelocity = eThis.velocity;
+      eOther.rotationalVelocity = eOther.velocity;
     }
   }
 
   return -1;
 }
 
-void handleDoorRotation(const TriangleCollider<PivotBody> &triangle,
-                        const vec3 &normal, const float sepVel,
-                        const float distToPivot) {
+// TODO: より汎用的な関数に変換：法線、軸などだけもらって、回転を返すやつ
+quat computeDoorRotation(const TriangleCollider<PivotBody> &triangle,
+                         const vec3 &normal, const float sepVel,
+                         const float distToPivot) {
   // 速度(sepVel)から角速度を導出
   float angVel = 20.f * sepVel / distToPivot;
 
   quat rotVel(triangle.body->pivotAxis, angVel);
-  triangle.body->rotationalVelocity =
-      quat::Concatenate(triangle.body->rotationalVelocity, rotVel);
+
+  return quat::Concatenate(triangle.body->rotationalVelocity, rotVel);
 }
 
 bool Physics::processDoorCollisions(
@@ -205,6 +208,8 @@ bool Physics::processDoorCollisions(
                            triangle.body->collisionAcceleration;
       }
 
+      marble.rotationalVelocity = marble.velocity;
+
       vec3 axis = triangle.body->pivotAxis;
       vec3 point = triangle.body->pivotPoint;
       float t =
@@ -212,8 +217,8 @@ bool Physics::processDoorCollisions(
           axis.sqrLentgh();
       vec3 pointOnPivotAxis = point + t * axis;
 
-      handleDoorRotation(triangle, -normal, sepVel,
-                         closestPoint.distance(pointOnPivotAxis));
+      triangle.body->rotationalVelocity = computeDoorRotation(
+          triangle, -normal, sepVel, closestPoint.distance(pointOnPivotAxis));
     }
   }
 
@@ -254,6 +259,8 @@ bool Physics::processStaticCollisions(
         marble.velocity += normal * (-sepVel * (restitution + 1)) *
                            triangle->body->collisionAcceleration;
       }
+
+      marble.rotationalVelocity = marble.velocity;
     }
   }
 

@@ -2,14 +2,24 @@
 
 namespace Maths {
 const quat quat::Identity(0.0f, 0.0f, 0.0f, 1.0f);
+
+vec3::vec3(const quat &q) : x(q.x), y(q.y), z(q.z) {
+}
+vec3::vec3(const vec4 &v) : x(v.x), y(v.y), z(v.z) {
+}
 const vec3 vec3::zero = vec3(0.0f);
 const vec3 vec3::right = vec3(0.0f, 1.0f, 0.0f);
 const vec3 vec3::up = vec3(0.0f, 0.0f, 1.0f);
 const vec3 vec3::forward = vec3(1.0f, 0.0f, 0.0f);
-vec3::vec3(vec4 v) : x(v.x), y(v.y), z(v.z) {}
-vec3 normalize(const vec3 &v) { return v.normalized(); }
-vec3 cross(const vec3 &a, const vec3 &b) { return a.cross(b); }
-float dot(const vec3 &a, const vec3 &b) { return a.dot(b); }
+vec3 normalize(const vec3 &v) {
+  return v.normalized();
+}
+vec3 cross(const vec3 &a, const vec3 &b) {
+  return a.cross(b);
+}
+float dot(const vec3 &a, const vec3 &b) {
+  return a.dot(b);
+}
 vec3 operator*(const float &s, const vec3 &v) {
   return {v.x * s, v.y * s, v.z * s};
 }
@@ -52,7 +62,9 @@ mat4::mat4() {
   cell[0] = cell[5] = cell[10] = cell[15] = 1.0f;
 }
 
-mat4::mat4(float inMat[4][4]) { memcpy(mat, inMat, 16 * sizeof(float)); }
+mat4::mat4(float inMat[4][4]) {
+  memcpy(mat, inMat, 16 * sizeof(float));
+}
 
 mat4 mat4::identity() {
   mat4 r;
