@@ -159,7 +159,6 @@ void Entities::Update(float time, float deltaTime) {
                                        door.body->constantAcceleration),
                      deltaTime);
 
-      // FIX: 後ろからドアにぶつかっても開いてしまう
       auto targetRot =
           quat::Concatenate(door.body->rotation, door.body->rotationalVelocity);
 
@@ -171,7 +170,6 @@ void Entities::Update(float time, float deltaTime) {
         door.body->rotation = finalRot;
 
         for (auto &t : door.colliders) {
-          // TODO: 新しい法線の計算が妥当かどうか確認
           t.updateNormal();
         }
       } else {

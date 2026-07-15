@@ -37,14 +37,12 @@ struct TriangleCollider : Collider {
   TriangleCollider(vec3 &normal, vec3 &a, vec3 &b, vec3 &c,
                    const shared_ptr<T> &body, GLuint vertexBuffer,
                    GLuint indexBuffer, GLuint vertexArray)
-      : normal(normal), a(a), b(b), c(c), body(body),
+      : initNormal(normal), normal(normal), a(a), b(b), c(c), body(body),
         vertexBuffer(vertexBuffer), indexBuffer(indexBuffer),
         vertexArray(vertexArray) {}
 
   void updateNormal() {
-    const mat4 rot = mat4::CreateFromQuaternion(body->rotation);
-
-    normal = vec3(vec4(normal, 1.0f) * rot);
+    normal = quat::RotateVector(body->rotation, initNormal);
     normal.normalize();
   }
 
@@ -52,6 +50,7 @@ struct TriangleCollider : Collider {
   vec3 b;
   vec3 c;
   vec3 normal;
+  vec3 initNormal;
   const shared_ptr<T> body;
   const GLuint vertexBuffer;
   const GLuint indexBuffer;
