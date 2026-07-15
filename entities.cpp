@@ -144,13 +144,12 @@ void Entities::Update(float time, float deltaTime) {
 
     // 回転軸をマーブルと逆に回転させると、Concat後正しい向きになる
     marble.rotationAxis = quat::RotateVector(quat::Conjugate(marble.rotation),
-                                             marble.rotationAxis)
-                              .normalized();
+                                             marble.rotationAxis);
 
     quat deltaRot(marble.rotationAxis, marble.rotationalVelocity.length() /
                                            marble.collider.radius * deltaTime);
 
-    marble.rotation = quat::Concatenate(marble.rotation, deltaRot);
+    marble.rotation = quat::Concatenate(marble.rotation, deltaRot).Normalized();
 
     for (auto &door : mDoors) {
       // 抵抗力を適用

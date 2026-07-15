@@ -469,6 +469,11 @@ public:
     w /= length;
   }
 
+  [[nodiscard]] quat Normalized() const {
+    float len = Length();
+    return quat{x / len, y / len, z / len, w / len};
+  }
+
   // Normalize the provided quaternion
   static quat Normalize(const quat &q) {
     quat retVal = q;
@@ -529,8 +534,10 @@ public:
 
   // NOTE: From "Game Engine Architecture (4 ed)" by Jason Gregory
   static vec3 RotateVector(const quat &q, const vec3 &v) {
-    quat vq(v.x, v.y, v.z, 0);
-    return vec3{Concatenate(Concatenate(q, vq), Conjugate(q))};
+    quat vecQuat(v.x, v.y, v.z, 0);
+    quat qv = Concatenate(q, vecQuat);
+    quat qvq = Concatenate(qv, Conjugate(q));
+    return vec3{qvq};
   }
 
   // NOTE: From "Game Programming in C++" by Sanjay Madhav
