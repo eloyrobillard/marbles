@@ -141,7 +141,7 @@ int main(int argc, char **argv) {
 
   while (!exitapp) {
     // calculate frame time and pass it to game->Tick
-    float elapsedTime = t.elapsed();
+    float elapsedTime = t.elapsed() * game->dtMultiplier;
     t.reset();
 
     physicsTimeAccumulator += elapsedTime;

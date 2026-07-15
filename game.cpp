@@ -63,6 +63,18 @@ void Game::Tick(float deltaTime) {
   if (GetKey(SDL_SCANCODE_DOWN)) {
     entities->RegisterInputBackward(deltaTime, camera->GetForward());
   }
+
+  if (GetKeyReleased(SDL_SCANCODE_P) || GetKeyReleased(SDL_SCANCODE_0)) {
+    dtMultiplier = dtMultiplier == 0.f ? 1.f : 0.f;
+  }
+
+  if (GetKeyReleased(SDL_SCANCODE_S)) {
+    dtMultiplier = dtMultiplier <= 0.2f ? 0.1f : dtMultiplier - 0.1f;
+  }
+
+  if (GetKeyReleased(SDL_SCANCODE_F)) {
+    dtMultiplier += 0.1f;
+  }
 #endif
 
   if (GetKeyPressed(SDL_SCANCODE_RETURN)) {

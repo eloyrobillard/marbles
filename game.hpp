@@ -43,6 +43,9 @@ public:
   }
   void ToCheckpoint();
 
+  // Use for pause/slowmo/fastmo
+  float dtMultiplier = 1.f;
+
 private:
   std::bitset<SDL_SCANCODE_COUNT> keys; // store key states here
   std::bitset<SDL_SCANCODE_COUNT>
