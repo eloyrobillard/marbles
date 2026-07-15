@@ -10,9 +10,9 @@ using Maths::quat;
 using Maths::vec3;
 using Maths::vec4;
 
-inline stack<GLuint> gToRenderAsCollided;
+inline stack<GLuint> gRenderAsCollided;
 inline stack<GLuint> gShowRaycastHit;
-inline stack<pair<GLuint, mat4>> gToRenderDoorAsCollided;
+inline stack<pair<GLuint, mat4>> gRenderDoorAsCollided;
 
 inline vector<GLuint> gShowWireframe;
 inline stack<GLuint> gShowRaycastWireframe;

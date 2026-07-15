@@ -187,7 +187,7 @@ bool Physics::processDoorCollisions(
     collision_happened = true;
 
 #ifdef _DEBUG
-    gToRenderDoorAsCollided.emplace(triangle.vertexArray, model);
+    gRenderDoorAsCollided.emplace(triangle.vertexArray, model);
 #endif
 
     // SOURCE: "Game Physics Engine Development" by Ian Millington
@@ -239,7 +239,7 @@ bool Physics::processStaticCollisions(
     collision_happened = true;
 
 #ifdef _DEBUG
-    gToRenderAsCollided.push(triangle->vertexArray);
+    gRenderAsCollided.push(triangle->vertexArray);
 #endif
 
     // SOURCE: "Game Physics Engine Development" by Ian Millington

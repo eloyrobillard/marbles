@@ -384,8 +384,6 @@ void Renderer::drawDynamicEntity(const Shader &shader, const DynamicBody &body,
     glDrawArrays(GL_LINE_STRIP, 0, 2);
   }
 
-  // TODO: vertex arrays/buffers のメモリを解放
-
   glEnable(GL_DEPTH_TEST);
 
   glDeleteVertexArrays(3, VAs);
@@ -663,17 +661,17 @@ void Renderer::drawCollisionDebug(const mat4 &viewProj) {
   mCollisionShader.SetMatrixUniform("uModel", mat4::identity());
   mCollisionShader.SetVec3Uniform("tint", vec3(1.f, 0.6f, 0.f));
 
-  while (!gToRenderAsCollided.empty()) {
-    Shader::SetVerticesActive(gToRenderAsCollided.top());
+  while (!gRenderAsCollided.empty()) {
+    Shader::SetVerticesActive(gRenderAsCollided.top());
 
     // Draw triangles
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
 
-    gToRenderAsCollided.pop();
+    gRenderAsCollided.pop();
   }
 
-  while (!gToRenderDoorAsCollided.empty()) {
-    auto [va, model] = gToRenderDoorAsCollided.top();
+  while (!gRenderDoorAsCollided.empty()) {
+    auto [va, model] = gRenderDoorAsCollided.top();
 
     mCollisionShader.SetMatrixUniform("uModel", model);
 
@@ -682,7 +680,7 @@ void Renderer::drawCollisionDebug(const mat4 &viewProj) {
     // Draw triangles
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
 
-    gToRenderDoorAsCollided.pop();
+    gRenderDoorAsCollided.pop();
   }
 
   mCollisionShader.SetVec3Uniform("tint", vec3(0.f, 0.f, 1.f));
