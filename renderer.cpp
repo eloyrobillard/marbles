@@ -322,41 +322,20 @@ void Renderer::Init(const shared_ptr<const Entities> &entities) {
   SDL_GL_SwapWindow(mWindow);
 }
 
-void Renderer::drawDynamicEntity(const Shader &shader, const DynamicBody &body,
-                                 const Mesh &mesh, const mat4 &viewProj) {
-  mat4 model = body.getWorldTransform();
-  shader.SetMatrixUniform("uWorldTransform", model);
-
-  auto maybeTex = mesh.lookTextureUp(0);
-  if (maybeTex.has_value()) {
-    glActiveTexture(GL_TEXTURE0);
-    maybeTex.value()->SetActive();
-  }
-
-  Shader::SetVerticesActive(mesh.GetVertexArray());
-
-  // Draw triangles
-  glDrawElements(GL_TRIANGLES, static_cast<int>(mesh.GetNumIndices()),
-                 GL_UNSIGNED_INT, nullptr);
-
-  GLenum err_code = glGetError();
-  while (GL_NO_ERROR != err_code) {
-    printf("OpenGL Error @ %s: %i", "mesh draw", err_code);
-    err_code = glGetError();
-  }
-
 #ifdef _DEBUG
+void Renderer::drawMarbleGizmoLikeThing(const DynamicBody &marble,
+                                        const mat4 &viewProj) {
   GLuint VAs[3];
   GLuint VBs[3];
   glGenVertexArrays(3, VAs);
   glGenBuffers(3, VBs);
 
   float verts[3][6] = {
-      {body.position.x, body.position.y, body.position.z, body.velocity.x,
-       body.velocity.y, body.velocity.z},
-      {body.position.x, body.position.y, body.position.z, body.rotationAxis.x,
-       body.rotationAxis.y, body.rotationAxis.z},
-      {body.position.x, body.position.y, body.position.z, 0.f, 0.f, 1.f}};
+      {marble.position.x, marble.position.y, marble.position.z,
+       marble.velocity.x, marble.velocity.y, marble.velocity.z},
+      {marble.position.x, marble.position.y, marble.position.z,
+       marble.rotationAxis.x, marble.rotationAxis.y, marble.rotationAxis.z},
+      {marble.position.x, marble.position.y, marble.position.z, 0.f, 0.f, 1.f}};
 
   for (auto &vert : verts) {
     vert[3] += vert[0];
@@ -388,11 +367,35 @@ void Renderer::drawDynamicEntity(const Shader &shader, const DynamicBody &body,
 
   glDeleteVertexArrays(3, VAs);
   glDeleteBuffers(3, VBs);
+}
 #endif
+
+void Renderer::drawDynamicEntity(const Shader &shader, const DynamicBody &body,
+                                 const Mesh &mesh, const mat4 &viewProj) {
+  mat4 model = body.getWorldTransform();
+  shader.SetMatrixUniform("uWorldTransform", model);
+
+  auto maybeTex = mesh.lookTextureUp(0);
+  if (maybeTex.has_value()) {
+    glActiveTexture(GL_TEXTURE0);
+    maybeTex.value()->SetActive();
+  }
+
+  Shader::SetVerticesActive(mesh.GetVertexArray());
+
+  // Draw triangles
+  glDrawElements(GL_TRIANGLES, static_cast<int>(mesh.GetNumIndices()),
+                 GL_UNSIGNED_INT, nullptr);
+
+  GLenum err_code = glGetError();
+  while (GL_NO_ERROR != err_code) {
+    printf("OpenGL Error @ %s: %i", "mesh draw", err_code);
+    err_code = glGetError();
+  }
 }
 
-void Renderer::drawStaticEntity(const Shader &shader,
-                                const PivotEntity &entity) {
+void Renderer::drawPivotEntity(const Shader &shader, const PivotEntity &entity,
+                               const mat4 &viewProj) {
   const auto &[worldTransform, maybeTex, vertexArray, numIndices] =
       entity.GetDrawData();
   shader.SetMatrixUniform("uWorldTransform", worldTransform);
@@ -414,6 +417,46 @@ void Renderer::drawStaticEntity(const Shader &shader,
     err_code = glGetError();
   }
 }
+
+#ifdef _DEBUG
+void Renderer::drawDoorNormal(const PivotEntity &entity, const mat4 &viewProj) {
+  GLuint VA;
+  GLuint VB;
+  glGenVertexArrays(1, &VA);
+  glGenBuffers(1, &VB);
+
+  float vert[6] = {entity.body->position.x,      entity.body->position.y,
+                   entity.body->position.z,      entity.colliders[0].normal.x,
+                   entity.colliders[0].normal.y, entity.colliders[0].normal.z};
+
+  vert[3] += vert[0];
+  vert[4] += vert[1];
+  vert[5] += vert[2];
+
+  float color[3] = {1.f, 0.f, 0.f};
+
+  mWireframeShader.SetActive();
+  mWireframeShader.SetMatrixUniform("uModel", mat4::identity());
+  mWireframeShader.SetMatrixUniform("uViewProj", viewProj);
+
+  glDisable(GL_DEPTH_TEST);
+
+  glBindVertexArray(VA);
+  glBindBuffer(GL_ARRAY_BUFFER, VB);
+  glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), vert, GL_STATIC_DRAW);
+
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), nullptr);
+
+  mWireframeShader.SetVec3Uniform("tint", color);
+  glDrawArrays(GL_LINE_STRIP, 0, 2);
+
+  glEnable(GL_DEPTH_TEST);
+
+  glDeleteVertexArrays(1, &VA);
+  glDeleteBuffers(1, &VB);
+}
+#endif
 
 void Renderer::drawStaticEntity(const Shader &shader,
                                 const StaticEntity &entity) {
@@ -625,7 +668,8 @@ bool Renderer::setupFramebuffers() {
   glDrawBuffers(2, attachments);
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
-    cout << "ERROR::FRAMEBUFFER:: Intermediate framebuffer is not complete !\n";
+    cout << "ERROR::FRAMEBUFFER:: Intermediate framebuffer is not complete "
+            "!\n";
 
   // Used for Gaussian blur (bloom effect)
   glGenFramebuffers(2, mPingpongFBO);
@@ -768,7 +812,7 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
   }
 
   for (const auto &e : entities->GetDoors()) {
-    drawStaticEntity(mDrawStaticShader, e);
+    drawPivotEntity(mDrawStaticShader, e, viewProj);
   }
 
   glBindFramebuffer(GL_FRAMEBUFFER, mContourFBO);
@@ -801,12 +845,16 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
   }
 
   for (const auto &e : entities->GetDoors()) {
-    drawStaticEntity(mDrawStaticShader, e);
+    drawPivotEntity(mDrawStaticShader, e, viewProj);
   }
 
 #ifdef _DEBUG
   drawCollisionDebug(viewProj);
-#endif // _DEBUG
+
+  for (const auto &e : entities->GetDoors()) {
+    drawDoorNormal(e, viewProj);
+  }
+#endif
 
   mMeshShader.SetActive();
   mMeshShader.SetMatrixUniform("uViewProj", viewProj);
@@ -816,6 +864,12 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
   for (int i = 0; i < numMarbles; i++) {
     drawDynamicEntity(mMeshShader, marbles[i], marbleMesh, viewProj);
   }
+
+#ifdef _DEBUG
+  for (int i = 0; i < numMarbles; i++) {
+    drawMarbleGizmoLikeThing(marbles[i], viewProj);
+  }
+#endif
 }
 
 void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities) {

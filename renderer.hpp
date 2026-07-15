@@ -99,7 +99,12 @@ class Renderer {
                               int readH, int drawW, int drawH);
   static void drawStaticEntity(const Shader &shader,
                                const StaticEntity &entity);
-  static void drawStaticEntity(const Shader &shader, const PivotEntity &entity);
+
+  void drawMarbleGizmoLikeThing(const DynamicBody &marble,
+                                const mat4 &viewProj);
+  void drawDoorNormal(const PivotEntity &entity, const mat4 &viewProj);
+  void drawPivotEntity(const Shader &shader, const PivotEntity &entity,
+                       const mat4 &viewProj);
   void drawDynamicEntity(const Shader &shader, const DynamicBody &body,
                          const Mesh &mesh, const mat4 &viewProj);
   static GLuint createColorAttachmentTexture(
