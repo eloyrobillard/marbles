@@ -40,7 +40,7 @@ void Game::Init() {
 void Game::Tick(float deltaTime) {
   camera->Update(deltaTime, entities->ProvideCameraFollow(),
                  entities->ProvideCameraForward());
-  camera->SetMouseMovement(mouseRelativeX, mouseRelativeY);
+  camera->HandleMouseMovement(mouseRelativeX, mouseRelativeY);
 
   // NOTE: Relative motion goes both ways, so when the mouse stops moving
   // the relative motion becomes negative and brings the mouse back to (0,0)
@@ -48,20 +48,20 @@ void Game::Tick(float deltaTime) {
   mouseRelativeY = 0.0f;
 
   if (GetKey(SDL_SCANCODE_RIGHT)) {
-    entities->RegisterInputRight(deltaTime, camera->GetRight());
+    entities->RegisterInputRight(deltaTime, playerCamera->GetRight());
   }
 
   if (GetKey(SDL_SCANCODE_LEFT)) {
-    entities->RegisterInputLeft(deltaTime, camera->GetRight());
+    entities->RegisterInputLeft(deltaTime, playerCamera->GetRight());
   }
 
 #ifdef _DEBUG
   if (GetKey(SDL_SCANCODE_UP)) {
-    entities->RegisterInputForward(deltaTime, camera->GetForward());
+    entities->RegisterInputForward(deltaTime, playerCamera->GetForward());
   }
 
   if (GetKey(SDL_SCANCODE_DOWN)) {
-    entities->RegisterInputBackward(deltaTime, camera->GetForward());
+    entities->RegisterInputBackward(deltaTime, playerCamera->GetForward());
   }
 
   if (GetKeyReleased(SDL_SCANCODE_P) || GetKeyReleased(SDL_SCANCODE_0)) {
@@ -75,7 +75,27 @@ void Game::Tick(float deltaTime) {
   if (GetKeyReleased(SDL_SCANCODE_F)) {
     dtMultiplier += 0.1f;
   }
+
+  if (GetKeyReleased(SDL_SCANCODE_C)) {
+    toggleDebugCamera();
+  }
 #endif
+
+  if (GetKeyPressed(SDL_SCANCODE_W)) {
+    camera->HandleKeyboardUp();
+  }
+
+  if (GetKeyPressed(SDL_SCANCODE_S)) {
+    camera->HandleKeyboardDown();
+  }
+
+  if (GetKeyPressed(SDL_SCANCODE_A)) {
+    camera->HandleKeyboardLeft();
+  }
+
+  if (GetKeyPressed(SDL_SCANCODE_D)) {
+    camera->HandleKeyboardRight();
+  }
 
   if (GetKeyPressed(SDL_SCANCODE_RETURN)) {
     ToCheckpoint();
@@ -103,7 +123,7 @@ void Game::Shutdown() {
 void Game::ToCheckpoint() {
   const auto &dynamicEntitiesPos = checkpoints[checkpointID];
   entities->ToCheckpoint(dynamicEntitiesPos);
-  camera->ToCheckpoint(entities->ProvideCameraFollow());
+  playerCamera->ToCheckpoint(entities->ProvideCameraFollow());
   renderer->ToCheckpoint();
 }
 } // namespace Tmpl8

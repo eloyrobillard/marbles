@@ -73,7 +73,7 @@ class Renderer {
 
   bool setupFramebuffers();
 
-  void setView(const shared_ptr<FollowCamera> &camera);
+  void setView(const ICamera *camera);
   void setProjection();
   void pushHUDTexture(GLuint texture) { hudTextures.push_back(texture); }
   void drawCollisionDebug(const mat4 &viewProj);
@@ -117,8 +117,8 @@ public:
   ~Renderer();
   // Setup HUD and global shadow map
   void Init(const shared_ptr<const Entities> &entities);
-  void Draw3D(float deltaTime, const shared_ptr<Entities> &entities);
-  void SetCamera(const shared_ptr<FollowCamera> &camera);
+  void Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
+              const ICamera *camera);
   void ShowVictoryMessage() { mShowVictoryMessage = true; }
   void ToCheckpoint() { mShowVictoryMessage = false; }
 };

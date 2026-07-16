@@ -495,11 +495,6 @@ void Renderer::drawToHUD(GLuint VAO, GLuint textTexture, GLuint screenTexture,
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
-void Renderer::SetCamera(const shared_ptr<FollowCamera> &camera) {
-  mCamera = camera;
-  setView(camera);
-}
-
 Renderer::~Renderer() {
   mMeshShader.Unload();
   mWireframeShader.Unload();
@@ -872,8 +867,9 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
 #endif
 }
 
-void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities) {
-  setView(mCamera);
+void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
+                      const ICamera *camera) {
+  setView(camera);
 
   glEnable(GL_DEPTH_TEST);
 
@@ -992,9 +988,9 @@ void Renderer::drawQuad(Shader &shader, GLuint VAO, GLuint texture) {
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
-void Renderer::setView(const shared_ptr<FollowCamera> &camera) {
-  mView = mat4::CreateLookAt(camera->mActualPosition, camera->mActualTarget,
-                             camera->mUp);
+void Renderer::setView(const ICamera *camera) {
+  mView =
+      mat4::CreateLookAt(camera->GetPosition(), camera->GetTarget(), vec3::up);
 }
 
 void Renderer::setProjection() {

@@ -116,14 +116,17 @@ int main(int argc, char **argv) {
   shared_ptr<Renderer> renderer = std::make_shared<Renderer>();
 
   shared_ptr<Entities> entities = std::make_shared<Entities>();
-  shared_ptr<FollowCamera> camera = std::make_shared<FollowCamera>(
-      entities->ProvideCameraFollow(), Maths::vec3::up, 20.0f, 6.0f);
+  shared_ptr<FollowCamera> playerCamera = std::make_shared<FollowCamera>(
+      entities->ProvideCameraFollow(), 20.0f, 6.0f);
 
-  renderer->SetCamera(camera);
   renderer->Init(entities);
 
+  unique_ptr<FreeCamera> freeCamera =
+      std::make_unique<FreeCamera>(vec3{0.f, 0.f, 0.f}, vec3::up);
+
   game = new Game();
-  game->SetCamera(camera);
+  game->SetPlayerCamera(playerCamera);
+  game->SetDebugCamera(freeCamera);
   game->SetRenderer(renderer);
   game->SetEntities(entities);
 
@@ -141,10 +144,10 @@ int main(int argc, char **argv) {
 
   while (!exitapp) {
     // calculate frame time and pass it to game->Tick
-    float elapsedTime = t.elapsed() * game->dtMultiplier;
+    float elapsedTime = t.elapsed();
     t.reset();
 
-    physicsTimeAccumulator += elapsedTime;
+    physicsTimeAccumulator += elapsedTime * game->dtMultiplier;
 
     // NOTE: make sure the physics update always gets the same delta time
     while (physicsTimeAccumulator >= Physics::physicsDeltaTime) {
@@ -159,7 +162,7 @@ int main(int argc, char **argv) {
 
     game->Tick(elapsedTime);
 
-    renderer->Draw3D(elapsedTime, entities);
+    renderer->Draw3D(elapsedTime, entities, game->camera);
 
     game->SetupKeys();
 

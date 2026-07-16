@@ -10,6 +10,8 @@ namespace Tmpl8 {
 class Surface;
 class Game {
 public:
+  ICamera *camera;
+
   void Init();
   void Shutdown();
   void Tick(float deltaTime);
@@ -30,7 +32,13 @@ public:
     return released.test(key);
   } // returns true if the key was released since the last Tick
   void Screenshot();
-  void SetCamera(shared_ptr<FollowCamera> &c) { camera = c; }
+  void SetPlayerCamera(shared_ptr<FollowCamera> &c) {
+    playerCamera = c;
+    camera = c.get();
+  }
+  void SetDebugCamera(unique_ptr<FreeCamera> &c) {
+    debugCamera = std::move(c);
+  };
   void SetRenderer(shared_ptr<Renderer> &r) { renderer = r; }
   void SetEntities(shared_ptr<Entities> &e) { entities = e; }
   void SetupKeys() {
@@ -56,11 +64,23 @@ private:
   std::bitset<SDL_SCANCODE_COUNT>
       released; // store key release events here (set to true on key up, reset
                 // to false after processing in Tick)
+
   float mouseRelativeX, mouseRelativeY;
   float prevMouseX = 0.0f, prevMouseY = 0.0f;
-  shared_ptr<FollowCamera> camera;
+  shared_ptr<FollowCamera> playerCamera;
+  unique_ptr<FreeCamera> debugCamera;
   shared_ptr<Renderer> renderer;
   shared_ptr<Entities> entities;
-};
+  bool usingDebugCamera = false;
 
+  void toggleDebugCamera() {
+    if (usingDebugCamera)
+      camera = playerCamera.get();
+    else {
+      camera = debugCamera.get();
+    }
+
+    usingDebugCamera = !usingDebugCamera;
+  }
+};
 }; // namespace Tmpl8

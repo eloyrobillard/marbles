@@ -8,7 +8,21 @@ using Maths::mat4;
 using Maths::vec3;
 using Maths::vec4;
 
-class FollowCamera {
+class ICamera {
+public:
+  virtual ~ICamera() = default;
+  virtual void Update(float dt, const vec3 &target,
+                      const vec3 &targetForward) = 0;
+  virtual void HandleMouseMovement(float dx, float dy) = 0;
+  virtual void HandleKeyboardLeft() = 0;
+  virtual void HandleKeyboardRight() = 0;
+  virtual void HandleKeyboardUp() = 0;
+  virtual void HandleKeyboardDown() = 0;
+  [[nodiscard]] virtual const vec3 &GetPosition() const = 0;
+  [[nodiscard]] virtual const vec3 &GetTarget() const = 0;
+};
+
+class FollowCamera : public ICamera {
   float mMouseDeltaX = 0.0f;
   float mMouseDeltaY = 0.0f;
   const float mStartingAngleH = 0.0f;
@@ -19,17 +33,21 @@ class FollowCamera {
 public:
   vec3 mActualPosition;
   vec3 mActualTarget;
-  vec3 mUp;
   vec3 mVelocity;
   float mSpringConstant;
   float mTargetDist;
   vec3 mIdealOffset;
   vec3 mStartingOffset;
 
-  FollowCamera(const vec3 &target, const vec3 &up, const float spring,
-               const float dist)
-      : mActualTarget(target), mUp(up), mVelocity(vec3::zero),
-        mSpringConstant(spring), mTargetDist(dist) {
+  [[nodiscard]] const vec3 &GetPosition() const override {
+    return mActualPosition;
+  }
+  [[nodiscard]] const vec3 &GetTarget() const override { return mActualTarget; }
+
+  ~FollowCamera() override = default;
+  FollowCamera(const vec3 &target, const float spring, const float dist)
+      : mActualTarget(target), mVelocity(vec3::zero), mSpringConstant(spring),
+        mTargetDist(dist) {
     const float ch = cosf(mAngleHorizontal);
     const float sh = sinf(mAngleHorizontal);
     const float cv = cosf(mAngleVertical);
@@ -43,10 +61,15 @@ public:
     SnapToTarget(mActualTarget);
   }
 
-  void SetMouseMovement(float dx, float dy) {
+  void HandleMouseMovement(float dx, float dy) override {
     mMouseDeltaX = dx * Maths::DegToRad;
     mMouseDeltaY = dy * Maths::DegToRad;
   }
+
+  void HandleKeyboardLeft() override {}
+  void HandleKeyboardRight() override {}
+  void HandleKeyboardUp() override {}
+  void HandleKeyboardDown() override {}
 
   [[nodiscard]] bool raycast(const vec3 &target) const {
     // レイキャストでカメラが壁に後ろを写すのを防ぐ
@@ -82,7 +105,8 @@ public:
     return false;
   }
 
-  void Update(float dt, const vec3 &target, const vec3 &targetForward) {
+  void Update(float dt, const vec3 &target,
+              const vec3 &targetForward) override {
     mAngleHorizontal = mAngleHorizontal + mMouseDeltaX;
 
     if (mAngleHorizontal > Maths::TAU) {
@@ -153,6 +177,73 @@ public:
   [[nodiscard]] vec3 GetForward() const {
     const vec3 toTarget = mActualTarget - mActualPosition;
     return vec3(toTarget.x, toTarget.y, 0.0f).normalized();
+  }
+};
+
+class FreeCamera : public ICamera {
+  float mMouseDeltaX = 0.0f;
+  float mMouseDeltaY = 0.0f;
+  const float mStartingAngleH = 0.0f;
+  const float mStartingAngleV = 25.0f * Maths::DegToRad;
+  float mAngleHorizontal = mStartingAngleH;
+  float mAngleVertical = mStartingAngleV;
+  vec3 up;
+  vec3 position;
+  vec3 target = vec3::forward;
+  quat rotation;
+
+public:
+  FreeCamera(const vec3 &position, const vec3 &up)
+      : up(up), position(position) {}
+
+  ~FreeCamera() override = default;
+  FreeCamera &operator=(FreeCamera &&o) noexcept {
+    up = o.up;
+    position = o.position;
+    mAngleHorizontal = o.mAngleHorizontal;
+    mAngleVertical = o.mAngleVertical;
+    return *this;
+  }
+
+  void HandleMouseMovement(float dx, float dy) override {
+    mMouseDeltaX = dx * Maths::DegToRad;
+    mMouseDeltaY = dy * Maths::DegToRad;
+  }
+
+  void HandleKeyboardLeft() override {}
+  void HandleKeyboardRight() override {}
+  void HandleKeyboardUp() override {}
+  void HandleKeyboardDown() override {}
+
+  [[nodiscard]] const vec3 &GetPosition() const override { return position; }
+  [[nodiscard]] const vec3 &GetTarget() const override { return target; }
+
+  void Update(float dt, const vec3 &_target,
+              const vec3 &_targetForward) override {
+    mAngleHorizontal = mAngleHorizontal + mMouseDeltaX;
+
+    if (mAngleHorizontal > Maths::TAU) {
+      mAngleHorizontal -= Maths::TAU;
+    } else if (mAngleHorizontal < -Maths::TAU) {
+      mAngleHorizontal += Maths::TAU;
+    }
+
+    mAngleVertical =
+        std::clamp(mAngleVertical - mMouseDeltaY, -45.0f * Maths::DegToRad,
+                   45.0f * Maths::DegToRad);
+    cout << mMouseDeltaY << endl;
+
+    // マウス入力による影響をリセット
+    mMouseDeltaX = 0.0f;
+    mMouseDeltaY = 0.0f;
+
+    const float ch = cosf(mAngleHorizontal);
+    const float sh = sinf(mAngleHorizontal);
+    const float cv = cosf(mAngleVertical);
+    const float sv = sinf(mAngleVertical);
+
+    target = vec3{ch * cv, sh * cv, sv};
+    target.normalize();
   }
 };
 

@@ -31,6 +31,7 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
+#include <variant>
 #include <vector>
 
 typedef unsigned char uchar;
