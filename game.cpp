@@ -81,20 +81,20 @@ void Game::Tick(float deltaTime) {
   }
 #endif
 
-  if (GetKeyPressed(SDL_SCANCODE_W)) {
-    camera->HandleKeyboardUp();
+  if (GetKey(SDL_SCANCODE_W)) {
+    camera->HandleKeyboardUp(deltaTime);
   }
 
-  if (GetKeyPressed(SDL_SCANCODE_S)) {
-    camera->HandleKeyboardDown();
+  if (GetKey(SDL_SCANCODE_S)) {
+    camera->HandleKeyboardDown(deltaTime);
   }
 
-  if (GetKeyPressed(SDL_SCANCODE_A)) {
-    camera->HandleKeyboardLeft();
+  if (GetKey(SDL_SCANCODE_A)) {
+    camera->HandleKeyboardLeft(deltaTime);
   }
 
-  if (GetKeyPressed(SDL_SCANCODE_D)) {
-    camera->HandleKeyboardRight();
+  if (GetKey(SDL_SCANCODE_D)) {
+    camera->HandleKeyboardRight(deltaTime);
   }
 
   if (GetKeyPressed(SDL_SCANCODE_RETURN)) {

@@ -122,7 +122,7 @@ int main(int argc, char **argv) {
   renderer->Init(entities);
 
   unique_ptr<FreeCamera> freeCamera =
-      std::make_unique<FreeCamera>(vec3{0.f, 0.f, 0.f}, vec3::up);
+      std::make_unique<FreeCamera>(vec3{5.f, 0.f, 5.f});
 
   game = new Game();
   game->SetPlayerCamera(playerCamera);

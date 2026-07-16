@@ -14,10 +14,10 @@ public:
   virtual void Update(float dt, const vec3 &target,
                       const vec3 &targetForward) = 0;
   virtual void HandleMouseMovement(float dx, float dy) = 0;
-  virtual void HandleKeyboardLeft() = 0;
-  virtual void HandleKeyboardRight() = 0;
-  virtual void HandleKeyboardUp() = 0;
-  virtual void HandleKeyboardDown() = 0;
+  virtual void HandleKeyboardLeft(float dt) = 0;
+  virtual void HandleKeyboardRight(float dt) = 0;
+  virtual void HandleKeyboardUp(float dt) = 0;
+  virtual void HandleKeyboardDown(float dt) = 0;
   [[nodiscard]] virtual const vec3 &GetPosition() const = 0;
   [[nodiscard]] virtual const vec3 &GetTarget() const = 0;
 };
@@ -66,10 +66,10 @@ public:
     mMouseDeltaY = dy * Maths::DegToRad;
   }
 
-  void HandleKeyboardLeft() override {}
-  void HandleKeyboardRight() override {}
-  void HandleKeyboardUp() override {}
-  void HandleKeyboardDown() override {}
+  void HandleKeyboardLeft(float dt) override {}
+  void HandleKeyboardRight(float dt) override {}
+  void HandleKeyboardUp(float dt) override {}
+  void HandleKeyboardDown(float dt) override {}
 
   [[nodiscard]] bool raycast(const vec3 &target) const {
     // レイキャストでカメラが壁に後ろを写すのを防ぐ
@@ -184,7 +184,7 @@ class FreeCamera : public ICamera {
   float mMouseDeltaX = 0.0f;
   float mMouseDeltaY = 0.0f;
   const float mStartingAngleH = 0.0f;
-  const float mStartingAngleV = 25.0f * Maths::DegToRad;
+  const float mStartingAngleV = 0.0f;
   float mAngleHorizontal = mStartingAngleH;
   float mAngleVertical = mStartingAngleV;
   vec3 up;
@@ -193,8 +193,7 @@ class FreeCamera : public ICamera {
   quat rotation;
 
 public:
-  FreeCamera(const vec3 &position, const vec3 &up)
-      : up(up), position(position) {}
+  FreeCamera(const vec3 &position) : position(position) {}
 
   ~FreeCamera() override = default;
   FreeCamera &operator=(FreeCamera &&o) noexcept {
@@ -210,10 +209,28 @@ public:
     mMouseDeltaY = dy * Maths::DegToRad;
   }
 
-  void HandleKeyboardLeft() override {}
-  void HandleKeyboardRight() override {}
-  void HandleKeyboardUp() override {}
-  void HandleKeyboardDown() override {}
+  void HandleKeyboardLeft(float dt) override {
+    vec3 to = target - position;
+    vec3 left = to.cross(vec3::up).normalized();
+    position += 10.f * left * dt;
+    target = position + to;
+  }
+  void HandleKeyboardRight(float dt) override {
+    vec3 to = target - position;
+    vec3 left = to.cross(vec3::up).normalized();
+    position -= 10.f * left * dt;
+    target = position + to;
+  }
+  void HandleKeyboardUp(float dt) override {
+    vec3 to = target - position;
+    position += 10.f * to * dt;
+    target = position + to;
+  }
+  void HandleKeyboardDown(float dt) override {
+    vec3 to = target - position;
+    position -= 10.f * to * dt;
+    target = position + to;
+  }
 
   [[nodiscard]] const vec3 &GetPosition() const override { return position; }
   [[nodiscard]] const vec3 &GetTarget() const override { return target; }
@@ -231,7 +248,6 @@ public:
     mAngleVertical =
         std::clamp(mAngleVertical - mMouseDeltaY, -45.0f * Maths::DegToRad,
                    45.0f * Maths::DegToRad);
-    cout << mMouseDeltaY << endl;
 
     // マウス入力による影響をリセット
     mMouseDeltaX = 0.0f;
@@ -242,8 +258,7 @@ public:
     const float cv = cosf(mAngleVertical);
     const float sv = sinf(mAngleVertical);
 
-    target = vec3{ch * cv, sh * cv, sv};
-    target.normalize();
+    target = position + vec3{ch * cv, sh * cv, sv};
   }
 };
 
