@@ -70,6 +70,35 @@ struct CollisionData {
   vec3 collisionPoint;
 };
 
+bool Physics::segmentAndTriangleIntersect(const vec3 &P, const vec3 &Q,
+                                          const vec3 &A, const vec3 &B,
+                                          const vec3 &C) {
+  const vec3 QP = P - Q;
+  const vec3 AC = C - A;
+  const vec3 AB = B - A;
+
+  const vec3 n = AB.cross(AC);
+
+  const f32 d = QP.dot(n);
+  if (d <= 0.f)
+    return false;
+
+  const vec3 AP = P - A;
+  const f32 t = AP.dot(n);
+  if (t < 0.f || t > d)
+    return false;
+
+  const vec3 e = QP.cross(AP);
+  const f32 v = AC.dot(e);
+  if (v < 0.f || v > d)
+    return false;
+  const f32 w = -AB.dot(e);
+  if (w < 0.f || v + w > d)
+    return false;
+
+  return true;
+}
+
 template <class T>
   requires std::derived_from<T, Body>
 optional<CollisionData> intersectsTriangle(const TriangleCollider<T> &t,

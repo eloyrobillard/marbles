@@ -136,6 +136,10 @@ bool processStaticCollisions(
 int processDynamicCollisions(vector<DynamicBody> &des, int idx, int numMarbles,
                              bool joining);
 
+// SOURCE: Real-Time Collision Detection by Christer Ericson (5.3.6)
+bool segmentAndTriangleIntersect(const vec3 &P, const vec3 &Q, const vec3 &A,
+                                 const vec3 &B, const vec3 &C);
+
 inline float physicsTicksPerSecond = 240.0;
 inline float physicsDeltaTime = 1.0f / physicsTicksPerSecond;
 
