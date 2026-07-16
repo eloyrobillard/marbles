@@ -207,8 +207,8 @@ public:
   }
 
   void HandleMouseMovement(float dx, float dy) override {
-    mMouseDeltaX = dx * Maths::DegToRad;
-    mMouseDeltaY = dy * Maths::DegToRad;
+    mMouseDeltaX = dx * Maths::DegToRad * 0.5f;
+    mMouseDeltaY = dy * Maths::DegToRad * 0.5f;
   }
 
   void HandleKeyboardLeft(float dt) override {
