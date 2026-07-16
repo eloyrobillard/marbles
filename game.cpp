@@ -68,11 +68,11 @@ void Game::Tick(float deltaTime) {
     dtMultiplier = dtMultiplier == 0.f ? 1.f : 0.f;
   }
 
-  if (GetKeyReleased(SDL_SCANCODE_S)) {
+  if (GetKeyReleased(SDL_SCANCODE_J)) {
     dtMultiplier = dtMultiplier <= 0.2f ? 0.1f : dtMultiplier - 0.1f;
   }
 
-  if (GetKeyReleased(SDL_SCANCODE_F)) {
+  if (GetKeyReleased(SDL_SCANCODE_K)) {
     dtMultiplier += 0.1f;
   }
 
