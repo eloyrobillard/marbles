@@ -48,8 +48,6 @@ void Entities::Update(float time, float deltaTime) {
   // MUST BE DONE HERE
   computeAveragePosition();
   computeAverageVelocity();
-  computePositionalVariance();
-  computeAveragePositionWithoutOutliers();
 
   for (int i = 0; i < getNumMarbles(); i++) {
     DynamicBody &marble = mMarbles[i];
