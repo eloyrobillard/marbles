@@ -20,6 +20,8 @@ public:
   virtual void HandleKeyboardDown(float dt) = 0;
   [[nodiscard]] virtual const vec3 &GetPosition() const = 0;
   [[nodiscard]] virtual const vec3 &GetTarget() const = 0;
+  [[nodiscard]] virtual vec3 GetForward() const = 0;
+  [[nodiscard]] virtual vec3 GetRight() const = 0;
 };
 
 class FollowCamera : public ICamera {
@@ -170,11 +172,11 @@ public:
     SnapToTarget(target);
   }
 
-  [[nodiscard]] vec3 GetRight() const {
+  [[nodiscard]] vec3 GetRight() const override {
     return vec3::up.cross(mActualTarget - mActualPosition).normalized();
   }
 
-  [[nodiscard]] vec3 GetForward() const {
+  [[nodiscard]] vec3 GetForward() const override {
     const vec3 toTarget = mActualTarget - mActualPosition;
     return vec3(toTarget.x, toTarget.y, 0.0f).normalized();
   }
@@ -259,6 +261,15 @@ public:
     const float sv = sinf(mAngleVertical);
 
     target = position + vec3{ch * cv, sh * cv, sv};
+  }
+
+  [[nodiscard]] vec3 GetRight() const override {
+    return vec3::up.cross(target - position).normalized();
+  }
+
+  [[nodiscard]] vec3 GetForward() const override {
+    const vec3 toTarget = target - position;
+    return vec3(toTarget.x, toTarget.y, 0.0f).normalized();
   }
 };
 

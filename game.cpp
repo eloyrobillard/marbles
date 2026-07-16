@@ -48,20 +48,20 @@ void Game::Tick(float deltaTime) {
   mouseRelativeY = 0.0f;
 
   if (GetKey(SDL_SCANCODE_RIGHT)) {
-    entities->RegisterInputRight(deltaTime, playerCamera->GetRight());
+    entities->RegisterInputRight(deltaTime, camera->GetRight());
   }
 
   if (GetKey(SDL_SCANCODE_LEFT)) {
-    entities->RegisterInputLeft(deltaTime, playerCamera->GetRight());
+    entities->RegisterInputLeft(deltaTime, camera->GetRight());
   }
 
 #ifdef _DEBUG
   if (GetKey(SDL_SCANCODE_UP)) {
-    entities->RegisterInputForward(deltaTime, playerCamera->GetForward());
+    entities->RegisterInputForward(deltaTime, camera->GetForward());
   }
 
   if (GetKey(SDL_SCANCODE_DOWN)) {
-    entities->RegisterInputBackward(deltaTime, playerCamera->GetForward());
+    entities->RegisterInputBackward(deltaTime, camera->GetForward());
   }
 
   if (GetKeyReleased(SDL_SCANCODE_P) || GetKeyReleased(SDL_SCANCODE_0)) {
