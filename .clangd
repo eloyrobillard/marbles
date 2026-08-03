@@ -1,4 +1,4 @@
 CompileFlags:
   Add:
     - -std:c++latest
-    - -W1
+    - -W4
