@@ -124,7 +124,7 @@ public:
 inline SpacePartition gSpacePartition = SpacePartition<StaticBody>(
     4.0f, 150.0f, -40.0f, 80.0f, -100.0f, 10.0f, 0.5f);
 
-class DynamicEntity;
+struct DynamicEntity;
 
 namespace Physics {
 bool processDoorCollisions(

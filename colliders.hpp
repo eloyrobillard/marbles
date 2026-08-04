@@ -9,8 +9,8 @@ using Maths::quat;
 using Maths::vec3;
 using Maths::vec4;
 
-class Body;
-class StaticBody;
+struct Body;
+struct StaticBody;
 
 struct AngleBounds {
   float minRad;
@@ -147,7 +147,7 @@ struct PivotBody : Body {
   vec3 speedOverride = vec3::zero;
   vec3 pivotAxis = vec3::zero;
   vec3 pivotPoint = vec3::zero;
-  AngleBounds angleBounds = {0.0f, 45.0f};
+  AngleBounds angleBounds = {0.0f, 45.0f, 0.0f, 0.0f};
   quat constantAcceleration;
 };
 
