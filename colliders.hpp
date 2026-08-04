@@ -30,9 +30,13 @@ struct SphereCollider : Collider {
   float radius;
 };
 
-// For (mostly) static objects
 template <class T>
-  requires std::derived_from<T, Body>
+concept HasRotation = requires(T t) {
+  { t.rotation } -> std::convertible_to<Maths::quat>;
+};
+
+// For (mostly) static objects
+template <HasRotation T>
 struct TriangleCollider : Collider {
   TriangleCollider(vec3 &normal, vec3 &a, vec3 &b, vec3 &c,
                    const shared_ptr<T> &body, GLuint vertexBuffer,
@@ -63,8 +67,7 @@ inline ostream &operator<<(ostream &os, const SphereCollider &coll) {
   return os;
 }
 
-template <class T>
-  requires std::derived_from<T, Body>
+template <HasRotation T>
 inline ostream &operator<<(ostream &os, const TriangleCollider<T> &coll) {
   os << "TriangleCollider { a: " << coll.a << ", b: " << coll.b
      << ", c: " << coll.c << ", normal: " << coll.normal << " }";
