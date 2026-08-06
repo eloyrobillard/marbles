@@ -55,42 +55,44 @@ struct Entity {
 };
 
 struct PivotEntity : Entity {
-  PivotEntity(const Mesh &mesh, const shared_ptr<PivotBody> &body,
+  PivotEntity(const Mesh &mesh, PivotBody body) : Entity(mesh), body(body) {}
+  PivotEntity(const Mesh &mesh, PivotBody &body,
               vector<TriangleCollider<PivotBody>> &colliders)
       : Entity(mesh), body(body), colliders(std::move(colliders)) {}
 
   [[nodiscard]] string GetCoordinatesString() const {
-    return std::format("x: {:8.3f}\ny: {:8.3f}\nz: {:8.3f}", body->position.x,
-                       body->position.y, body->position.z);
+    return std::format("x: {:8.3f}\ny: {:8.3f}\nz: {:8.3f}", body.position.x,
+                       body.position.y, body.position.z);
   }
 
   [[nodiscard]] tuple<mat4, optional<Texture *>, GLuint, size_t>
   GetDrawData() const {
-    return {body->getWorldTransform(), mesh.lookTextureUp(0),
+    return {body.getWorldTransform(), mesh.lookTextureUp(0),
             mesh.GetVertexArray(), mesh.GetNumIndices()};
   }
 
-  shared_ptr<PivotBody> body;
+  PivotBody body;
   vector<TriangleCollider<PivotBody>> colliders;
 };
 
 struct StaticEntity : Entity {
-  StaticEntity(const Mesh &mesh, const shared_ptr<StaticBody> &body,
-               vector<TriangleCollider<StaticBody>> &colliders)
-      : Entity(mesh), body(body), colliders(std::move(colliders)) {}
+  StaticEntity(const Mesh &mesh, StaticBody body) : Entity(mesh), body(body) {}
+  StaticEntity(const Mesh &mesh, StaticBody &body,
+               vector<TriangleCollider<StaticBody>> &&colliders)
+      : Entity(mesh), body(body), colliders(colliders) {}
 
   [[nodiscard]] string GetCoordinatesString() const {
-    return std::format("x: {:8.3f}\ny: {:8.3f}\nz: {:8.3f}", body->position.x,
-                       body->position.y, body->position.z);
+    return std::format("x: {:8.3f}\ny: {:8.3f}\nz: {:8.3f}", body.position.x,
+                       body.position.y, body.position.z);
   }
 
   [[nodiscard]] tuple<mat4, optional<Texture *>, GLuint, size_t>
   GetDrawData() const {
-    return {body->getWorldTransform(), mesh.lookTextureUp(0),
+    return {body.getWorldTransform(), mesh.lookTextureUp(0),
             mesh.GetVertexArray(), mesh.GetNumIndices()};
   }
 
-  shared_ptr<StaticBody> body;
+  StaticBody body;
   vector<TriangleCollider<StaticBody>> colliders;
 };
 
@@ -107,8 +109,6 @@ struct DynamicEntity : public Entity {
   DynamicEntity(const Mesh &mesh, const DynamicBody &body,
                 SphereCollider &collider)
       : Entity(mesh), body(body), collider(collider) {}
-  void UpdateFirstPass(float t, float dt);
-  void UpdateSecondPass(float t, float dt);
   [[nodiscard]] const vec3 &GetPositionAsRef() const { return body.position; }
   [[nodiscard]] vec3 &GetVelocityAsRef() { return body.velocity; }
   void SetPosition(const vec3 &pos) { body.position = pos; }
@@ -149,9 +149,6 @@ class Entities {
   [[nodiscard]] int getNumMarbles() const {
     return mSplitMode == SplitMode::Joined ? 1 : mCurNumMarbles;
   }
-
-  static void updateFirstPass(DynamicBody &body, float t, float dt);
-  static void updateSecondPass(DynamicBody &body, float t, float dt);
 
 public:
   Entities();
@@ -195,9 +192,6 @@ public:
   void RegisterInputRight(float dt, const vec3 &cameraRight);
   void ToCheckpoint(const vector<vec3> &positionsAtCheckpoint);
   void ToggleSplitMode();
-
-  void GetDynamicCollisionImpulse();
-  void GetStaticCollisionImpulse();
 };
 
 #endif // ENTITIES_H

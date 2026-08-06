@@ -13,7 +13,7 @@ Entities::Entities() {
   mMarbles.reserve(mMaxNumMarbles);
   mPreviousPositions.reserve(mMaxNumMarbles);
 
-  RegisterStaticEntities({
+  vector<StaticEntityData> staticEntityData = {
       {"assets/ramp1.gpmesh"},
       {"assets/ramp2.gpmesh"},
       {"assets/ramp3.gpmesh"},
@@ -26,18 +26,32 @@ Entities::Entities() {
       {.meshPath = "assets/canon1.gpmesh",
        .overrideSpeed = true,
        .speedOverride = vec3::up * 50.0f},
-  });
+  };
 
-  RegisterDoor({.meshPath = "assets/doorR.gpmesh",
-                .pivotAxis = -vec3::up,
-                .pivotPoint = vec3::zero,
-                .angleBoundsDeg = {0.0f, 45.0f},
-                .resistance = 1.f});
-  RegisterDoor({.meshPath = "assets/doorL.gpmesh",
-                .pivotAxis = vec3::up,
-                .pivotPoint = vec3::zero,
-                .angleBoundsDeg = {-45.0f, 0.0f},
-                .resistance = 1.f});
+  // NOTE: StaticEntities メモリの再割り当てを未然に防ぐ
+  // でないとそれぞれのbody のアドレスが途中で代わり
+  // triangles との整合性を失う
+  mStaticEntities.reserve(staticEntityData.size());
+  RegisterStaticEntities(staticEntityData);
+
+  vector<DoorData> doors = {{.meshPath = "assets/doorR.gpmesh",
+                             .pivotAxis = -vec3::up,
+                             .pivotPoint = vec3::zero,
+                             .angleBoundsDeg = {0.0f, 45.0f},
+                             .resistance = 1.f},
+                            {.meshPath = "assets/doorL.gpmesh",
+                             .pivotAxis = vec3::up,
+                             .pivotPoint = vec3::zero,
+                             .angleBoundsDeg = {-45.0f, 0.0f},
+                             .resistance = 1.f}};
+
+  // NOTE: Doors メモリの再割り当てを未然に防ぐ
+  // でないとそれぞれのbody のアドレスが途中で代わり
+  // triangles との整合性を失う
+  mDoors.reserve(doors.size());
+  for (auto &door : doors) {
+    RegisterDoor(door);
+  }
 
   RegisterMarble({"assets/sphere.gpmesh"});
 
@@ -113,7 +127,7 @@ void Entities::Update(float time, float deltaTime) {
     vector<pair<GLuint, mat4>> showDoorWireframe{};
     for (auto &door : mDoors) {
       for (auto &t : door.colliders) {
-        mat4 model = t.body->getWorldTransform();
+        mat4 model = t.body.getWorldTransform();
         auto &[ref, _] = doors.emplace_back(t, model);
 
         ref.a = vec3(vec4(ref.a, 1.0f) * model);
@@ -151,27 +165,27 @@ void Entities::Update(float time, float deltaTime) {
 
     for (auto &door : mDoors) {
       // 抵抗力を適用
-      door.body->rotationalVelocity =
-          quat::Lerp(door.body->rotationalVelocity,
-                     quat::Concatenate(door.body->rotationalVelocity,
-                                       door.body->constantAcceleration),
+      door.body.rotationalVelocity =
+          quat::Lerp(door.body.rotationalVelocity,
+                     quat::Concatenate(door.body.rotationalVelocity,
+                                       door.body.constantAcceleration),
                      deltaTime);
 
       auto targetRot =
-          quat::Concatenate(door.body->rotation, door.body->rotationalVelocity);
+          quat::Concatenate(door.body.rotation, door.body.rotationalVelocity);
 
-      auto finalRot = quat::Lerp(door.body->rotation, targetRot, deltaTime);
+      auto finalRot = quat::Lerp(door.body.rotation, targetRot, deltaTime);
 
       // 回転の範囲を越えたら速度をリセット
-      if (door.body->angleBounds.minSinHalfRad <= finalRot.z &&
-          finalRot.z <= door.body->angleBounds.maxSinHalfRad) {
-        door.body->rotation = finalRot;
+      if (door.body.angleBounds.minSinHalfRad <= finalRot.z &&
+          finalRot.z <= door.body.angleBounds.maxSinHalfRad) {
+        door.body.rotation = finalRot;
 
         for (auto &t : door.colliders) {
           t.updateNormal();
         }
       } else {
-        door.body->rotationalVelocity = quat::Identity;
+        door.body.rotationalVelocity = quat::Identity;
       }
     }
 
@@ -228,9 +242,13 @@ void Entities::RegisterDoor(const DoorData &doorData) {
 
     PivotBody b(body, doorData.pivotAxis, doorData.pivotPoint,
                 doorData.angleBoundsDeg, doorData.resistance);
-    shared_ptr<PivotBody> shB = std::make_shared<PivotBody>(b);
-    auto triangles = mesh.generateTriangleCollidersFromMesh(shB);
-    mDoors.emplace_back(mesh, shB, triangles);
+
+    auto &ref = mDoors.emplace_back(mesh, b);
+
+    // NOTE: StaticEntity 内の body への参照を渡す
+    // これで shared_ptr を使わなくてもいい
+    auto triangles = mesh.generateTriangleCollidersFromMesh(ref.body);
+    ref.colliders = std::move(triangles);
   }
 }
 
@@ -249,9 +267,12 @@ void Entities::RegisterStaticEntities(const vector<StaticEntityData> &data) {
                    vec3(vec4(datum.impulseOverride, 1.0f) * rot),
                    vec3(vec4(datum.speedOverride, 1.0f) * rot));
 
-      shared_ptr<StaticBody> shB = std::make_shared<StaticBody>(b);
-      auto triangles = mesh.generateTriangleCollidersFromMesh(shB);
-      auto &ref = mStaticEntities.emplace_back(mesh, shB, triangles);
+      auto &ref = mStaticEntities.emplace_back(mesh, b);
+
+      // NOTE: StaticEntity 内の body への参照を渡す
+      // これで shared_ptr を使わなくてもいい
+      auto triangles = mesh.generateTriangleCollidersFromMesh(ref.body);
+      ref.colliders = std::move(triangles);
 
       gSpacePartition.populate(ref.colliders);
     }

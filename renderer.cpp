@@ -425,8 +425,8 @@ void Renderer::drawDoorNormal(const PivotEntity &entity, const mat4 &viewProj) {
   glGenVertexArrays(1, &VA);
   glGenBuffers(1, &VB);
 
-  float vert[6] = {entity.body->position.x,      entity.body->position.y,
-                   entity.body->position.z,      entity.colliders[0].normal.x,
+  float vert[6] = {entity.body.position.x,       entity.body.position.y,
+                   entity.body.position.z,       entity.colliders[0].normal.x,
                    entity.colliders[0].normal.y, entity.colliders[0].normal.z};
 
   vert[3] += vert[0];

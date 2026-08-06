@@ -192,14 +192,13 @@ int Physics::processDynamicCollisions(vector<DynamicBody> &des, int idx,
 
 // TODO: より汎用的な関数に変換：法線、軸などだけもらって、回転を返すやつ
 quat computeDoorRotation(const TriangleCollider<PivotBody> &triangle,
-                         const vec3 &normal, const float sepVel,
-                         const float distToPivot) {
+                         const float sepVel, const float distToPivot) {
   // 速度(sepVel)から角速度を導出
   float angVel = 20.f * sepVel / distToPivot;
 
-  quat rotVel(triangle.body->pivotAxis, angVel);
+  quat rotVel(triangle.body.pivotAxis, angVel);
 
-  return quat::Concatenate(triangle.body->rotationalVelocity, rotVel);
+  return quat::Concatenate(triangle.body.rotationalVelocity, rotVel);
 }
 
 bool Physics::processDoorCollisions(
@@ -226,28 +225,28 @@ bool Physics::processDoorCollisions(
 
     if (sepVel < 0) {
       // Apply impulse instantly
-      if (triangle.body->overrideImpulse) {
-        marble.velocity = triangle.body->impulseOverride *
+      if (triangle.body.overrideImpulse) {
+        marble.velocity = triangle.body.impulseOverride *
                           marble.velocity.length() *
-                          triangle.body->collisionAcceleration;
-      } else if (triangle.body->overrideSpeed) {
-        marble.velocity = triangle.body->speedOverride;
+                          triangle.body.collisionAcceleration;
+      } else if (triangle.body.overrideSpeed) {
+        marble.velocity = triangle.body.speedOverride;
       } else {
         marble.velocity += normal * (-sepVel * (restitution + 1)) *
-                           triangle.body->collisionAcceleration;
+                           triangle.body.collisionAcceleration;
       }
 
       marble.rotationalVelocity = marble.velocity;
 
-      vec3 axis = triangle.body->pivotAxis;
-      vec3 point = triangle.body->pivotPoint;
+      vec3 axis = triangle.body.pivotAxis;
+      vec3 point = triangle.body.pivotPoint;
       float t =
           (closestPoint.x + closestPoint.y + closestPoint.z - axis.dot(point)) /
           axis.sqrLentgh();
       vec3 pointOnPivotAxis = point + t * axis;
 
-      triangle.body->rotationalVelocity = computeDoorRotation(
-          triangle, -normal, sepVel, closestPoint.distance(pointOnPivotAxis));
+      triangle.body.rotationalVelocity = computeDoorRotation(
+          triangle, sepVel, closestPoint.distance(pointOnPivotAxis));
     }
   }
 
@@ -259,7 +258,7 @@ bool Physics::processStaticCollisions(
     DynamicBody &marble) {
   bool collision_happened = false;
 
-  for (const auto &triangle : triangles) {
+  for (const auto triangle : triangles) {
     auto maybe_coll = intersectsTriangle(triangle, marble.collider);
 
     if (!maybe_coll.has_value())
@@ -278,15 +277,15 @@ bool Physics::processStaticCollisions(
 
     if (sepVel < 0) {
       // Apply impulse instantly
-      if (triangle->body->overrideImpulse) {
-        marble.velocity = triangle->body->impulseOverride *
+      if (triangle->body.overrideImpulse) {
+        marble.velocity = triangle->body.impulseOverride *
                           marble.velocity.length() *
-                          triangle->body->collisionAcceleration;
-      } else if (triangle->body->overrideSpeed) {
-        marble.velocity = triangle->body->speedOverride;
+                          triangle->body.collisionAcceleration;
+      } else if (triangle->body.overrideSpeed) {
+        marble.velocity = triangle->body.speedOverride;
       } else {
         marble.velocity += normal * (-sepVel * (restitution + 1)) *
-                           triangle->body->collisionAcceleration;
+                           triangle->body.collisionAcceleration;
       }
 
       marble.rotationalVelocity = marble.velocity;

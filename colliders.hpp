@@ -38,15 +38,14 @@ concept HasRotation = requires(T t) {
 // For (mostly) static objects
 template <HasRotation T>
 struct TriangleCollider : Collider {
-  TriangleCollider(vec3 &normal, vec3 &a, vec3 &b, vec3 &c,
-                   const shared_ptr<T> &body, GLuint vertexBuffer,
-                   GLuint indexBuffer, GLuint vertexArray)
+  TriangleCollider(vec3 &normal, vec3 &a, vec3 &b, vec3 &c, T &body,
+                   GLuint vertexBuffer, GLuint indexBuffer, GLuint vertexArray)
       : initNormal(normal), normal(normal), a(a), b(b), c(c), body(body),
         vertexBuffer(vertexBuffer), indexBuffer(indexBuffer),
         vertexArray(vertexArray) {}
 
   void updateNormal() {
-    normal = quat::RotateVector(body->rotation, initNormal);
+    normal = quat::RotateVector(body.rotation, initNormal);
     normal.normalize();
   }
 
@@ -55,7 +54,7 @@ struct TriangleCollider : Collider {
   vec3 c;
   vec3 normal;
   vec3 initNormal;
-  const shared_ptr<T> body;
+  T &body;
   const GLuint vertexBuffer;
   const GLuint indexBuffer;
   const GLuint vertexArray;

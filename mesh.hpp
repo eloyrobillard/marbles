@@ -39,12 +39,9 @@ public:
   [[nodiscard]] GLuint GetVertexArray() const { return vertexArray; }
 
   [[nodiscard]] vector<TriangleCollider<PivotBody>>
-  generateTriangleCollidersFromMesh(const shared_ptr<PivotBody> &body) const {
+  generateTriangleCollidersFromMesh(PivotBody &body) const {
     vector<TriangleCollider<PivotBody>> triangles;
     triangles.reserve(idx_triplets.size());
-
-    const mat4 worldTransform = body->getWorldTransform();
-    const mat4 rot = mat4::CreateFromQuaternion(body->rotation);
 
     for (const auto &[i0, i1, i2] : idx_triplets) {
       auto a = vert_coord[i0];
@@ -72,15 +69,13 @@ public:
     return triangles;
   }
 
-  template <class T>
-    requires std::derived_from<T, Body>
-  vector<TriangleCollider<T>>
-  generateTriangleCollidersFromMesh(const shared_ptr<T> &body) const {
+  template <HasRotation T>
+  vector<TriangleCollider<T>> generateTriangleCollidersFromMesh(T &body) const {
     vector<TriangleCollider<T>> triangles;
     triangles.reserve(idx_triplets.size());
 
-    const mat4 worldTransform = body->getWorldTransform();
-    const mat4 rot = mat4::CreateFromQuaternion(body->rotation);
+    const mat4 worldTransform = body.getWorldTransform();
+    const mat4 rot = mat4::CreateFromQuaternion(body.rotation);
 
     for (const auto &[i0, i1, i2] : idx_triplets) {
       auto a = vec3(vec4(vert_coord[i0], 1.0f) * worldTransform);
