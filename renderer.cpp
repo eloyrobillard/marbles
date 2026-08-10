@@ -14,7 +14,7 @@ TTF_Font *TTF_GetFont(const char *fontName, float ptsize,
 }
 
 // SOURCE: https://lackeyccg.com/glfont.c
-void SDL_GL_Enter2DMode() {
+void GL_Enter2DMode() {
   glDisable(GL_DEPTH_TEST);
 
   /* This allows alpha blending of 2D textures with the scene */
@@ -22,7 +22,7 @@ void SDL_GL_Enter2DMode() {
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
-void SDL_GL_Leave2DMode() {
+void GL_Leave2DMode() {
   glEnable(GL_DEPTH_TEST);
 
   /* This allows alpha blending of 2D textures with the scene */
@@ -289,10 +289,10 @@ void Renderer::Init(const shared_ptr<const Entities> &entities) {
   SDL_DestroySurface(victorySurface);
 
   // Draw loading screen
-  SDL_GL_Enter2DMode();
+  GL_Enter2DMode();
   float textColor[3] = {1.0f, 1.0f, 1.0f};
   drawToHUD(quadVAO, mLoadingTexture, mScreenTexture, textColor);
-  SDL_GL_Leave2DMode();
+  GL_Leave2DMode();
 
   // Font size for marble coordinates HUD
   TTF_SetFontSize(mFont, 30);
@@ -868,7 +868,7 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
 }
 
 void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
-                      const ICamera *camera) {
+                      ICamera &camera) {
   setView(camera);
 
   glEnable(GL_DEPTH_TEST);
@@ -897,7 +897,7 @@ void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
             far);
 
   // finally, draw HUD elements
-  SDL_GL_Enter2DMode();
+  GL_Enter2DMode();
   {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -969,7 +969,7 @@ void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
     mPostShader.SetActive();
     drawQuad(mPostShader, quadVAO, mScreenTexture);
   }
-  SDL_GL_Leave2DMode();
+  GL_Leave2DMode();
 
   SDL_GL_SwapWindow(mWindow);
 }
@@ -990,9 +990,9 @@ void Renderer::drawQuad(Shader &shader, GLuint VAO, GLuint texture) {
   glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 }
 
-void Renderer::setView(const ICamera *camera) {
+void Renderer::setView(ICamera &camera) {
   mView =
-      mat4::CreateLookAt(camera->GetPosition(), camera->GetTarget(), vec3::up);
+      mat4::CreateLookAt(camera.GetPosition(), camera.GetTarget(), vec3::up);
 }
 
 void Renderer::setProjection() {

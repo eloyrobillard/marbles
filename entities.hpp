@@ -160,7 +160,7 @@ public:
   void RegisterStaticEntities(const vector<StaticEntityData> &data);
 
   [[nodiscard]]
-  vec3 ProvideCameraFollow() const {
+  const vec3 &ProvideCameraFollow() const {
     return mAveragePos;
   }
 
