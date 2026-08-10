@@ -942,6 +942,8 @@ void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
                                    mScreenWidth - coordinatesSurface->w - 10,
                                    10, SDL_FLIP_VERTICAL);
 
+    SDL_DestroySurface(coordinatesSurface);
+
     drawToHUD(quadVAO, texture, mScreenTexture, textColor);
     // Prevent textures from flooding GPU mem
     glDeleteTextures(1, &texture);
