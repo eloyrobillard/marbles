@@ -154,7 +154,8 @@ public:
     mVelocity += accel * dt;
     mActualPosition += mVelocity * dt;
 
-    mActualTarget = Maths::lerp(target, target + targetForward * 2.0f, dt);
+    // mActualTarget = Maths::lerp(target, target + targetForward, dt);
+    mActualTarget = target;
   }
 
   void SnapToTarget(const vec3 &target) {
