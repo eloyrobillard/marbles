@@ -10,12 +10,12 @@ using Maths::quat;
 using Maths::vec3;
 using Maths::vec4;
 
-inline stack<GLuint> gRenderAsCollided;
-inline stack<GLuint> gShowRaycastHit;
-inline stack<pair<GLuint, mat4>> gRenderDoorAsCollided;
+inline vector<GLuint> gRenderAsCollided;
+inline vector<GLuint> gShowRaycastHit;
+inline vector<pair<GLuint, mat4>> gRenderDoorAsCollided;
 
 inline vector<GLuint> gShowWireframe;
-inline stack<GLuint> gShowRaycastWireframe;
+inline vector<GLuint> gShowRaycastWireframe;
 inline vector<pair<GLuint, mat4>> gShowDoorWireframe;
 
 struct DynamicEntityData {

@@ -142,10 +142,12 @@ void Entities::Update(float time, float deltaTime) {
         float minZ = std::min(ref.a.z, std::min(ref.b.z, ref.c.z)) - bias;
         float maxZ = std::max(ref.a.z, std::max(ref.b.z, ref.c.z)) + bias;
 
+#ifdef _DEBUG
         if (!(maxX < min_x || minX > max_x || maxY < min_y || minY > max_y ||
               maxZ < min_z || minZ > max_z)) {
-          showDoorWireframe.emplace_back(ref.vertexArray, model);
+          gShowDoorWireframe.emplace_back(ref.vertexArray, model);
         }
+#endif
       }
     }
 
@@ -191,13 +193,10 @@ void Entities::Update(float time, float deltaTime) {
 
 #ifdef _DEBUG
     // Set vertices to be shown as wireframe
-    vector<GLuint> showWireframe;
     std::ranges::transform(
-        staticsPartition, std::back_inserter(showWireframe),
+        staticsPartition, std::back_inserter(gShowWireframe),
         [](const TriangleCollider<StaticBody> *s) { return s->vertexArray; });
-    gShowWireframe = showWireframe;
 
-    gShowDoorWireframe = showDoorWireframe;
 #endif
 
     // Adjust position (again)

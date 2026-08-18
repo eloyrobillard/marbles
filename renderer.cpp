@@ -700,38 +700,36 @@ void Renderer::drawCollisionDebug(const mat4 &viewProj) {
   mCollisionShader.SetMatrixUniform("uModel", mat4::identity());
   mCollisionShader.SetVec3Uniform("tint", vec3(1.f, 0.6f, 0.f));
 
-  while (!gRenderAsCollided.empty()) {
-    Shader::SetVerticesActive(gRenderAsCollided.top());
+  for (const auto &e : gRenderAsCollided) {
+    Shader::SetVerticesActive(e);
 
     // Draw triangles
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
-
-    gRenderAsCollided.pop();
   }
 
-  while (!gRenderDoorAsCollided.empty()) {
-    auto [va, model] = gRenderDoorAsCollided.top();
+  gRenderAsCollided.clear();
 
+  for (const auto &[va, model] : gRenderDoorAsCollided) {
     mCollisionShader.SetMatrixUniform("uModel", model);
 
     Shader::SetVerticesActive(va);
 
     // Draw triangles
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
-
-    gRenderDoorAsCollided.pop();
   }
+
+  gRenderDoorAsCollided.clear();
 
   mCollisionShader.SetVec3Uniform("tint", vec3(0.f, 0.f, 1.f));
   mCollisionShader.SetMatrixUniform("uModel", mat4::identity());
 
-  while (!gShowRaycastHit.empty()) {
-    Shader::SetVerticesActive(gShowRaycastHit.top());
+  for (const auto &e : gShowRaycastHit) {
+    Shader::SetVerticesActive(e);
 
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
-
-    gShowRaycastHit.pop();
   }
+
+  gShowRaycastHit.clear();
 
   glEnable(GL_DEPTH_TEST);
 
@@ -754,6 +752,8 @@ void Renderer::drawCollisionDebug(const mat4 &viewProj) {
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
   }
 
+  gShowWireframe.clear();
+
   for (const auto &[va, model] : gShowDoorWireframe) {
     Shader::SetVerticesActive(va);
 
@@ -762,16 +762,18 @@ void Renderer::drawCollisionDebug(const mat4 &viewProj) {
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
   }
 
+  gShowDoorWireframe.clear();
+
   mWireframeShader.SetVec3Uniform("tint", {0.f, 0.f, 1.f});
   mWireframeShader.SetMatrixUniform("uModel", mat4::identity());
 
-  while (!gShowRaycastWireframe.empty()) {
-    Shader::SetVerticesActive(gShowRaycastWireframe.top());
+  for (const auto &e : gShowRaycastWireframe) {
+    Shader::SetVerticesActive(e);
 
     glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, nullptr);
-
-    gShowRaycastWireframe.pop();
   }
+
+  gShowRaycastWireframe.clear();
 
   // Turn off wireframe mode
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
