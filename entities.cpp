@@ -31,8 +31,7 @@ Entities::Entities() {
   // NOTE: StaticEntities メモリの再割り当てを未然に防ぐ
   // でないとそれぞれのbody のアドレスが途中で代わり
   // triangles との整合性を失う
-  mStaticEntities.reserve(staticEntityData.size());
-  RegisterStaticEntities(staticEntityData);
+  mStaticEntities = RegisterStaticEntities(staticEntityData);
 
   vector<DoorData> doors = {{.meshPath = "assets/doorR.gpmesh",
                              .pivotAxis = -vec3::up,
@@ -48,10 +47,7 @@ Entities::Entities() {
   // NOTE: Doors メモリの再割り当てを未然に防ぐ
   // でないとそれぞれのbody のアドレスが途中で代わり
   // triangles との整合性を失う
-  mDoors.reserve(doors.size());
-  for (auto &door : doors) {
-    RegisterDoor(door);
-  }
+  mDoors = RegisterDoors(doors);
 
   RegisterMarble({"assets/sphere.gpmesh"});
 
@@ -124,8 +120,8 @@ void Entities::Update(float time, float deltaTime) {
 
     // NOTE: コライダーの位置・回転をフレームごとに更新
     // 法線ベクトルは前のフレームに更新した
-    vector<pair<GLuint, mat4>> showDoorWireframe{};
-    for (auto &door : mDoors) {
+    for (u32 i = 0; i < numDoors; i++) {
+      auto &door = mDoors[i];
       for (auto &t : door.colliders) {
         mat4 model = t.body.getWorldTransform();
         auto &[ref, _] = doors.emplace_back(t, model);
@@ -165,7 +161,8 @@ void Entities::Update(float time, float deltaTime) {
 
     marble.rotation = quat::Concatenate(marble.rotation, deltaRot).Normalized();
 
-    for (auto &door : mDoors) {
+    for (u32 i = 0; i < numDoors; i++) {
+      auto &door = mDoors[i];
       // 抵抗力を適用
       door.body.rotationalVelocity =
           quat::Lerp(door.body.rotationalVelocity,
@@ -232,26 +229,40 @@ void Entities::RegisterMarble(const DynamicEntityData &entityData) {
   }
 }
 
-void Entities::RegisterDoor(const DoorData &doorData) {
-  auto maybe = Mesh::Load(doorData.meshPath);
+PivotEntity *Entities::RegisterDoors(const vector<DoorData> &doorData) {
+  PivotEntity *first = nullptr;
 
-  if (maybe.has_value()) {
-    auto [mesh, body] = maybe.value();
-    body.scale *= doorData.scale;
+  for (const auto &datum : doorData) {
+    auto maybe = Mesh::Load(datum.meshPath);
 
-    PivotBody b(body, doorData.pivotAxis, doorData.pivotPoint,
-                doorData.angleBoundsDeg, doorData.resistance);
+    if (maybe.has_value()) {
+      auto [mesh, body] = maybe.value();
+      body.scale *= datum.scale;
 
-    auto &ref = mDoors.emplace_back(mesh, b);
+      PivotBody b(body, datum.pivotAxis, datum.pivotPoint, datum.angleBoundsDeg,
+                  datum.resistance);
 
-    // NOTE: StaticEntity 内の body への参照を渡す
-    // これで shared_ptr を使わなくてもいい
-    auto triangles = mesh.generateTriangleCollidersFromMesh(ref.body);
-    ref.colliders = std::move(triangles);
+      auto *ref = gEntitiesArena.New<PivotEntity>(std::move(mesh), b);
+
+      if (!first)
+        first = ref;
+
+      numDoors++;
+
+      // NOTE: PivotEntity 内の body への参照を渡す
+      // これで shared_ptr を使わなくてもいい
+      auto triangles = mesh.generateTriangleCollidersFromMesh(ref->body);
+      ref->colliders = std::move(triangles);
+    }
   }
+
+  return first;
 }
 
-void Entities::RegisterStaticEntities(const vector<StaticEntityData> &data) {
+StaticEntity *
+Entities::RegisterStaticEntities(const vector<StaticEntityData> &data) {
+  StaticEntity *first = nullptr;
+
   for (const auto &datum : data) {
     auto maybe = Mesh::Load(datum.meshPath);
 
@@ -266,16 +277,23 @@ void Entities::RegisterStaticEntities(const vector<StaticEntityData> &data) {
                    vec3(vec4(datum.impulseOverride, 1.0f) * rot),
                    vec3(vec4(datum.speedOverride, 1.0f) * rot));
 
-      auto &ref = mStaticEntities.emplace_back(mesh, b);
+      auto *ref = gEntitiesArena.New<StaticEntity>(std::move(mesh), b);
+
+      if (!first)
+        first = ref;
+
+      numStaticEntities++;
 
       // NOTE: StaticEntity 内の body への参照を渡す
       // これで shared_ptr を使わなくてもいい
-      auto triangles = mesh.generateTriangleCollidersFromMesh(ref.body);
-      ref.colliders = std::move(triangles);
+      auto triangles = mesh.generateTriangleCollidersFromMesh(ref->body);
+      ref->colliders = std::move(triangles);
 
-      gSpacePartition.populate(ref.colliders);
+      gSpacePartition.populate(ref->colliders);
     }
   }
+
+  return first;
 }
 
 void Entities::RegisterInputForward(float dt, const vec3 &cameraForward) {

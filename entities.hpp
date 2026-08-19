@@ -1,6 +1,7 @@
 #ifndef ENTITIES_H
 #define ENTITIES_H
 
+#include "allocators.h"
 #include "colliders.hpp"
 #include "maths.hpp"
 #include "mesh.hpp"
@@ -55,9 +56,9 @@ struct Entity {
 };
 
 struct PivotEntity : Entity {
-  PivotEntity(const Mesh &mesh, PivotBody body) : Entity(mesh), body(body) {}
-  PivotEntity(const Mesh &mesh, PivotBody &body,
-              vector<TriangleCollider<PivotBody>> &colliders)
+  PivotEntity(const Mesh &&mesh, PivotBody body) : Entity(mesh), body(body) {}
+  PivotEntity(const Mesh &&mesh, PivotBody body,
+              vector<TriangleCollider<PivotBody>> &&colliders)
       : Entity(mesh), body(body), colliders(std::move(colliders)) {}
 
   [[nodiscard]] string GetCoordinatesString() const {
@@ -76,8 +77,8 @@ struct PivotEntity : Entity {
 };
 
 struct StaticEntity : Entity {
-  StaticEntity(const Mesh &mesh, StaticBody body) : Entity(mesh), body(body) {}
-  StaticEntity(const Mesh &mesh, StaticBody &body,
+  StaticEntity(Mesh &&mesh, StaticBody body) : Entity(mesh), body(body) {}
+  StaticEntity(Mesh &&mesh, StaticBody body,
                vector<TriangleCollider<StaticBody>> &&colliders)
       : Entity(mesh), body(body), colliders(colliders) {}
 
@@ -98,8 +99,8 @@ struct StaticEntity : Entity {
 
 struct DynamicEntity : public Entity {
   vec3 mPrevPos;
-  SphereCollider collider;
   DynamicBody body;
+  SphereCollider collider;
 
   [[nodiscard]] string GetCoordinatesString() const {
     return std::format("x: {:8.3f}\ny: {:8.3f}\nz: {:8.3f}", body.position.x,
@@ -117,10 +118,10 @@ struct DynamicEntity : public Entity {
 
 enum class SplitMode { Split, Joining, Joined };
 
+inline FrameArena gEntitiesArena(1024 * 1024);
+
 // Container for all game objects
 class Entities {
-  vector<StaticEntity> mStaticEntities;
-  vector<PivotEntity> mDoors;
 
   Mesh mMarbleMesh;
   vector<DynamicBody> mMarbles;
@@ -151,13 +152,18 @@ class Entities {
   }
 
 public:
+  StaticEntity *mStaticEntities;
+  PivotEntity *mDoors;
+  u32 numStaticEntities = 0;
+  u32 numDoors = 0;
+
   Entities();
   void Update(float time, float deltaTime);
   // Register the mesh/textures for the marbles.
   // Only one mesh/textures set can be active at a time.
   void RegisterMarble(const DynamicEntityData &entity);
-  void RegisterDoor(const DoorData &doorData);
-  void RegisterStaticEntities(const vector<StaticEntityData> &data);
+  PivotEntity *RegisterDoors(const vector<DoorData> &doorData);
+  StaticEntity *RegisterStaticEntities(const vector<StaticEntityData> &data);
 
   [[nodiscard]]
   const vec3 &ProvideCameraFollow() const {
@@ -169,9 +175,9 @@ public:
     return mAverageVel;
   }
 
-  [[nodiscard]] const vector<PivotEntity> &GetDoors() const { return mDoors; }
+  [[nodiscard]] const auto &GetDoors() const { return mDoors; }
 
-  [[nodiscard]] const vector<StaticEntity> &GetStaticEntities() const {
+  [[nodiscard]] const auto &GetStaticEntities() const {
     return mStaticEntities;
   }
 

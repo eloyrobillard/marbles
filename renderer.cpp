@@ -78,7 +78,7 @@ GLuint Renderer::LoadGLTexture(SDL_Surface *surface, int dst_x, int dst_y,
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
                image->pixels);
 
-  SDL_DestroySurface(image); /* No longer needed */
+  SDL_DestroySurface(image);
 
   return texture;
 }
@@ -785,8 +785,9 @@ void Renderer::drawSceneWithShader(const Shader &shader,
   shader.SetActive();
   shader.SetMatrixUniform("uViewProj", viewProj);
 
-  for (const auto &e : entities->GetStaticEntities()) {
-    drawStaticEntity(shader, e);
+  const auto &staticEntities = entities->GetStaticEntities();
+  for (u32 i = 0; i < entities->numStaticEntities; i++) {
+    drawStaticEntity(shader, staticEntities[i]);
   }
 
   const auto &[marbleMesh, marbles, numMarbles] =
@@ -804,12 +805,12 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
   mDepthMapShader.SetActive();
   mDepthMapShader.SetMatrixUniform("uViewProj", viewProj);
 
-  for (const auto &e : entities->GetStaticEntities()) {
-    drawStaticEntity(mDepthMapShader, e);
+  for (u32 i = 0; i < entities->numStaticEntities; i++) {
+    drawStaticEntity(mDepthMapShader, entities->mStaticEntities[i]);
   }
 
-  for (const auto &e : entities->GetDoors()) {
-    drawPivotEntity(mDrawStaticShader, e, viewProj);
+  for (u32 i = 0; i < entities->numDoors; i++) {
+    drawPivotEntity(mDrawStaticShader, entities->mDoors[i], viewProj);
   }
 
   glBindFramebuffer(GL_FRAMEBUFFER, mContourFBO);
@@ -837,19 +838,19 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
   glActiveTexture(GL_TEXTURE3);
   glBindTexture(GL_TEXTURE_2D, mMarbleShadowMapTexture);
 
-  for (const auto &e : entities->GetStaticEntities()) {
-    drawStaticEntity(mDrawStaticShader, e);
+  for (u32 i = 0; i < entities->numStaticEntities; i++) {
+    drawStaticEntity(mDrawStaticShader, entities->mStaticEntities[i]);
   }
 
-  for (const auto &e : entities->GetDoors()) {
-    drawPivotEntity(mDrawStaticShader, e, viewProj);
+  for (u32 i = 0; i < entities->numDoors; i++) {
+    drawPivotEntity(mDrawStaticShader, entities->mDoors[i], viewProj);
   }
 
 #ifdef _DEBUG
   drawCollisionDebug(viewProj);
 
-  for (const auto &e : entities->GetDoors()) {
-    drawDoorNormal(e, viewProj);
+  for (u32 i = 0; i < entities->numDoors; i++) {
+    drawDoorNormal(entities->mDoors[i], viewProj);
   }
 #endif
 
