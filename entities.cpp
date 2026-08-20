@@ -150,9 +150,13 @@ void Entities::Update(float time, float deltaTime) {
     Physics::processDoorCollisions(doors, marble);
 
     // マーブルの回転処理
-    marble.rotationAxis = marble.rotationalVelocity.cross(vec3::up);
 
-    // 回転軸をマーブルと逆に回転させると、Concat後正しい向きになる
+    // NOTE:
+    // 重要！回転軸を正規化しないとその長さ如何で回転速度が変わってしまう！
+    marble.rotationAxis =
+        marble.rotationalVelocity.cross(vec3::up).normalized();
+
+    // HACK: 回転軸をマーブルと逆に回転させると、Concat後正しい向きになる
     marble.rotationAxis = quat::RotateVector(quat::Conjugate(marble.rotation),
                                              marble.rotationAxis);
 
