@@ -9,12 +9,14 @@
 #include <algorithm>
 #include <bitset>
 #include <cassert>
+#include <chrono>
 #include <cmath>
 #include <concepts>
 #include <cstdio>
 #include <cstdlib>
 #include <deque>
 #include <fstream>
+#include <functional>
 #include <glew.h>
 #include <iomanip>
 #include <iostream>
@@ -31,6 +33,7 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
+#include <utility>
 #include <variant>
 #include <vector>
 
