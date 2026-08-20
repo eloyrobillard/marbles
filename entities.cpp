@@ -126,10 +126,13 @@ void Entities::Update(float time, float deltaTime) {
         mat4 model = t.body.getWorldTransform();
         auto &[ref, _] = doors.emplace_back(t, model);
 
+        // NOTE: ドアのコピーを正しい位置に移動・回転させる
+        // 元のドアを移動させて、ここで回転だけ適用するという手もあるかも
         ref.a = vec3(vec4(ref.a, 1.0f) * model);
         ref.b = vec3(vec4(ref.b, 1.0f) * model);
         ref.c = vec3(vec4(ref.c, 1.0f) * model);
 
+#ifdef _DEBUG
         float bias = 0.5f;
         float minX = std::min(ref.a.x, std::min(ref.b.x, ref.c.x)) - bias;
         float maxX = std::max(ref.a.x, std::max(ref.b.x, ref.c.x)) + bias;
@@ -138,7 +141,6 @@ void Entities::Update(float time, float deltaTime) {
         float minZ = std::min(ref.a.z, std::min(ref.b.z, ref.c.z)) - bias;
         float maxZ = std::max(ref.a.z, std::max(ref.b.z, ref.c.z)) + bias;
 
-#ifdef _DEBUG
         if (!(maxX < min_x || minX > max_x || maxY < min_y || minY > max_y ||
               maxZ < min_z || minZ > max_z)) {
           gShowDoorWireframe.emplace_back(ref.vertexArray, model);
