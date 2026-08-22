@@ -1,5 +1,6 @@
 #include "game.hpp"
 
+#include <random>
 #include <windows.h>
 
 namespace Tmpl8 {
@@ -14,10 +15,24 @@ unsigned char *audioBuf;
 uint audioLength;
 SDL_AudioStream *audioStream;
 
+constexpr int numTracks = 5;
+
+const char *tracks[numTracks] = {"assets/Feint - for the fire instrumental.wav",
+                                 "assets/Dualistic - Station Six.wav",
+                                 "assets/Maduk_Levitate.wav",
+                                 "assets/Monrroe_A_Place_To_Belong.wav",
+                                 "assets/Rameses B - Once Upon A Time.wav"};
+
 void Game::Init() {
+  std::random_device seed_gen;
+  std::uint32_t seed = seed_gen();
+  std::mt19937 engine(seed);
+  std::uniform_int_distribution<int> dist(0, numTracks - 1);
+
+  int trackIdx = dist(engine);
+
   // Launch background music
-  if (!SDL_LoadWAV("assets/Dualistic - Station Six.wav", &audioSpec, &audioBuf,
-                   &audioLength)) {
+  if (!SDL_LoadWAV(tracks[trackIdx], &audioSpec, &audioBuf, &audioLength)) {
     SDL_Log("Error: Failed to load audio: %s", SDL_GetError());
   }
 
@@ -78,6 +93,10 @@ void Game::Tick(float deltaTime) {
 
   if (GetKeyReleased(SDL_SCANCODE_C)) {
     toggleDebugCamera();
+  }
+
+  if (GetKeyReleased(SDL_SCANCODE_M)) {
+    debugHeap = true;
   }
 #endif
 
