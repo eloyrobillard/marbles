@@ -26,6 +26,7 @@
 #include <optional>
 #include <ostream>
 #include <print>
+#include <random>
 #include <ranges>
 #include <rapidjson/document.h>
 #include <sstream>

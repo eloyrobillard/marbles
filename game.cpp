@@ -1,6 +1,6 @@
 #include "game.hpp"
+#include "audio.hpp"
 
-#include <random>
 #include <windows.h>
 
 namespace Tmpl8 {
@@ -10,46 +10,8 @@ vector<vector<vec3>> checkpoints{
     {{9.826279640197754f, -0.024219999089837074f, 0.1309020072221756f}},
     {{53.835f, -.45012f, -3.5062f}}};
 
-SDL_AudioSpec audioSpec;
-unsigned char *audioBuf;
-uint audioLength;
-SDL_AudioStream *audioStream;
-
-constexpr int numTracks = 5;
-
-const char *tracks[numTracks] = {"assets/Feint - for the fire instrumental.wav",
-                                 "assets/Dualistic - Station Six.wav",
-                                 "assets/Maduk_Levitate.wav",
-                                 "assets/Monrroe_A_Place_To_Belong.wav",
-                                 "assets/Rameses B - Once Upon A Time.wav"};
-
 void Game::Init() {
-  std::random_device seed_gen;
-  std::uint32_t seed = seed_gen();
-  std::mt19937 engine(seed);
-  std::uniform_int_distribution<int> dist(0, numTracks - 1);
-
-  int trackIdx = dist(engine);
-
-  // Launch background music
-  if (!SDL_LoadWAV(tracks[trackIdx], &audioSpec, &audioBuf, &audioLength)) {
-    SDL_Log("Error: Failed to load audio: %s", SDL_GetError());
-  }
-
-  audioStream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK,
-                                          &audioSpec, nullptr, nullptr);
-
-  if (!audioStream) {
-    SDL_Log("Error: Failed to open an audio device stream: %s", SDL_GetError());
-  }
-
-  SDL_SetAudioStreamGain(audioStream, 0.15f);
-
-  if (!SDL_PutAudioStreamData(audioStream, audioBuf, audioLength)) {
-    SDL_Log("Error: Failed to put audio in the stream: %s", SDL_GetError());
-  }
-
-  SDL_ResumeAudioStreamDevice(audioStream);
+  AudioMachine::Init();
 }
 
 void Game::Tick(float deltaTime) {
@@ -135,8 +97,7 @@ void Game::Tick(float deltaTime) {
 }
 
 void Game::Shutdown() {
-  SDL_free(audioBuf);
-  SDL_DestroyAudioStream(audioStream);
+  AudioMachine::CleanUp();
 }
 
 void Game::ToCheckpoint() {
