@@ -59,7 +59,7 @@ void Entities::Update(float time, float deltaTime) {
   computeAveragePosition();
   computeAverageVelocity();
 
-  for (int i = 0; i < getNumMarbles(); i++) {
+  for (int i = 0; i < mCurNumMarbles; i++) {
     DynamicBody &marble = mMarbles[i];
 
     // Prepare new body position to test collisions at
@@ -361,6 +361,7 @@ void Entities::split() {
 
 void Entities::join() {
   mSplitMode = SplitMode::Joined;
+  mCurNumMarbles = 1;
 
   mMarbles[0].position = mAveragePos;
   mMarbles[0].velocity = mAverageVel;
@@ -380,7 +381,7 @@ void Entities::ToggleSplitMode() {
 void Entities::computeAveragePosition() {
   vec3 res = vec3(0.0f);
 
-  int numMarbles = getNumMarbles();
+  int numMarbles = mCurNumMarbles;
 
   for (int i = 0; i < numMarbles; i++) {
     res += mMarbles[i].position;
@@ -392,7 +393,7 @@ void Entities::computeAveragePosition() {
 void Entities::computeAveragePositionWithoutOutliers() {
   vec3 res = vec3(0.0f);
 
-  int numMarbles = getNumMarbles();
+  int numMarbles = mCurNumMarbles;
 
   for (int i = 0; i < numMarbles; i++) {
     float distSqrd = mAveragePos.distanceSqrd(mMarbles[i].position);
@@ -408,7 +409,7 @@ void Entities::computeAveragePositionWithoutOutliers() {
 void Entities::computePositionalVariance() {
   mPositionalVariance = 0;
 
-  int numMarbles = getNumMarbles();
+  int numMarbles = mCurNumMarbles;
 
   for (int i = 0; i < numMarbles; i++) {
     mPositionalVariance += mAveragePos.distanceSqrd(mMarbles[i].position);
@@ -420,7 +421,7 @@ void Entities::computePositionalVariance() {
 void Entities::computeAverageVelocity() {
   vec3 res = vec3(0.0f);
 
-  int numMarbles = getNumMarbles();
+  int numMarbles = mCurNumMarbles;
 
   for (int i = 0; i < numMarbles; i++) {
     res += mMarbles[i].velocity;

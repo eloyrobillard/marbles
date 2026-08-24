@@ -129,7 +129,7 @@ class Entities {
   vector<vec3> mPreviousPositions;
 
   int mMaxNumMarbles = 8;
-  int mCurNumMarbles = 8;
+  int mCurNumMarbles = 1;
   float mMaxMarbleScale;
   float mMinMarbleScaleFactor = 0.6f;
   vec3 mAveragePos;
@@ -146,10 +146,6 @@ class Entities {
   void computeAveragePositionWithoutOutliers();
   void computePositionalVariance();
   void computeAverageVelocity();
-
-  [[nodiscard]] int getNumMarbles() const {
-    return mSplitMode == SplitMode::Joined ? 1 : mCurNumMarbles;
-  }
 
 public:
   StaticEntity *mStaticEntities;
@@ -183,7 +179,7 @@ public:
 
   [[nodiscard]] tuple<Mesh, vector<DynamicBody>, int>
   GetDynamicEntities() const {
-    return {mMarbleMesh, mMarbles, getNumMarbles()};
+    return {mMarbleMesh, mMarbles, mCurNumMarbles};
   }
 
   string GetDynamicEntitiesCoordinates() {

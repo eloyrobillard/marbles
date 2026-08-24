@@ -21,6 +21,9 @@
 #include <io.h>
 #include <iostream>
 #include <windows.h>
+#define _CRTDBG_MAP_ALLOC // to get more details
+#include <crtdbg.h>       //for malloc and free
+#include <stdlib.h>
 
 namespace Tmpl8 {
 
@@ -142,7 +145,16 @@ int main(int argc, char **argv) {
   // NOTE: Only make game start once things are ready be rendered.
   t.reset();
 
+  _CrtMemState sOld;
+  _CrtMemState sNew;
+  _CrtMemState sDiff;
   while (!exitapp) {
+    if (game->debugHeap && !game->gotOldHeap) {
+      // take a snapshot
+      // _CrtMemCheckpoint(&sOld);
+      game->gotOldHeap = true;
+    }
+
     // calculate frame time and pass it to game->Tick
     float elapsedTime = t.elapsed();
     t.reset();
@@ -162,7 +174,7 @@ int main(int argc, char **argv) {
 
     game->Tick(elapsedTime);
 
-    renderer->Draw3D(elapsedTime, entities, game->camera);
+    renderer->Draw3D(elapsedTime, entities, *game->camera);
 
     game->SetupKeys();
 
@@ -196,6 +208,24 @@ int main(int argc, char **argv) {
       default:
         break;
       }
+    }
+
+    if (game->debugHeap && game->gotOldHeap) {
+      // _CrtMemCheckpoint(&sNew);                    // take a snapshot
+      // if (_CrtMemDifference(&sDiff, &sOld, &sNew)) // if there is a
+      // difference
+      // {
+      // OutputDebugString("-----------_CrtMemDumpStatistics ---------");
+      // _CrtMemDumpStatistics(&sDiff);
+      // OutputDebugString("-----------_CrtMemDumpAllObjectsSince ---------");
+      // _CrtMemDumpAllObjectsSince(&sOld);
+      // OutputDebugString("-----------_CrtDumpMemoryLeaks ---------");
+      // _CrtDumpMemoryLeaks();
+      // }
+
+      // Turn off heap debug to prevent freeze from too much console output
+      game->debugHeap = false;
+      game->gotOldHeap = false;
     }
   }
 
