@@ -140,6 +140,8 @@ int processDynamicCollisions(vector<DynamicBody> &des, int idx, int numMarbles,
 bool segmentAndTriangleIntersect(const vec3 &P, const vec3 &Q, const vec3 &A,
                                  const vec3 &B, const vec3 &C);
 
+bool Raycast(const Maths::Ray &ray, f32 startDistance, f32 maxDistance);
+
 inline float physicsTicksPerSecond = 240.0;
 inline float physicsDeltaTime = 1.0f / physicsTicksPerSecond;
 

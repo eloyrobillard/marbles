@@ -22,6 +22,11 @@ struct AudioMachine {
   static u32 oneOffLength;
   static SDL_AudioStream *oneOffStream;
 
+  static SDL_AudioSpec rollSpec;
+  static u8 *rollBuffer;
+  static u32 rollLength;
+  static SDL_AudioStream *rollStream;
+
   static void Init() {
     // Load collision sound
     if (!SDL_LoadWAV("assets/freesound_community-marble-drop-93150.wav",
@@ -33,6 +38,20 @@ struct AudioMachine {
                                              &oneOffSpec, nullptr, nullptr);
 
     if (!oneOffStream) {
+      SDL_Log("Error: Failed to open an audio device stream: %s",
+              SDL_GetError());
+    }
+
+    // Load roll sound
+    if (!SDL_LoadWAV("assets/rolling-cart.wav", &rollSpec, &rollBuffer,
+                     &rollLength)) {
+      SDL_Log("Error: Failed to load audio: %s", SDL_GetError());
+    }
+
+    rollStream = SDL_OpenAudioDeviceStream(SDL_AUDIO_DEVICE_DEFAULT_PLAYBACK,
+                                           &rollSpec, nullptr, nullptr);
+
+    if (!rollStream) {
       SDL_Log("Error: Failed to open an audio device stream: %s",
               SDL_GetError());
     }
@@ -80,11 +99,29 @@ struct AudioMachine {
     SDL_ResumeAudioStreamDevice(oneOffStream);
   }
 
+  static void OnGround(f32 onryo) {
+    auto queuedBytes = SDL_GetAudioStreamQueued(rollStream);
+
+    if (queuedBytes < rollLength && onryo >= 1.f) {
+      SDL_SetAudioStreamGain(rollStream, log10f(onryo));
+
+      if (!SDL_PutAudioStreamData(rollStream, rollBuffer, rollLength)) {
+        SDL_Log("Error: Failed to put audio in the stream: %s", SDL_GetError());
+      }
+
+      SDL_ResumeAudioStreamDevice(rollStream);
+    }
+  }
+
+  static void LeftGround() { SDL_ClearAudioStream(rollStream); }
+
   static void CleanUp() {
     SDL_free(backtrackBuffer);
     SDL_free(oneOffBuffer);
+    SDL_free(rollBuffer);
     SDL_DestroyAudioStream(backtrackStream);
     SDL_DestroyAudioStream(oneOffStream);
+    SDL_DestroyAudioStream(rollStream);
   }
 };
 

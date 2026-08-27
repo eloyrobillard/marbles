@@ -1,4 +1,5 @@
 #include "physics.hpp"
+#include "audio.hpp"
 #include "entities.hpp"
 #include "pch.h"
 
@@ -178,6 +179,8 @@ int Physics::processDynamicCollisions(vector<DynamicBody> &des, int idx,
     const float sepVel = eThis.velocity.dot(normal);
     const float sepVelOther = eOther.velocity.dot(-normal);
 
+    AudioMachine::PlayCollision(sepVel);
+
     // Apply impulse instantly
     if (sepVel < 0 || sepVelOther < 0) {
       eThis.velocity += normal * (-sepVel * (restitution + 1));
@@ -275,6 +278,8 @@ bool Physics::processStaticCollisions(
     const auto &[normal, closestPoint] = maybe_coll.value();
     const float sepVel = marble.velocity.dot(normal);
 
+    AudioMachine::PlayCollision(sepVel);
+
     if (sepVel < 0) {
       // Apply impulse instantly
       if (triangle->body.overrideImpulse) {
@@ -293,4 +298,29 @@ bool Physics::processStaticCollisions(
   }
 
   return collision_happened;
+}
+
+bool Physics::Raycast(const Maths::Ray &ray, f32 startDistance,
+                      f32 maxDistance) {
+  vec3 unitToTarget = ray.direction.normalized();
+
+  float t = startDistance;
+  while (t <= maxDistance) {
+    const vec3 P = ray.origin + t * unitToTarget;
+    const vec3 Q = ray.origin + (t + 0.25f) * unitToTarget;
+
+    const auto staticColliders =
+        gSpacePartition.getPartition(Q.x, Q.x, Q.y, Q.y, Q.z, Q.z);
+
+    for (const auto &triangle : staticColliders) {
+      if (Physics::segmentAndTriangleIntersect(Q, P, triangle->a, triangle->b,
+                                               triangle->c)) {
+        return true;
+      }
+    }
+
+    t += 0.25f;
+  }
+
+  return false;
 }

@@ -306,6 +306,11 @@ vec3 operator*(const vec3 &v, const f32 &s);
 vec4 operator*(const f32 &s, const vec4 &v);
 vec4 operator*(const vec4 &v, const f32 &s);
 
+struct Ray {
+  vec3 origin;
+  vec3 direction;
+};
+
 class uint4 {
 public:
   union {

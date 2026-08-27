@@ -1,4 +1,5 @@
 #include "entities.hpp"
+#include "audio.hpp"
 #include "physics.hpp"
 
 StaticEntityData GenerateEntityData(string meshPath,
@@ -115,6 +116,16 @@ void Entities::Update(float time, float deltaTime) {
         gSpacePartition.getPartition(min_x, max_x, min_y, max_y, min_z, max_z);
 
     Physics::processStaticCollisions(staticsPartition, marble);
+
+    Maths::Ray ray{marble.collider.position, -vec3::up};
+
+    bool onGround = Physics::Raycast(ray, 0.f, marble.collider.radius + 0.1f);
+
+    if (onGround) {
+      AudioMachine::OnGround(marble.velocity.length() / 4.f);
+    } else {
+      AudioMachine::LeftGround();
+    }
 
     vector<pair<TriangleCollider<PivotBody>, mat4>> doors{};
 
