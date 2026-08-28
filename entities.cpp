@@ -122,7 +122,7 @@ void Entities::Update(float time, float deltaTime) {
     bool onGround = Physics::Raycast(ray, 0.f, marble.collider.radius + 0.1f);
 
     if (onGround) {
-      AudioMachine::OnGround(marble.velocity.length() / 4.f);
+      AudioMachine::OnGround(marble.velocity.length());
     } else {
       AudioMachine::LeftGround();
     }

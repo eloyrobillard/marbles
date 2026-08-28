@@ -29,8 +29,8 @@ struct AudioMachine {
 
   static void Init() {
     // Load collision sound
-    if (!SDL_LoadWAV("assets/freesound_community-marble-drop-93150.wav",
-                     &oneOffSpec, &oneOffBuffer, &oneOffLength)) {
+    if (!SDL_LoadWAV("assets/marble-drop.wav", &oneOffSpec, &oneOffBuffer,
+                     &oneOffLength)) {
       SDL_Log("Error: Failed to load audio: %s", SDL_GetError());
     }
 
@@ -87,10 +87,14 @@ struct AudioMachine {
     SDL_ResumeAudioStreamDevice(backtrackStream);
   }
 
+  // FIX:
   static void PlayCollision(f32 collisionStrength) {
-    SDL_PauseAudioStreamDevice(oneOffStream);
+    if (collisionStrength < 1.f)
+      return;
 
-    SDL_SetAudioStreamGain(oneOffStream, collisionStrength);
+    SDL_ClearAudioStream(oneOffStream);
+
+    SDL_SetAudioStreamGain(oneOffStream, log10f(collisionStrength));
 
     if (!SDL_PutAudioStreamData(oneOffStream, oneOffBuffer, oneOffLength)) {
       SDL_Log("Error: Failed to put audio in the stream: %s", SDL_GetError());

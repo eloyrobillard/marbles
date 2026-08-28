@@ -179,10 +179,11 @@ int Physics::processDynamicCollisions(vector<DynamicBody> &des, int idx,
     const float sepVel = eThis.velocity.dot(normal);
     const float sepVelOther = eOther.velocity.dot(-normal);
 
-    AudioMachine::PlayCollision(sepVel);
 
     // Apply impulse instantly
     if (sepVel < 0 || sepVelOther < 0) {
+      AudioMachine::PlayCollision(-sepVel);
+
       eThis.velocity += normal * (-sepVel * (restitution + 1));
       eOther.velocity += -normal * (-sepVelOther * (restitution + 1));
       eThis.rotationalVelocity = eThis.velocity;
@@ -278,9 +279,9 @@ bool Physics::processStaticCollisions(
     const auto &[normal, closestPoint] = maybe_coll.value();
     const float sepVel = marble.velocity.dot(normal);
 
-    AudioMachine::PlayCollision(sepVel);
-
     if (sepVel < 0) {
+      AudioMachine::PlayCollision(-sepVel);
+
       // Apply impulse instantly
       if (triangle->body.overrideImpulse) {
         marble.velocity = triangle->body.impulseOverride *
