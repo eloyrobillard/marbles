@@ -24,7 +24,8 @@ Entities::Entities() {
       {"assets/plane5.gpmesh"},
       {"assets/plane7.gpmesh"},
       {"assets/twist3.gpmesh"},
-      {.meshPath = "assets/canon1.gpmesh",
+      {"assets/canonOutside.gpmesh"},
+      {.meshPath = "assets/canonInside.gpmesh",
        .overrideSpeed = true,
        .speedOverride = vec3::up * 50.0f},
   };
