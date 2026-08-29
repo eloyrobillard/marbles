@@ -325,17 +325,22 @@ void Renderer::Init(const shared_ptr<const Entities> &entities) {
 #ifdef _DEBUG
 void Renderer::drawMarbleGizmoLikeThing(const DynamicBody &marble,
                                         const mat4 &viewProj) {
-  GLuint VAs[3];
-  GLuint VBs[3];
-  glGenVertexArrays(3, VAs);
-  glGenBuffers(3, VBs);
+  constexpr i32 numAxes = 3;
+  GLuint VAs[numAxes];
+  GLuint VBs[numAxes];
+  glGenVertexArrays(numAxes, VAs);
+  glGenBuffers(numAxes, VBs);
 
-  float verts[3][6] = {
+  float verts[numAxes][6] = {
+      // velocity
       {marble.position.x, marble.position.y, marble.position.z,
        marble.velocity.x, marble.velocity.y, marble.velocity.z},
+      // axis of rotation
       {marble.position.x, marble.position.y, marble.position.z,
        marble.rotationAxis.x, marble.rotationAxis.y, marble.rotationAxis.z},
-      {marble.position.x, marble.position.y, marble.position.z, 0.f, 0.f, 1.f}};
+      // up
+      {marble.position.x, marble.position.y, marble.position.z, 0.f, 0.f, 1.f},
+  };
 
   for (auto &vert : verts) {
     vert[3] += vert[0];
@@ -343,7 +348,7 @@ void Renderer::drawMarbleGizmoLikeThing(const DynamicBody &marble,
     vert[5] += vert[2];
   }
 
-  float color[3][3] = {{1.f, 0.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 0.f, 1.f}};
+  float color[numAxes][3] = {{1.f, 0.f, 0.f}, {0.f, 1.f, 0.f}, {0.f, 0.f, 1.f}};
 
   mWireframeShader.SetActive();
   mWireframeShader.SetMatrixUniform("uModel", mat4::identity());
@@ -351,7 +356,7 @@ void Renderer::drawMarbleGizmoLikeThing(const DynamicBody &marble,
 
   glDisable(GL_DEPTH_TEST);
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < numAxes; i++) {
     glBindVertexArray(VAs[i]);
     glBindBuffer(GL_ARRAY_BUFFER, VBs[i]);
     glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), &verts[i], GL_STATIC_DRAW);
@@ -365,8 +370,8 @@ void Renderer::drawMarbleGizmoLikeThing(const DynamicBody &marble,
 
   glEnable(GL_DEPTH_TEST);
 
-  glDeleteVertexArrays(3, VAs);
-  glDeleteBuffers(3, VBs);
+  glDeleteVertexArrays(numAxes, VAs);
+  glDeleteBuffers(numAxes, VBs);
 }
 #endif
 
