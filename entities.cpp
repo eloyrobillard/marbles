@@ -115,11 +115,7 @@ void Entities::Update(float time, float deltaTime) {
     auto staticsPartition =
         gSpacePartition.getPartition(min_x, max_x, min_y, max_y, min_z, max_z);
 
-    Physics::processStaticCollisions(staticsPartition, marble);
-
-    Maths::Ray ray{marble.collider.position, -vec3::up};
-
-    bool onGround = Physics::Raycast(ray, 0.f, marble.collider.radius + 0.1f);
+    bool onGround = Physics::processStaticCollisions(staticsPartition, marble);
 
     if (onGround) {
       AudioMachine::OnGround(marble.velocity.length());

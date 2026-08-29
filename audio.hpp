@@ -87,7 +87,6 @@ struct AudioMachine {
     SDL_ResumeAudioStreamDevice(backtrackStream);
   }
 
-  // FIX:
   static void PlayCollision(f32 collisionStrength) {
     if (collisionStrength < 1.f)
       return;
@@ -106,8 +105,8 @@ struct AudioMachine {
   static void OnGround(f32 onryo) {
     auto queuedBytes = SDL_GetAudioStreamQueued(rollStream);
 
-    if (queuedBytes < rollLength && onryo >= 1.f) {
-      SDL_SetAudioStreamGain(rollStream, log10f(onryo));
+    if (queuedBytes < rollLength) {
+      SDL_SetAudioStreamGain(rollStream, log10f(onryo + 1.f));
 
       if (!SDL_PutAudioStreamData(rollStream, rollBuffer, rollLength)) {
         SDL_Log("Error: Failed to put audio in the stream: %s", SDL_GetError());

@@ -179,7 +179,6 @@ int Physics::processDynamicCollisions(vector<DynamicBody> &des, int idx,
     const float sepVel = eThis.velocity.dot(normal);
     const float sepVelOther = eOther.velocity.dot(-normal);
 
-
     // Apply impulse instantly
     if (sepVel < 0 || sepVelOther < 0) {
       AudioMachine::PlayCollision(-sepVel);
@@ -260,15 +259,21 @@ bool Physics::processDoorCollisions(
 bool Physics::processStaticCollisions(
     const vector<TriangleCollider<StaticBody> *> &triangles,
     DynamicBody &marble) {
-  bool collision_happened = false;
+  bool onGround = false;
 
   for (const auto triangle : triangles) {
     auto maybe_coll = intersectsTriangle(triangle, marble.collider);
 
-    if (!maybe_coll.has_value())
-      continue;
+    if (!maybe_coll.has_value()) {
+      auto maybe_onground = intersectsTriangle(
+          triangle,
+          SphereCollider(marble.position, marble.collider.radius * 4.f));
 
-    collision_happened = true;
+      if (maybe_onground.has_value())
+        onGround = true;
+
+      continue;
+    }
 
 #ifdef _DEBUG
     gRenderAsCollided.push_back(triangle->vertexArray);
@@ -298,7 +303,7 @@ bool Physics::processStaticCollisions(
     }
   }
 
-  return collision_happened;
+  return onGround;
 }
 
 bool Physics::Raycast(const Maths::Ray &ray, f32 startDistance,
