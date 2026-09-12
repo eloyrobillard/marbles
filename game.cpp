@@ -32,7 +32,6 @@ void Game::Tick(float deltaTime) {
     entities->RegisterInputLeft(deltaTime, camera->GetRight());
   }
 
-#ifdef _DEBUG
   if (GetKey(SDL_SCANCODE_UP)) {
     entities->RegisterInputForward(deltaTime, camera->GetForward());
   }
@@ -41,6 +40,7 @@ void Game::Tick(float deltaTime) {
     entities->RegisterInputBackward(deltaTime, camera->GetForward());
   }
 
+#ifdef _DEBUG
   if (GetKeyReleased(SDL_SCANCODE_P) || GetKeyReleased(SDL_SCANCODE_0)) {
     dtMultiplier = dtMultiplier == 0.f ? 1.f : 0.f;
   }
