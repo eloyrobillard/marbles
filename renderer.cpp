@@ -226,8 +226,8 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
   mDrawStaticShader.SetActive();
   mDrawStaticShader.SetIntUniform("meshTex", 0);
   mDrawStaticShader.SetIntUniform("depthTex", 1);
-  mDrawStaticShader.SetIntUniform("shadowMapStatic", 2);
-  mDrawStaticShader.SetIntUniform("shadowMapMarble", 3);
+  mDrawStaticShader.SetIntUniform("shadowMapFar", 2);
+  mDrawStaticShader.SetIntUniform("shadowMapNear", 3);
 
   mTextShader.SetActive();
   mTextShader.SetIntUniform("text", 0);
@@ -312,7 +312,6 @@ void Renderer::Init(const shared_ptr<const Entities> &entities) {
   glBindFramebuffer(GL_FRAMEBUFFER, mStaticShadowMapFBO);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
   glViewport(0, 0, 8 * mScreenWidth, 8 * mScreenHeight);
   drawSceneWithShader(mShadowMapShader, entities, mLightViewProjStatic);
   glViewport(0, 0, mScreenWidth, mScreenHeight);
@@ -592,10 +591,10 @@ void Renderer::configureMultiSampledAntiAliasing() {
     cout << "ERROR::FRAMEBUFFER:: Framebuffer is not complete!" << endl;
 }
 
-void configureShadowMap(GLuint &fbo, GLuint &texture, int width, int height) {
+void configureShadowMap(GLuint *fbo, GLuint &texture, int width, int height) {
   // configure shadow map framebuffer
-  glGenFramebuffers(1, &fbo);
-  glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+  glGenFramebuffers(1, fbo);
+  glBindFramebuffer(GL_FRAMEBUFFER, *fbo);
 
   // create texture for shadow map
   glGenTextures(1, &texture);
@@ -642,10 +641,10 @@ bool Renderer::setupFramebuffers() {
       createColorAttachmentTexture(mScreenWidth, mScreenHeight, GL_RGB);
 
   // configure shadow map for static elements
-  configureShadowMap(mStaticShadowMapFBO, mStaticShadowMapTexture,
+  configureShadowMap(&mStaticShadowMapFBO, mStaticShadowMapTexture,
                      8 * mScreenWidth, 8 * mScreenHeight);
   // configure shadow map for marble area
-  configureShadowMap(mMarbleShadowMapFBO, mMarbleShadowMapTexture, mScreenWidth,
+  configureShadowMap(&mNearShadowMapFBO, mNearShadowMapTexture, mScreenWidth,
                      mScreenHeight);
 
   configureMultiSampledAntiAliasing();
@@ -804,7 +803,8 @@ void Renderer::drawSceneWithShader(const Shader &shader,
 
 void Renderer::drawScene(const shared_ptr<const Entities> &entities,
                          const mat4 &viewProj, const vec3 &lightDir,
-                         const mat4 &lightViewProj, float near, float far) {
+                         const mat4 &lightViewProj, float near, float far,
+                         ICamera &camera) {
   glBindFramebuffer(GL_FRAMEBUFFER, mDepthMapFBO);
   glClear(GL_DEPTH_BUFFER_BIT);
   mDepthMapShader.SetActive();
@@ -829,6 +829,7 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   mDrawStaticShader.SetActive();
   mDrawStaticShader.SetVec3Uniform("lightDir", lightDir);
+  mDrawStaticShader.SetVec3Uniform("cameraPos", camera.GetPosition());
   mDrawStaticShader.SetFloatUniform("near", near);
   mDrawStaticShader.SetFloatUniform("far", far);
   mDrawStaticShader.SetMatrixUniform("viewProj", viewProj);
@@ -841,7 +842,7 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
   glActiveTexture(GL_TEXTURE2);
   glBindTexture(GL_TEXTURE_2D, mStaticShadowMapTexture);
   glActiveTexture(GL_TEXTURE3);
-  glBindTexture(GL_TEXTURE_2D, mMarbleShadowMapTexture);
+  glBindTexture(GL_TEXTURE_2D, mNearShadowMapTexture);
 
   for (u32 i = 0; i < entities->numStaticEntities; i++) {
     drawStaticEntity(mDrawStaticShader, entities->mStaticEntities[i]);
@@ -884,17 +885,16 @@ void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
   mat4 viewProj = mView * mProjection;
 
   // Setup light for shadow mapping
-  float near = 1.0f, far = 100.0f;
+  float near = 1.f, far = 20.f;
   const vec3 &lightTarget = entities->ProvideCameraFollow();
-  const vec3 lightPos{lightTarget.x, lightTarget.y - 3.0f,
-                      lightTarget.z + 2.0f};
+  const vec3 lightPos{lightTarget.x, lightTarget.y - 3.f, lightTarget.z + 2.f};
   const mat4 lightView = mat4::CreateLookAt(lightPos, lightTarget, vec3::up);
-  const mat4 lightProj = mat4::CreateOrtho(5, 5 * mAspectRatio, near, far);
+  const mat4 lightProj = mat4::CreateOrtho(13, 13 * mAspectRatio, near, far);
   const mat4 lightViewProj = lightView * lightProj;
 
-  // Prepare shadow map
+  // Prepare nearest shadow map
   glEnable(GL_POLYGON_OFFSET_FILL);
-  glBindFramebuffer(GL_FRAMEBUFFER, mMarbleShadowMapFBO);
+  glBindFramebuffer(GL_FRAMEBUFFER, mNearShadowMapFBO);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   drawSceneWithShader(mShadowMapShader, entities, lightViewProj);
@@ -902,7 +902,7 @@ void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
 
   // Draw the final scene, with shadow + bloom + contours
   drawScene(entities, viewProj, lightTarget - lightPos, lightViewProj, near,
-            far);
+            far, camera);
 
   // finally, draw HUD elements
   GL_Enter2DMode();
@@ -914,6 +914,7 @@ void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
     blitFramebuffer(mMSAAFBO, mIntermediateFBO, mScreenWidth, mScreenHeight,
                     mScreenWidth, mScreenHeight);
 
+    // Create bloom effect
     mGaussianBlurShader.SetActive();
     bool horizontal = true;
     glBindFramebuffer(GL_FRAMEBUFFER, mPingpongFBO[horizontal]);

@@ -33,8 +33,8 @@ class Renderer {
 
   vector<GLuint> hudTextures;
 
-  GLuint mMarbleShadowMapFBO;
-  GLuint mMarbleShadowMapTexture;
+  GLuint mNearShadowMapFBO;
+  GLuint mNearShadowMapTexture;
   GLuint mStaticShadowMapFBO;
   GLuint mStaticShadowMapTexture;
   // View-projection for light used in shadow map for static elements
@@ -91,7 +91,7 @@ class Renderer {
                            const mat4 &viewProj);
   void drawScene(const shared_ptr<const Entities> &entities,
                  const mat4 &viewProj, const vec3 &lightDir,
-                 const mat4 &lightViewProj, float near, float far);
+                 const mat4 &lightViewProj, float near, float far, ICamera &camera);
   static void setupQuadVAO(GLuint &VAO, GLuint &VBO);
   static Shader GetShader(const char *vert, const char *frag);
   static void drawQuad(Shader &shader, GLuint VAO, GLuint texture);
