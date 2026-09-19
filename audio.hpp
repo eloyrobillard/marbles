@@ -105,9 +105,9 @@ struct AudioMachine {
   static void OnGround(f32 onryo) {
     auto queuedBytes = SDL_GetAudioStreamQueued(rollStream);
 
-    if (queuedBytes < rollLength) {
-      SDL_SetAudioStreamFrequencyRatio(rollStream, log10f(onryo + 1.f));
+    SDL_SetAudioStreamFrequencyRatio(rollStream, log10f(onryo + 1.f));
 
+    if (queuedBytes < rollLength) {
       if (!SDL_PutAudioStreamData(rollStream, rollBuffer, rollLength)) {
         SDL_Log("Error: Failed to put audio in the stream: %s", SDL_GetError());
       }
