@@ -1,4 +1,5 @@
 #include "renderer.hpp"
+#include "entities.hpp"
 #include "pch.h"
 
 TTF_Font *TTF_GetFont(const char *fontName, float ptsize,
@@ -722,7 +723,8 @@ bool Renderer::setupFramebuffers() {
   glBindFramebuffer(GL_FRAMEBUFFER, mReflectionsFBO);
   mReflectionsColorBuffer = createColorAttachmentTexture(
       mScreenWidth, mScreenHeight, GL_RGBA, GL_FLOAT);
-  mReflectionsDepthBuffer = createDepthRenderBuffer(mScreenWidth, mScreenHeight);
+  mReflectionsDepthBuffer =
+      createDepthRenderBuffer(mScreenWidth, mScreenHeight);
 
   // depth map
   glGenFramebuffers(1, &mDepthMapFBO);

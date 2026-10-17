@@ -209,10 +209,9 @@ void Entities::Update(float time, float deltaTime) {
 
 #ifdef _DEBUG
     // Set vertices to be shown as wireframe
-    std::ranges::transform(
-        staticsPartition, std::back_inserter(gShowWireframe),
-        [](const TriangleCollider<StaticBody> *s) { return s->vertexArray; });
-
+    for (const auto s : staticsPartition) {
+      gShowWireframe.emplace(s->vertexArray);
+    }
 #endif
 
     // Adjust position (again)

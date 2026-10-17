@@ -34,6 +34,7 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -69,6 +70,7 @@ using std::string;
 using std::thread;
 using std::tuple;
 using std::unique_ptr;
+using std::unordered_set;
 using std::vector;
 
 #define ALL(v) (v).begin(), (v).end()

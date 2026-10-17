@@ -89,13 +89,13 @@ public:
 
       for (const auto &triangle : staticColliders) {
 #ifdef _DEBUG
-        gShowRaycastWireframe.push_back(triangle->vertexArray);
+        gShowRaycastWireframe.emplace(triangle->vertexArray);
 #endif
 
         if (Physics::segmentAndTriangleIntersect(P, Q, triangle->a, triangle->b,
                                                  triangle->c)) {
 #ifdef _DEBUG
-          gShowRaycastHit.push_back(triangle->vertexArray);
+          gShowRaycastHit.emplace(triangle->vertexArray);
 #endif
           return true;
         }

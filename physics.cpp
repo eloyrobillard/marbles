@@ -276,7 +276,7 @@ bool Physics::processStaticCollisions(
     }
 
 #ifdef _DEBUG
-    gRenderAsCollided.push_back(triangle->vertexArray);
+    gRenderAsCollided.emplace(triangle->vertexArray);
 #endif
 
     // SOURCE: "Game Physics Engine Development" by Ian Millington
