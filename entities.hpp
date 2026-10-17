@@ -130,10 +130,10 @@ class Entities {
 
   int mMaxNumMarbles = 8;
   int mCurNumMarbles = 1;
-  float mMaxMarbleScale;
+  float mMaxMarbleScale = 1.f;
   float mMinMarbleScaleFactor = 0.6f;
   vec3 mAveragePos;
-  float mPositionalVariance = 0.0f;
+  float mPositionalVariance = 0.f;
   vec3 mAverageVel;
   SplitMode mSplitMode = SplitMode::Joined;
 

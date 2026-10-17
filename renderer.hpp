@@ -20,52 +20,52 @@ class Renderer {
   mat4 mView;
   mat4 mProjection;
   float fovy = 30.0f / 180.0f * PI;
-  int mScreenWidth;
-  int mScreenHeight;
+  int mScreenWidth = 0;
+  int mScreenHeight = 0;
   // Screen height divided by screen width
-  float mAspectRatio;
-  bool mIsFullscreen;
-  TTF_Font *mFont;
+  float mAspectRatio = 0.f;
+  bool mIsFullscreen = false;
+  TTF_Font *mFont = nullptr;
 
-  SDL_Window *mWindow;
+  SDL_Window *mWindow = nullptr;
   SDL_GLContext mGlContext;
   shared_ptr<FollowCamera> mCamera;
 
   vector<GLuint> hudTextures;
 
-  GLuint mNearShadowMapFBO;
-  GLuint mNearShadowMapTexture;
-  GLuint mStaticShadowMapFBO;
-  GLuint mStaticShadowMapTexture;
+  GLuint mNearShadowMapFBO = 0;
+  GLuint mNearShadowMapTexture = 0;
+  GLuint mStaticShadowMapFBO = 0;
+  GLuint mStaticShadowMapTexture = 0;
   // View-projection for light used in shadow map for static elements
   mat4 mLightViewProjStatic;
-  GLuint mDepthMapFBO;
-  GLuint mContourFBO;
-  GLuint mContourColorBuffer;
-  GLuint mMSAAFBO;
-  GLuint mMSAARenderBuffer;
-  GLuint mIntermediateFBO;
-  GLuint mScreenTexture;
-  GLuint mBrightnessTexture;
+  GLuint mDepthMapFBO = 0;
+  GLuint mContourFBO = 0;
+  GLuint mContourColorBuffer = 0;
+  GLuint mMSAAFBO = 0;
+  GLuint mMSAARenderBuffer = 0;
+  GLuint mIntermediateFBO = 0;
+  GLuint mScreenTexture = 0;
+  GLuint mBrightnessTexture = 0;
   // Used for Gaussian blur (bloom effect)
-  GLuint mPingpongFBO[2];
-  GLuint mPingpongColorBuffer[2];
-  GLuint quadVAO, quadVBO;
+  GLuint mPingpongFBO[2] = {0, 0};
+  GLuint mPingpongColorBuffer[2] = {0, 0};
+  GLuint quadVAO = 0, quadVBO = 0;
 
   // Used for reflections/SSAO
-  GLuint mPositionFBO;
-  GLuint mPositionTexture;
-  GLuint mPositionDepthBuffer;
-  GLuint mNormalMapFBO;
-  GLuint mNormalMapTexture;
-  GLuint mNormalMapDepthBuffer;
-  GLuint mReflectionsFBO;
-  GLuint mReflectionsColorBuffer;
-  GLuint mReflectionsDepthBuffer;
+  GLuint mPositionFBO = 0;
+  GLuint mPositionTexture = 0;
+  GLuint mPositionDepthBuffer = 0;
+  GLuint mNormalMapFBO = 0;
+  GLuint mNormalMapTexture = 0;
+  GLuint mNormalMapDepthBuffer = 0;
+  GLuint mReflectionsFBO = 0;
+  GLuint mReflectionsColorBuffer = 0;
+  GLuint mReflectionsDepthBuffer = 0;
 
-  GLuint mLoadingTexture;
-  GLuint mVictoryTexture;
-  GLuint mDepthMapTexture;
+  GLuint mLoadingTexture = 0;
+  GLuint mVictoryTexture = 0;
+  GLuint mDepthMapTexture = 0;
 
   Shader mReflectionsShader;
   Shader mPositionShader;
@@ -100,10 +100,10 @@ class Renderer {
   GLuint LoadGLTexture(SDL_Surface *surface, int dst_x, int dst_y,
                        SDL_FlipMode flip_mode) const;
 
-  void drawSceneWithShader(const Shader &shader,
+  static void drawSceneWithShader(const Shader &shader,
                            const shared_ptr<const Entities> &entities,
                            const mat4 &viewProj);
-  void drawSceneWithShaderAndTex(const Shader &shader, GLuint tex0,
+  static void drawSceneWithShaderAndTex(const Shader &shader, GLuint tex0,
                                  const shared_ptr<const Entities> &entities,
                                  const mat4 &viewProj);
   void drawScene(const shared_ptr<const Entities> &entities,
@@ -114,7 +114,7 @@ class Renderer {
                        mat4 &viewProj);
   static void setupQuadVAO(GLuint &VAO, GLuint &VBO);
   static Shader GetShader(const char *vert, const char *frag);
-  static void drawQuad(Shader &shader, GLuint VAO, GLuint texture);
+  static void drawQuad(GLuint VAO, GLuint texture);
   static void blitFramebuffer(GLuint readFB, GLuint drawFB, int readW,
                               int readH, int drawW, int drawH);
   static void drawStaticEntity(const Shader &shader,
@@ -125,12 +125,11 @@ class Renderer {
   void drawMarbleGizmoLikeThing(const DynamicBody &marble,
                                 const mat4 &viewProj);
   void drawDoorNormal(const PivotEntity &entity, const mat4 &viewProj);
-  void drawPivotEntity(const Shader &shader, const PivotEntity &entity,
-                       const mat4 &viewProj);
-  void drawDynamicEntity(const Shader &shader, const DynamicBody &body,
-                         const Mesh &mesh);
-  void drawDynamicEntityPlain(const Shader &shader, const DynamicBody &body,
-                              const Mesh &mesh);
+  static void drawPivotEntity(const Shader &shader, const PivotEntity &entity);
+  static void drawDynamicEntity(const Shader &shader, const DynamicBody &body,
+                                const Mesh &mesh);
+  static void drawDynamicEntityPlain(const Shader &shader,
+                                     const DynamicBody &body, const Mesh &mesh);
 
   static GLuint createDepthTexture(int width, int height);
   static GLuint createDepthStencilRenderBuffer(int width, int height);

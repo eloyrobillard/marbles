@@ -6,9 +6,9 @@
 using Maths::mat4;
 // NOTE: From "Game Programming in C++" by Sanjay Madhav
 class Shader {
-  GLuint program;
-  GLuint vertexShader;
-  GLuint fragmentShader;
+  GLuint program = 0;
+  GLuint vertexShader = 0;
+  GLuint fragmentShader = 0;
 
 public:
   static optional<Shader> Load(const std::string &vertName,

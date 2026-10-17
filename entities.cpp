@@ -56,7 +56,7 @@ Entities::Entities() {
   mAveragePos = mMarbles[0].position;
 }
 
-void Entities::Update(float time, float deltaTime) {
+void Entities::Update([[maybe_unused]] float time, float deltaTime) {
   // MUST BE DONE HERE
   computeAveragePosition();
   computeAverageVelocity();

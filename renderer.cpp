@@ -91,9 +91,10 @@ static string gp_cType[] = {"Error",       "Deprecated",  "Undefined",
 static string gp_cSource[] = {"OpenGL",    "OS",          "GLSL Compiler",
                               "3rd Party", "Application", "Other"};
 
-void debugCallback(uint32_t uiSource, uint32_t uiType, uint32_t uiID,
-                   uint32_t uiSeverity, int32_t iLength, const char *p_cMessage,
-                   void *p_UserParam) {
+void debugCallback(uint32_t uiSource, uint32_t uiType,
+                   [[maybe_unused]] u32 uiID, uint32_t uiSeverity,
+                   int32_t iLength, const char *p_cMessage,
+                   [[maybe_unused]] void *p_UserParam) {
   // Get the severity
   uint32_t uiSevID = 3;
   switch (uiSeverity) {
@@ -429,8 +430,8 @@ void Renderer::drawDynamicEntity(const Shader &shader, const DynamicBody &body,
   }
 }
 
-void Renderer::drawPivotEntity(const Shader &shader, const PivotEntity &entity,
-                               const mat4 &viewProj) {
+void Renderer::drawPivotEntity(const Shader &shader,
+                               const PivotEntity &entity) {
   const auto &[worldTransform, maybeTex, vertexArray, numIndices] =
       entity.GetDrawData();
   shader.SetMatrixUniform("uWorldTransform", worldTransform);
@@ -936,14 +937,14 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
   }
 
   for (u32 i = 0; i < entities->numDoors; i++) {
-    drawPivotEntity(mDrawStaticShader, entities->mDoors[i], viewProj);
+    drawPivotEntity(mDrawStaticShader, entities->mDoors[i]);
   }
 
   glBindFramebuffer(GL_FRAMEBUFFER, mContourFBO);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   mContourShader.SetActive();
-  drawQuad(mContourShader, quadVAO, mDepthMapTexture);
+  drawQuad(quadVAO, mDepthMapTexture);
 
   glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFBO);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -970,7 +971,7 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
   }
 
   for (u32 i = 0; i < entities->numDoors; i++) {
-    drawPivotEntity(mDrawStaticShader, entities->mDoors[i], viewProj);
+    drawPivotEntity(mDrawStaticShader, entities->mDoors[i]);
   }
 
 #ifdef _DEBUG
@@ -1032,8 +1033,8 @@ void Renderer::drawReflections(const shared_ptr<Entities> &entities,
   // TODO: ぼやけ効果を適用
 }
 
-void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
-                      ICamera &camera) {
+void Renderer::Draw3D([[maybe_unused]] float deltaTime,
+                      const shared_ptr<Entities> &entities, ICamera &camera) {
   setView(camera);
 
   glEnable(GL_DEPTH_TEST);
@@ -1074,11 +1075,11 @@ void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
     mGaussianBlurShader.SetActive();
     bool horizontal = true;
     glBindFramebuffer(GL_FRAMEBUFFER, mPingpongFBO[horizontal]);
-    drawQuad(mGaussianBlurShader, quadVAO, mBrightnessTexture);
+    drawQuad(quadVAO, mBrightnessTexture);
     for (int i = 0; i < 10; i++) {
       mGaussianBlurShader.SetBoolUniform("horizontal", horizontal);
       glBindFramebuffer(GL_FRAMEBUFFER, mPingpongFBO[!horizontal]);
-      drawQuad(mGaussianBlurShader, quadVAO, mPingpongColorBuffer[horizontal]);
+      drawQuad(quadVAO, mPingpongColorBuffer[horizontal]);
       horizontal = !horizontal;
     }
 
@@ -1087,7 +1088,7 @@ void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
     mApplyBloomShader.SetFloatUniform("exposure", 3.0);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, mPingpongColorBuffer[!horizontal]);
-    drawQuad(mApplyBloomShader, quadVAO, mScreenTexture);
+    drawQuad(quadVAO, mScreenTexture);
   }
   GL_Leave2DMode();
 
@@ -1123,7 +1124,7 @@ void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
     // draw shadow map
     glViewport(0, 0, 216, static_cast<int>(216 * mAspectRatio));
     mDebugShadowMapShader.SetActive();
-    drawQuad(mDebugShadowMapShader, quadVAO, mStaticShadowMapTexture);
+    drawQuad(quadVAO, mStaticShadowMapTexture);
     glViewport(0, 0, mScreenWidth, mScreenHeight);
 #endif
 
@@ -1139,7 +1140,7 @@ void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
     glClear(GL_DEPTH_BUFFER_BIT);
     // draw the result of every other draw
     mPostShader.SetActive();
-    drawQuad(mPostShader, quadVAO, mReflectionsColorBuffer);
+    drawQuad(quadVAO, mReflectionsColorBuffer);
   }
   GL_Leave2DMode();
 
@@ -1154,7 +1155,7 @@ void Renderer::blitFramebuffer(GLuint readFB, GLuint drawFB, int readW,
                     GL_NEAREST);
 }
 
-void Renderer::drawQuad(Shader &shader, GLuint VAO, GLuint texture) {
+void Renderer::drawQuad(GLuint VAO, GLuint texture) {
   glBindVertexArray(VAO);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, texture);

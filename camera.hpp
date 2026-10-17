@@ -68,10 +68,10 @@ public:
     mMouseDeltaY = dy * Maths::DegToRad;
   }
 
-  void HandleKeyboardLeft(float dt) override {}
-  void HandleKeyboardRight(float dt) override {}
-  void HandleKeyboardUp(float dt) override {}
-  void HandleKeyboardDown(float dt) override {}
+  void HandleKeyboardLeft([[maybe_unused]] float dt) override {}
+  void HandleKeyboardRight([[maybe_unused]] float dt) override {}
+  void HandleKeyboardUp([[maybe_unused]] float dt) override {}
+  void HandleKeyboardDown([[maybe_unused]] float dt) override {}
 
   [[nodiscard]] bool raycast(const vec3 &target) const {
     // レイキャストでカメラが壁に後ろを写すのを防ぐ
@@ -108,7 +108,7 @@ public:
   }
 
   void Update(float dt, const vec3 &target,
-              const vec3 &targetForward) override {
+              [[maybe_unused]] const vec3 &targetForward) override {
     mAngleHorizontal = mAngleHorizontal + mMouseDeltaX;
 
     if (mAngleHorizontal > Maths::TAU) {
@@ -238,8 +238,8 @@ public:
   [[nodiscard]] const vec3 &GetPosition() const override { return position; }
   [[nodiscard]] const vec3 &GetTarget() const override { return target; }
 
-  void Update(float dt, const vec3 &_target,
-              const vec3 &_targetForward) override {
+  void Update([[maybe_unused]] float dt, [[maybe_unused]] const vec3 &_target,
+              [[maybe_unused]] const vec3 &_targetForward) override {
     mAngleHorizontal = mAngleHorizontal + mMouseDeltaX;
 
     if (mAngleHorizontal > Maths::TAU) {
