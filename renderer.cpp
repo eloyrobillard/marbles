@@ -1,4 +1,5 @@
 #include "renderer.hpp"
+#include "pch.h"
 
 TTF_Font *TTF_GetFont(const char *fontName, float ptsize,
                       TTF_FontStyleFlags fontStyleFlags) {
@@ -147,8 +148,8 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
   // Set OpenGL attributes
   // Use the core OpenGL profile
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-  // Specify version 4.3
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+  // Specify version 3.3
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
   // Request a color buffer with 8-bits per RGBA channel
   SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -205,6 +206,11 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
   mDepthMapShader = GetShader("shaders/depthMap.vert", "shaders/depthMap.frag");
   mDebugShadowMapShader =
       GetShader("shaders/debugShadowMap.vert", "shaders/debugShadowMap.frag");
+  mPositionShader = GetShader("shaders/position.vert", "shaders/position.frag");
+  mReflectionsShader =
+      GetShader("shaders/reflections.vert", "shaders/reflections.frag");
+  mNormalMapShader =
+      GetShader("shaders/normalMap.vert", "shaders/normalMap.frag");
   mShadowMapShader =
       GetShader("shaders/shadowMap.vert", "shaders/shadowMap.frag");
   mContourShader = GetShader("shaders/contour.vert", "shaders/contour.frag");
@@ -228,6 +234,11 @@ Renderer::Renderer(bool goFullscreen, int screenWidth, int screenHeight) {
   mDrawStaticShader.SetIntUniform("depthTex", 1);
   mDrawStaticShader.SetIntUniform("shadowMapFar", 2);
   mDrawStaticShader.SetIntUniform("shadowMapNear", 3);
+
+  mReflectionsShader.SetActive();
+  mReflectionsShader.SetIntUniform("posTex", 4);
+  mReflectionsShader.SetIntUniform("normalTex", 5);
+  mReflectionsShader.SetIntUniform("colorTex", 6);
 
   mTextShader.SetActive();
   mTextShader.SetIntUniform("text", 0);
@@ -374,8 +385,27 @@ void Renderer::drawMarbleGizmoLikeThing(const DynamicBody &marble,
 }
 #endif
 
+void Renderer::drawDynamicEntityPlain(const Shader &shader,
+                                      const DynamicBody &body,
+                                      const Mesh &mesh) {
+  mat4 model = body.getWorldTransform();
+  shader.SetMatrixUniform("uWorldTransform", model);
+
+  Shader::SetVerticesActive(mesh.GetVertexArray());
+
+  // Draw triangles
+  glDrawElements(GL_TRIANGLES, static_cast<int>(mesh.GetNumIndices()),
+                 GL_UNSIGNED_INT, nullptr);
+
+  GLenum err_code = glGetError();
+  while (GL_NO_ERROR != err_code) {
+    printf("OpenGL Error @ %s: %i", "mesh draw", err_code);
+    err_code = glGetError();
+  }
+}
+
 void Renderer::drawDynamicEntity(const Shader &shader, const DynamicBody &body,
-                                 const Mesh &mesh, const mat4 &viewProj) {
+                                 const Mesh &mesh) {
   mat4 model = body.getWorldTransform();
   shader.SetMatrixUniform("uWorldTransform", model);
 
@@ -462,6 +492,25 @@ void Renderer::drawDoorNormal(const PivotEntity &entity, const mat4 &viewProj) {
 }
 #endif
 
+void Renderer::drawStaticEntityPlain(const Shader &shader,
+                                     const StaticEntity &entity) {
+  const auto &[worldTransform, maybeTex, vertexArray, numIndices] =
+      entity.GetDrawData();
+  shader.SetMatrixUniform("uWorldTransform", worldTransform);
+
+  Shader::SetVerticesActive(vertexArray);
+
+  // Draw triangles
+  glDrawElements(GL_TRIANGLES, static_cast<int>(numIndices), GL_UNSIGNED_INT,
+                 nullptr);
+
+  GLenum err_code = glGetError();
+  while (GL_NO_ERROR != err_code) {
+    printf("OpenGL Error @ %s: %i", "mesh draw", err_code);
+    err_code = glGetError();
+  }
+}
+
 void Renderer::drawStaticEntity(const Shader &shader,
                                 const StaticEntity &entity) {
   const auto &[worldTransform, maybeTex, vertexArray, numIndices] =
@@ -546,21 +595,58 @@ void Renderer::setupQuadVAO(GLuint &VAO, GLuint &VBO) {
 }
 
 GLuint Renderer::createColorAttachmentTexture(int width, int height,
-                                              int colorFormat,
+                                              int colorFormat, int valueFormat,
                                               int colorAttachmentNumber) {
   GLuint texture;
   glGenTextures(1, &texture);
   glBindTexture(GL_TEXTURE_2D, texture);
   glTexImage2D(GL_TEXTURE_2D, 0, colorFormat, width, height, 0, GL_RGBA,
-               GL_UNSIGNED_BYTE, nullptr);
+               valueFormat, nullptr);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, colorAttachmentNumber, GL_TEXTURE_2D,
+  glFramebufferTexture(GL_FRAMEBUFFER, colorAttachmentNumber, texture, 0);
+
+  return texture;
+}
+
+GLuint Renderer::createDepthTexture(int width, int height) {
+  GLuint texture;
+  glGenTextures(1, &texture);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0,
+               GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
                          texture, 0);
 
   return texture;
+}
+
+GLuint Renderer::createDepthRenderBuffer(int width, int height) {
+  GLuint renderBuffer;
+  glGenRenderbuffers(1, &renderBuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                            GL_RENDERBUFFER, renderBuffer);
+
+  return renderBuffer;
+}
+
+GLuint Renderer::createDepthStencilRenderBuffer(int width, int height) {
+  GLuint renderBuffer;
+  glGenRenderbuffers(1, &renderBuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, width, height);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT,
+                            GL_RENDERBUFFER, renderBuffer);
+
+  return renderBuffer;
 }
 
 void Renderer::configureMultiSampledAntiAliasing() {
@@ -617,20 +703,32 @@ void configureShadowMap(GLuint *fbo, GLuint &texture, int width, int height) {
 bool Renderer::setupFramebuffers() {
   setupQuadVAO(quadVAO, quadVBO);
 
-  // depth map
-  glGenTextures(1, &mDepthMapTexture);
-  glBindTexture(GL_TEXTURE_2D, mDepthMapTexture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, mScreenWidth,
-               mScreenHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+  // positions
+  glGenFramebuffers(1, &mPositionFBO);
+  glBindFramebuffer(GL_FRAMEBUFFER, mPositionFBO);
+  mPositionTexture = createColorAttachmentTexture(mScreenWidth, mScreenHeight,
+                                                  GL_RGBA16F, GL_FLOAT);
+  mPositionDepthBuffer = createDepthRenderBuffer(mScreenWidth, mScreenHeight);
 
+  // normal map
+  glGenFramebuffers(1, &mNormalMapFBO);
+  glBindFramebuffer(GL_FRAMEBUFFER, mNormalMapFBO);
+  mNormalMapTexture = createColorAttachmentTexture(mScreenWidth, mScreenHeight,
+                                                   GL_RGBA16F, GL_FLOAT);
+  mNormalMapDepthBuffer = createDepthRenderBuffer(mScreenWidth, mScreenHeight);
+
+  // framebuffer to be used when rendering reflections
+  glGenFramebuffers(1, &mReflectionsFBO);
+  glBindFramebuffer(GL_FRAMEBUFFER, mReflectionsFBO);
+  mReflectionsColorBuffer = createColorAttachmentTexture(
+      mScreenWidth, mScreenHeight, GL_RGBA, GL_FLOAT);
+  mReflectionsDepthBuffer = createDepthRenderBuffer(mScreenWidth, mScreenHeight);
+
+  // depth map
   glGenFramebuffers(1, &mDepthMapFBO);
   glBindFramebuffer(GL_FRAMEBUFFER, mDepthMapFBO);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D,
-                         mDepthMapTexture, 0);
+
+  mDepthMapTexture = createDepthTexture(mScreenWidth, mScreenHeight);
   glDrawBuffer(GL_NONE);
   glReadBuffer(GL_NONE);
 
@@ -649,6 +747,10 @@ bool Renderer::setupFramebuffers() {
 
   configureMultiSampledAntiAliasing();
 
+  // Tell OpenGL it can use attachment 0 and 1
+  unsigned int attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+  glDrawBuffers(2, attachments);
+
   // configure second post-processing framebuffer
   glGenFramebuffers(1, &mIntermediateFBO);
   glBindFramebuffer(GL_FRAMEBUFFER, mIntermediateFBO);
@@ -656,15 +758,13 @@ bool Renderer::setupFramebuffers() {
   // create a color attachment texture for second framebuffer
   mScreenTexture =
       createColorAttachmentTexture(mScreenWidth, mScreenHeight, GL_RGB16F);
+
   // create a second color attachment, this time for the bloom effect
   // NOTE: using GL_RGB16F format to prevent clamping of values written to
   // buffer. This is to allow HDR.
-  mBrightnessTexture = createColorAttachmentTexture(
-      mScreenWidth, mScreenHeight, GL_RGB16F, GL_COLOR_ATTACHMENT1);
-
-  // Tell OpenGL to render to both of above buffers
-  unsigned int attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-  glDrawBuffers(2, attachments);
+  mBrightnessTexture =
+      createColorAttachmentTexture(mScreenWidth, mScreenHeight, GL_RGB16F,
+                                   GL_UNSIGNED_INT, GL_COLOR_ATTACHMENT1);
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     cout << "ERROR::FRAMEBUFFER:: Intermediate framebuffer is not complete "
@@ -735,8 +835,6 @@ void Renderer::drawCollisionDebug(const mat4 &viewProj) {
 
   gShowRaycastHit.clear();
 
-  glEnable(GL_DEPTH_TEST);
-
   // Visualize triangle colliders as a wireframe
   mWireframeShader.SetActive();
 
@@ -783,6 +881,27 @@ void Renderer::drawCollisionDebug(const mat4 &viewProj) {
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
+void Renderer::drawSceneWithShaderAndTex(
+    const Shader &shader, GLuint tex0,
+    const shared_ptr<const Entities> &entities, const mat4 &viewProj) {
+  shader.SetActive();
+  shader.SetMatrixUniform("uViewProj", viewProj);
+
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, tex0);
+
+  const auto &staticEntities = entities->GetStaticEntities();
+  for (u32 i = 0; i < entities->numStaticEntities; i++) {
+    drawStaticEntityPlain(shader, staticEntities[i]);
+  }
+
+  const auto &[marbleMesh, marbles, numMarbles] =
+      entities->GetDynamicEntities();
+  for (int i = 0; i < numMarbles; i++) {
+    drawDynamicEntityPlain(shader, marbles[i], marbleMesh);
+  }
+}
+
 void Renderer::drawSceneWithShader(const Shader &shader,
                                    const shared_ptr<const Entities> &entities,
                                    const mat4 &viewProj) {
@@ -797,7 +916,7 @@ void Renderer::drawSceneWithShader(const Shader &shader,
   const auto &[marbleMesh, marbles, numMarbles] =
       entities->GetDynamicEntities();
   for (int i = 0; i < numMarbles; i++) {
-    drawDynamicEntity(shader, marbles[i], marbleMesh, viewProj);
+    drawDynamicEntity(shader, marbles[i], marbleMesh);
   }
 }
 
@@ -866,7 +985,7 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
   const auto &[marbleMesh, marbles, numMarbles] =
       entities->GetDynamicEntities();
   for (int i = 0; i < numMarbles; i++) {
-    drawDynamicEntity(mMeshShader, marbles[i], marbleMesh, viewProj);
+    drawDynamicEntity(mMeshShader, marbles[i], marbleMesh);
   }
 
 #ifdef _DEBUG
@@ -874,6 +993,41 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
     drawMarbleGizmoLikeThing(marbles[i], viewProj);
   }
 #endif
+}
+
+void Renderer::drawReflections(const shared_ptr<Entities> &entities,
+                               ICamera &camera, mat4 &viewProj) {
+  // 反射・SSAOに使う位置マップを用意
+  glBindFramebuffer(GL_FRAMEBUFFER, mPositionFBO);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  drawSceneWithShader(mPositionShader, entities, viewProj);
+
+  // 反射・SSAOに使う法線マップを用意
+  glBindFramebuffer(GL_FRAMEBUFFER, mNormalMapFBO);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  drawSceneWithShader(mNormalMapShader, entities, viewProj);
+
+  // 反射シェーダを描画
+  glBindFramebuffer(GL_FRAMEBUFFER, mReflectionsFBO);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  mReflectionsShader.SetActive();
+  mReflectionsShader.SetVec3Uniform("cameraPos", camera.GetPosition());
+
+  // 位置を渡す
+  glActiveTexture(GL_TEXTURE4);
+  glBindTexture(GL_TEXTURE_2D, mPositionTexture);
+  // 法線マップを渡す
+  glActiveTexture(GL_TEXTURE5);
+  glBindTexture(GL_TEXTURE_2D, mNormalMapTexture);
+  glActiveTexture(GL_TEXTURE6);
+  glBindTexture(GL_TEXTURE_2D, mScreenTexture);
+
+  drawSceneWithShader(mReflectionsShader, entities, viewProj);
+
+  // TODO: ぼやけ効果を適用
 }
 
 void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
@@ -900,7 +1054,7 @@ void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
   drawSceneWithShader(mShadowMapShader, entities, lightViewProj);
   glDisable(GL_POLYGON_OFFSET_FILL);
 
-  // Draw the final scene, with shadow + bloom + contours
+  // Draw the final scene, with shadow + contours
   drawScene(entities, viewProj, lightTarget - lightPos, lightViewProj, near,
             far, camera);
 
@@ -932,13 +1086,20 @@ void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, mPingpongColorBuffer[!horizontal]);
     drawQuad(mApplyBloomShader, quadVAO, mScreenTexture);
+  }
+  GL_Leave2DMode();
 
+  drawReflections(entities, camera, viewProj);
+
+  // finally, draw HUD elements
+  GL_Enter2DMode();
+  {
     mTextShader.SetActive();
     const float textColor[3] = {1.0f, 1.0f, 1.0f};
     mTextShader.SetVec3Uniform("textColor", textColor);
 
     for (auto text : hudTextures) {
-      drawToHUD(quadVAO, text, mScreenTexture, textColor);
+      drawToHUD(quadVAO, text, mReflectionsColorBuffer, textColor);
     }
 
 #ifdef _DEBUG
@@ -953,7 +1114,7 @@ void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
 
     SDL_DestroySurface(coordinatesSurface);
 
-    drawToHUD(quadVAO, texture, mScreenTexture, textColor);
+    drawToHUD(quadVAO, texture, mReflectionsColorBuffer, textColor);
     // Prevent textures from flooding GPU mem
     glDeleteTextures(1, &texture);
 
@@ -965,7 +1126,7 @@ void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
 #endif
 
     if (mShowVictoryMessage)
-      drawToHUD(quadVAO, mVictoryTexture, mScreenTexture, textColor);
+      drawToHUD(quadVAO, mVictoryTexture, mReflectionsColorBuffer, textColor);
 
     glBindVertexArray(0);
 
@@ -976,7 +1137,7 @@ void Renderer::Draw3D(float deltaTime, const shared_ptr<Entities> &entities,
     glClear(GL_DEPTH_BUFFER_BIT);
     // draw the result of every other draw
     mPostShader.SetActive();
-    drawQuad(mPostShader, quadVAO, mScreenTexture);
+    drawQuad(mPostShader, quadVAO, mReflectionsColorBuffer);
   }
   GL_Leave2DMode();
 

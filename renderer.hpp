@@ -52,10 +52,24 @@ class Renderer {
   GLuint mPingpongColorBuffer[2];
   GLuint quadVAO, quadVBO;
 
+  // Used for reflections/SSAO
+  GLuint mPositionFBO;
+  GLuint mPositionTexture;
+  GLuint mPositionDepthBuffer;
+  GLuint mNormalMapFBO;
+  GLuint mNormalMapTexture;
+  GLuint mNormalMapDepthBuffer;
+  GLuint mReflectionsFBO;
+  GLuint mReflectionsColorBuffer;
+  GLuint mReflectionsDepthBuffer;
+
   GLuint mLoadingTexture;
   GLuint mVictoryTexture;
   GLuint mDepthMapTexture;
 
+  Shader mReflectionsShader;
+  Shader mPositionShader;
+  Shader mNormalMapShader;
   Shader mDebugShadowMapShader;
   Shader mDepthMapShader;
   Shader mShadowMapShader;
@@ -89,9 +103,15 @@ class Renderer {
   void drawSceneWithShader(const Shader &shader,
                            const shared_ptr<const Entities> &entities,
                            const mat4 &viewProj);
+  void drawSceneWithShaderAndTex(const Shader &shader, GLuint tex0,
+                                 const shared_ptr<const Entities> &entities,
+                                 const mat4 &viewProj);
   void drawScene(const shared_ptr<const Entities> &entities,
                  const mat4 &viewProj, const vec3 &lightDir,
-                 const mat4 &lightViewProj, float near, float far, ICamera &camera);
+                 const mat4 &lightViewProj, float near, float far,
+                 ICamera &camera);
+  void drawReflections(const shared_ptr<Entities> &entities, ICamera &camera,
+                       mat4 &viewProj);
   static void setupQuadVAO(GLuint &VAO, GLuint &VBO);
   static Shader GetShader(const char *vert, const char *frag);
   static void drawQuad(Shader &shader, GLuint VAO, GLuint texture);
@@ -99,6 +119,8 @@ class Renderer {
                               int readH, int drawW, int drawH);
   static void drawStaticEntity(const Shader &shader,
                                const StaticEntity &entity);
+  static void drawStaticEntityPlain(const Shader &shader,
+                                    const StaticEntity &entity);
 
   void drawMarbleGizmoLikeThing(const DynamicBody &marble,
                                 const mat4 &viewProj);
@@ -106,9 +128,15 @@ class Renderer {
   void drawPivotEntity(const Shader &shader, const PivotEntity &entity,
                        const mat4 &viewProj);
   void drawDynamicEntity(const Shader &shader, const DynamicBody &body,
-                         const Mesh &mesh, const mat4 &viewProj);
+                         const Mesh &mesh);
+  void drawDynamicEntityPlain(const Shader &shader, const DynamicBody &body,
+                              const Mesh &mesh);
+
+  static GLuint createDepthTexture(int width, int height);
+  static GLuint createDepthStencilRenderBuffer(int width, int height);
+  static GLuint createDepthRenderBuffer(int width, int height);
   static GLuint createColorAttachmentTexture(
-      int width, int height, int colorFormat,
+      int width, int height, int colorFormat, int valueFormat = GL_UNSIGNED_INT,
       int colorAttachmentNumber = GL_COLOR_ATTACHMENT0);
 
 public:

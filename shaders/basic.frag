@@ -1,4 +1,4 @@
-#version 430
+#version 330
 
 // Tex coord input from vertex shader
 in vec2 fragTexCoord;

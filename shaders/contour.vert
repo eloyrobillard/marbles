@@ -1,4 +1,4 @@
-#version 430
+#version 330
 
 out vec2 texCoords;
 

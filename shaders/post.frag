@@ -1,5 +1,5 @@
 // SOURCE: https://learnopengl.com/Advanced-OpenGL/Framebuffers
-#version 430
+#version 330
 
 out vec4 FragColor;
 

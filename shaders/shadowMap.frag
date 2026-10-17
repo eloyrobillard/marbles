@@ -1,5 +1,5 @@
-#version 430
+#version 330
 
-in vec4 fragPos;
+// Shadow map
 
 void main() {}

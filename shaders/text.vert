@@ -1,5 +1,5 @@
 // SOURCE: https://learnopengl.com/In-Practice/Text-Rendering
-#version 430
+#version 330
 layout(location = 0) in vec4 vertex;
 out vec2 TexCoords;
 

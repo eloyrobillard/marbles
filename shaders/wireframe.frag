@@ -1,7 +1,5 @@
-// Request GLSL 3.3
-#version 430
+#version 330
 
-// This corresponds to the output color to the color buffer
 out vec4 outColor;
 uniform vec3 tint;
 

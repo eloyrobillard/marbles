@@ -1,4 +1,4 @@
-#version 430
+#version 330
 
 out vec2 texCoords;
 
@@ -29,7 +29,7 @@ void main()
         fragPosLightSpaceStatic = pos * lightViewProjStatic;
         fragPosLightSpaceMarble = pos * lightViewProjMarble;
 
-        fragNormal = (vec4(inNormal, 0.0f) * transpose(inverse(uWorldTransform))).xyz;
+        fragNormal = inNormal * mat3(transpose(inverse(uWorldTransform)));
 
         pos = pos * viewProj;
 

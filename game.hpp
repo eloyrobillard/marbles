@@ -12,8 +12,8 @@ class Game {
 public:
   ICamera *camera;
 
-  void Init();
-  void Shutdown();
+  static void Init();
+  static void Shutdown();
   void Tick(float deltaTime);
   void MouseUp(
       int button) { /* implement if you want to detect mouse button presses */ }
@@ -53,6 +53,8 @@ public:
 
   // Use for pause/slowmo/fastmo
   float dtMultiplier = 1.f;
+  bool debugHeap = false;
+  bool gotOldHeap = false;
 
 private:
   std::bitset<SDL_SCANCODE_COUNT> keys; // store key states here
