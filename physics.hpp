@@ -36,9 +36,9 @@ public:
                  float min_z, float max_z, float step)
       : mMinX(min_x), mMaxX(max_x), mMinY(min_y), mMaxY(max_y), mMinZ(min_z),
         mMaxZ(max_z), mStep(step) {
-    mNumX = ceil((max_x - min_x) / step);
-    mNumY = ceil((max_y - min_y) / step);
-    mNumZ = ceil((max_z - min_z) / step);
+    mNumX = (i32)ceil((max_x - min_x) / step);
+    mNumY = (i32)ceil((max_y - min_y) / step);
+    mNumZ = (i32)ceil((max_z - min_z) / step);
 
     mPartition = vector<vector<TriangleCollider<T> *>>(mNumX * mNumY * mNumZ);
   }
@@ -48,9 +48,9 @@ public:
                  const vector<TriangleCollider<T> *> &v)
       : mMinX(min_x), mMaxX(max_x), mMinY(min_y), mMaxY(max_y), mMinZ(min_z),
         mMaxZ(max_z), mStep(step) {
-    mNumX = ceil((max_x - min_x) / step);
-    mNumY = ceil((max_y - min_y) / step);
-    mNumZ = ceil((max_z - min_z) / step);
+    mNumX = (i32)ceil((max_x - min_x) / step);
+    mNumY = (i32)ceil((max_y - min_y) / step);
+    mNumZ = (i32)ceil((max_z - min_z) / step);
 
     mPartition = vector<vector<TriangleCollider<T> *>>(mNumX * mNumY * mNumZ);
 

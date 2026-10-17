@@ -15,10 +15,12 @@ public:
   static void Init();
   static void Shutdown();
   void Tick(float deltaTime);
-  void MouseUp(
-      int button) { /* implement if you want to detect mouse button presses */ }
+  void MouseUp([[maybe_unused]] int button) { /* implement if you want to detect
+                                                 mouse button presses */
+  }
   void MouseDown(
-      int button) { /* implement if you want to detect mouse button presses */ }
+      [[maybe_unused]] int
+          button) { /* implement if you want to detect mouse button presses */ }
   void MouseMove(float x, float y) { mouseRelativeX = x, mouseRelativeY = y; }
   void KeyUp(SDL_Scancode key) { released.set(key); }
   void KeyDown(SDL_Scancode key) { pressed.set(key); }

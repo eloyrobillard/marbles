@@ -8,14 +8,10 @@ using Maths::mat4;
 using Maths::vec3;
 using Maths::vec4;
 
+tuple<GLuint, GLuint, GLuint> createVertexArray(const float *, uint,
+                                                const uint *, uint, size_t);
 tuple<GLuint, GLuint, GLuint>
-createVertexArray(const float *verts, uint numVerts, const uint *indices,
-                  uint numIndices, size_t vertSize);
-tuple<GLuint, GLuint, GLuint> createVertexArrayVertsOnly(const float *verts,
-                                                         uint numVerts,
-                                                         const uint *indices,
-                                                         uint numIndices,
-                                                         size_t vertSize);
+createVertexArrayVertsOnly(const float *, uint, const uint *, uint, size_t);
 
 class Mesh {
   vector<float> verts;
@@ -55,15 +51,15 @@ public:
       vec3 average_normal = (n0 + n1 + n2) * (1.0f / 3.0f);
       average_normal.normalize();
 
-      float verts[9] = {a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z};
-      uint indices[3] = {0, 1, 2};
+      float vrts[9] = {a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z};
+      uint ids[3] = {0, 1, 2};
 
-      auto [vertexBuffer, indexBuffer, vertexArray] =
-          createVertexArrayVertsOnly(verts, 3, indices, 3,
+      auto [vertBuffer, idxBuffer, vertArray] =
+          createVertexArrayVertsOnly(vrts, 3, ids, 3,
                                      3 /* Position only */);
 
-      triangles.emplace_back(average_normal, a, b, c, body, vertexBuffer,
-                             indexBuffer, vertexArray);
+      triangles.emplace_back(average_normal, a, b, c, body, vertBuffer,
+                             idxBuffer, vertArray);
     }
 
     return triangles;

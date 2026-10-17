@@ -80,7 +80,7 @@ struct AudioMachine {
     SDL_SetAudioStreamGain(backtrackStream, 0.15f);
 
     if (!SDL_PutAudioStreamData(backtrackStream, backtrackBuffer,
-                                backtrackLength)) {
+                                (i32)backtrackLength)) {
       SDL_Log("Error: Failed to put audio in the stream: %s", SDL_GetError());
     }
 
@@ -95,7 +95,7 @@ struct AudioMachine {
 
     SDL_SetAudioStreamGain(oneOffStream, log10f(collisionStrength));
 
-    if (!SDL_PutAudioStreamData(oneOffStream, oneOffBuffer, oneOffLength)) {
+    if (!SDL_PutAudioStreamData(oneOffStream, oneOffBuffer, (i32)oneOffLength)) {
       SDL_Log("Error: Failed to put audio in the stream: %s", SDL_GetError());
     }
 
@@ -107,8 +107,8 @@ struct AudioMachine {
 
     SDL_SetAudioStreamFrequencyRatio(rollStream, log10f(onryo + 1.f));
 
-    if (queuedBytes < rollLength) {
-      if (!SDL_PutAudioStreamData(rollStream, rollBuffer, rollLength)) {
+    if ((u32)queuedBytes < rollLength) {
+      if (!SDL_PutAudioStreamData(rollStream, rollBuffer, (i32)rollLength)) {
         SDL_Log("Error: Failed to put audio in the stream: %s", SDL_GetError());
       }
 
