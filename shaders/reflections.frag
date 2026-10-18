@@ -6,7 +6,7 @@ in vec3 fragWorldPos;
 
 out vec4 outColor;
 
-uniform sampler2D posTex;
+uniform sampler2D depthTex;
 uniform sampler2D normalTex;
 uniform sampler2D colorTex;
 uniform vec3 cameraPos;
@@ -14,7 +14,7 @@ uniform vec3 cameraPos;
 uniform mat4 uViewProj;
 
 void main() {
-  vec4 pos = texture(posTex, texCoords);
+  vec4 depth = texture(depthTex, texCoords);
   vec4 normal = texture(normalTex, texCoords);
   vec4 color = texture(colorTex, texCoords);
 
@@ -33,11 +33,14 @@ void main() {
   }
 
   // Camera to fragment position
-  vec3 toPos = pos.xyz - cameraPos;
+  vec3 pos = normalize(vec3(texCoords.xy, depth));
+  vec3 toPos = pos - cameraPos;
   if (dot(toPos, toPos) > 100.f) {
     outColor = color;
     return;
   }
+
+  vec4 pos4 = vec4(pos.xyz, 1.f);
 
   toPos = normalize(toPos);
 
@@ -48,25 +51,25 @@ void main() {
 
   for (float d = 0.01f; d <= maxDist; d += step) {
     // ray march
-    vec4 curPos = (pos + d * reflectedDir);
+    vec4 curPos = (pos4 + d * reflectedDir);
     vec4 curPosProj = curPos * uViewProj;
     vec2 uv = curPosProj.xy / (curPosProj.w * 2.f) + 0.5f;
 
     if (uv.x > 1 || uv.y > 1 || uv.x < 0 || uv.y < 0)
       break;
 
-    vec3 posAtUV = texture(posTex, uv).xyz;
+    float depthAtUV = texture(depthTex, uv).r;
 
-    if (curPosProj.z > posAtUV.z) {
-    // if (0.000001f < res && res <= 0.5f) {
+    if (curPosProj.z > depthAtUV) {
+      // if (0.000001f < res && res <= 0.5f) {
       // gone through something!
       // FIX: 衝突判定の精度を上げよ！
 
       outColor = texture(colorTex, uv);
       break;
-    // } else if (res > 0.5f) {
-    //   outColor = color;
-    //   break;
+      // } else if (res > 0.5f) {
+      //   outColor = color;
+      //   break;
     }
   }
 }

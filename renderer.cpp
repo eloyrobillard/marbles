@@ -1003,7 +1003,7 @@ void Renderer::drawReflections(const shared_ptr<Entities> &entities,
   mReflectionsShader.SetActive();
   mReflectionsShader.SetVec3Uniform("cameraPos", camera.GetPosition());
 
-  // 位置を渡す
+  // 深度マップを渡す
   glActiveTexture(GL_TEXTURE4);
   glBindTexture(GL_TEXTURE_2D, mDepthMapTexture);
   // 法線マップを渡す
