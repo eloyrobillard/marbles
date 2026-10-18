@@ -705,20 +705,6 @@ void configureShadowMap(GLuint *fbo, GLuint &texture, int width, int height) {
 bool Renderer::setupFramebuffers() {
   setupQuadVAO(quadVAO, quadVBO);
 
-  // positions
-  glGenFramebuffers(1, &mPositionFBO);
-  glBindFramebuffer(GL_FRAMEBUFFER, mPositionFBO);
-  mPositionTexture = createColorAttachmentTexture(mScreenWidth, mScreenHeight,
-                                                  GL_RGBA16F, GL_FLOAT);
-  mPositionDepthBuffer = createDepthRenderBuffer(mScreenWidth, mScreenHeight);
-
-  // normal map
-  glGenFramebuffers(1, &mNormalMapFBO);
-  glBindFramebuffer(GL_FRAMEBUFFER, mNormalMapFBO);
-  mNormalMapTexture = createColorAttachmentTexture(mScreenWidth, mScreenHeight,
-                                                   GL_RGBA16F, GL_FLOAT);
-  mNormalMapDepthBuffer = createDepthRenderBuffer(mScreenWidth, mScreenHeight);
-
   // framebuffer to be used when rendering reflections
   glGenFramebuffers(1, &mReflectionsFBO);
   glBindFramebuffer(GL_FRAMEBUFFER, mReflectionsFBO);
@@ -731,9 +717,21 @@ bool Renderer::setupFramebuffers() {
   glGenFramebuffers(1, &mDepthMapFBO);
   glBindFramebuffer(GL_FRAMEBUFFER, mDepthMapFBO);
 
+  // Tell OpenGL it can use attachment 0 and 1
+  unsigned int attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+  glDrawBuffers(2, attachments);
+
   mDepthMapTexture = createDepthTexture(mScreenWidth, mScreenHeight);
-  glDrawBuffer(GL_NONE);
-  glReadBuffer(GL_NONE);
+  mNormalMapTexture =
+      createColorAttachmentTexture(mScreenWidth, mScreenHeight, GL_RGBA16F,
+                                   GL_FLOAT, GL_COLOR_ATTACHMENT0);
+  mAlbedoTexture =
+      createColorAttachmentTexture(mScreenWidth, mScreenHeight, GL_RGB,
+                                   GL_FLOAT, GL_COLOR_ATTACHMENT1);
+
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    cout << "ERROR::FRAMEBUFFER:: Depth/Normal/Albedo framebuffer is not "
+            "complete !\n";
 
   // framebuffer to be reused while rendering entity outlines
   glGenFramebuffers(1, &mContourFBO);
@@ -750,9 +748,7 @@ bool Renderer::setupFramebuffers() {
 
   configureMultiSampledAntiAliasing();
 
-  // Tell OpenGL it can use attachment 0 and 1
-  unsigned int attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-  glDrawBuffers(2, attachments);
+  // glDrawBuffers(2, attachments);
 
   // configure second post-processing framebuffer
   glGenFramebuffers(1, &mIntermediateFBO);
@@ -1000,18 +996,6 @@ void Renderer::drawScene(const shared_ptr<const Entities> &entities,
 
 void Renderer::drawReflections(const shared_ptr<Entities> &entities,
                                ICamera &camera, mat4 &viewProj) {
-  // 反射・SSAOに使う位置マップを用意
-  glBindFramebuffer(GL_FRAMEBUFFER, mPositionFBO);
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  drawSceneWithShader(mPositionShader, entities, viewProj);
-
-  // 反射・SSAOに使う法線マップを用意
-  glBindFramebuffer(GL_FRAMEBUFFER, mNormalMapFBO);
-  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  drawSceneWithShader(mNormalMapShader, entities, viewProj);
-
   // 反射シェーダを描画
   glBindFramebuffer(GL_FRAMEBUFFER, mReflectionsFBO);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -1021,7 +1005,7 @@ void Renderer::drawReflections(const shared_ptr<Entities> &entities,
 
   // 位置を渡す
   glActiveTexture(GL_TEXTURE4);
-  glBindTexture(GL_TEXTURE_2D, mPositionTexture);
+  glBindTexture(GL_TEXTURE_2D, mDepthMapTexture);
   // 法線マップを渡す
   glActiveTexture(GL_TEXTURE5);
   glBindTexture(GL_TEXTURE_2D, mNormalMapTexture);

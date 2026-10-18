@@ -53,12 +53,8 @@ class Renderer {
   GLuint quadVAO = 0, quadVBO = 0;
 
   // Used for reflections/SSAO
-  GLuint mPositionFBO = 0;
-  GLuint mPositionTexture = 0;
-  GLuint mPositionDepthBuffer = 0;
-  GLuint mNormalMapFBO = 0;
   GLuint mNormalMapTexture = 0;
-  GLuint mNormalMapDepthBuffer = 0;
+  GLuint mAlbedoTexture = 0;
   GLuint mReflectionsFBO = 0;
   GLuint mReflectionsColorBuffer = 0;
   GLuint mReflectionsDepthBuffer = 0;
